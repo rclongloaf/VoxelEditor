@@ -87,6 +87,7 @@ public class EditorRepository
         var image = File.ReadAllBytes(path);
 
         var texture = new Texture2D(2, 2);
+        texture.filterMode = FilterMode.Point;
         texture.LoadImage(image);
 
         return texture;

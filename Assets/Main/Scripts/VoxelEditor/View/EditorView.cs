@@ -24,6 +24,8 @@ public class EditorView : MonoBehaviour,
     private UIDocument spriteImportUIDocument = null!;
     [SerializeField]
     private GameObject voxelPrefab = null!;
+    [SerializeField]
+    private Material voxelMaterial = null!;
     
     private EditorFeature feature = null!;
     private EditorState currentState = null!;
@@ -41,7 +43,7 @@ public class EditorView : MonoBehaviour,
         editorUIHolder = new EditorUIHolder(editorUIDocument, this);
         spriteImportUIHolder = new SpriteImportUIHolder(spriteImportUIDocument, this);
         spriteImportUIHolder.SetVisibility(false);
-        voxelsHolder = new EditorVoxelsHolder(voxelPrefab);
+        voxelsHolder = new EditorVoxelsHolder(voxelPrefab, voxelMaterial);
     }
 
     private void Update()
@@ -182,18 +184,30 @@ public class EditorView : MonoBehaviour,
     private void ApplyLoadedState(EditorState.Loaded state)
     {
         if (currentState == state) return;
-        currentState = state;
         
         editorUIHolder.SetVisibility(true);
         spriteImportUIHolder.SetVisibility(false);
 
         voxelsHolder.ApplyVoxels(state.voxels);
         
+        if (currentState is not EditorState.Loaded curLoaded2
+            || curLoaded2.texture != state.texture)
+        {
+            voxelsHolder.ApplyTexture(state.texture);
+        }
+        if (currentState is not EditorState.Loaded curLoaded1
+            || curLoaded1.spriteRectData != state.spriteRectData)
+        {
+            voxelsHolder.ApplySpriteRect(state.spriteRectData);
+        }
+
         freeCameraTransform.position = state.freeCameraData.pivotPoint
                                        + state.freeCameraData.rotation * new Vector3(0, 0, -state.freeCameraData.distance);
         freeCameraTransform.rotation = state.freeCameraData.rotation;
         
         isometricCameraTransform.position = state.isometricCameraData.position;
+        
+        currentState = state;
     }
 
     private void ApplySpriteSelectingState(EditorState.SpriteSelecting state)

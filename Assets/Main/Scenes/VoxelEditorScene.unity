@@ -393,6 +393,7 @@ MonoBehaviour:
   editorUIDocument: {fileID: 1290982101}
   spriteImportUIDocument: {fileID: 1473038158}
   voxelPrefab: {fileID: 8622685034137561026, guid: bbcaf088f17267d46a7d86c03f13ef6f, type: 3}
+  voxelMaterial: {fileID: 2100000, guid: a372a83fa37d4c3eb4eeb85eb800881f, type: 2}
 --- !u!1 &1290982100
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,17 +1,27 @@
 ﻿using System.Collections.Generic;
+using Main.Scripts.VoxelEditor.State;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor.Voxels
 {
 public class EditorVoxelsHolder
 {
+    private static readonly int SpriteTexture = Shader.PropertyToID("_SpriteTexture");
+    private static readonly int TextureSize = Shader.PropertyToID("_TextureSize");
+    private static readonly int SpriteRectPosition = Shader.PropertyToID("_SpriteRectPosition");
+    
     private GameObject voxelPrefab;
+    private Material material;
+    private Texture2D? texture;
+    private SpriteRectData? spriteRectData;
 
     private Dictionary<Vector3Int, GameObject> currentVoxels = new();
 
-    public EditorVoxelsHolder(GameObject voxelPrefab)
+    public EditorVoxelsHolder(GameObject voxelPrefab, Material voxelMaterial)
     {
         this.voxelPrefab = voxelPrefab;
+        material = voxelMaterial;
     }
 
     public void ApplyVoxels(HashSet<Vector3Int> voxels)
@@ -40,6 +50,36 @@ public class EditorVoxelsHolder
         }
     }
 
+    public void ApplySpriteRect(SpriteRectData spriteRectData)
+    {
+        this.spriteRectData = spriteRectData;
+        if (texture != null)
+        {
+            var width = texture.width / spriteRectData.columnsCount;
+            var height = texture.height / spriteRectData.rowsCount;
+            
+            var rectPosition = new Vector2(
+                spriteRectData.columnIndex * width,
+                (spriteRectData.rowsCount - spriteRectData.rowIndex - 1) * height
+            );
+            material.SetVector(SpriteRectPosition, rectPosition);
+        }
+    }
+
+    public void ApplyTexture(Texture2D? texture)
+    {
+        this.texture = texture;
+        material.SetTexture(SpriteTexture, texture);
+        if (texture != null)
+        {
+            material.SetVector(TextureSize, texture.Size());
+            if (spriteRectData != null)
+            {
+                ApplySpriteRect(spriteRectData);
+            }
+        }
+    }
+
     private void AddVoxel(Vector3Int position)
     {
         if (currentVoxels.ContainsKey(position))
@@ -50,6 +90,8 @@ public class EditorVoxelsHolder
         var voxel = Object.Instantiate(voxelPrefab);
 
         currentVoxels.Add(position, voxel);
+        var meshRenderer = voxel.GetComponentInChildren<MeshRenderer>();
+        meshRenderer.sharedMaterial = material;
 
         voxel.transform.position = Vector3.one * 0.5f + position;
     }
