@@ -21,6 +21,7 @@ public class EditorReducer
         var newState = patch switch
         {
             EditorPatch.FileBrowser fileBrowserPatch => ApplyFileBrowserPatch(fileBrowserPatch),
+            EditorPatch.Import importPatch => ApplyImportPatch(importPatch),
             EditorPatch.VoxLoaded voxLoadedPatch => ApplyVoxLoadedPatch(voxLoadedPatch),
             EditorPatch.Control controlPatch => ApplyControlPatch(controlPatch),
             EditorPatch.VoxelsChanges voxelsChanges => ApplyVoxelsChangesPatch(voxelsChanges),
@@ -40,27 +41,49 @@ public class EditorReducer
         );
     }
 
+    private EditorState ApplyImportPatch(EditorPatch.Import patch)
+    {
+        switch (patch)
+        {
+            case EditorPatch.Import.TextureSelected textureSelected:
+                return new EditorState.SpriteSelecting(
+                    texture: textureSelected.texture,
+                    isFileBrowserOpened: false
+                );
+                break;
+            case EditorPatch.Import.Cancel cancel:
+                return new EditorState.WaitingForProject(false);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(patch));
+        }
+    }
+
     private EditorState ApplyVoxLoadedPatch(EditorPatch.VoxLoaded patch)
     {
-        return state switch
+        var texture = state switch
         {
-            EditorState.WaitingForProject => new EditorState.Loaded(
-                voxels: patch.voxels,
-                brushType: BrushType.Add,
-                freeCameraData: new FreeCameraData(
-                    pivotPoint: new Vector3(14, 18, 0),
-                    distance: 30,
-                    rotation: default
-                ),
-                isometricCameraData: new IsometricCameraData(default),
-                cameraType: CameraType.Free,
-                isFileBrowserOpened: false,
-                controlState: ControlState.None
-            ),
-            EditorState.Loaded loadedState => loadedState.Copy(
-                voxels: patch.voxels
-            )
+            EditorState.Loaded loaded => loaded.texture,
+            EditorState.SpriteSelecting spriteSelecting => spriteSelecting.texture,
+            EditorState.WaitingForProject waitingForProject => null,
+            _ => throw new ArgumentOutOfRangeException(nameof(state))
         };
+        
+        return new EditorState.Loaded(
+            voxels: patch.voxData.voxels,
+            spriteRectData: patch.voxData.spriteRectData,
+            texture: texture,
+            brushType: BrushType.Add,
+            freeCameraData: new FreeCameraData(
+                pivotPoint: new Vector3(14, 18, 0),
+                distance: 30,
+                rotation: default
+            ),
+            isometricCameraData: new IsometricCameraData(default),
+            cameraType: CameraType.Free,
+            controlState: ControlState.None,
+            isFileBrowserOpened: false
+        );
     }
 
     private EditorState ApplyControlPatch(EditorPatch.Control patch)

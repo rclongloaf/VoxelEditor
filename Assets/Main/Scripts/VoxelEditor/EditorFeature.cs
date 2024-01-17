@@ -9,7 +9,7 @@ namespace Main.Scripts.VoxelEditor
 {
     public class EditorFeature
     {
-        internal EditorState state = new EditorState.WaitingForProject();
+        internal EditorState state = new EditorState.WaitingForProject(false);
         private EditorView view;
 
         private EditorReducer reducer;
@@ -20,6 +20,7 @@ namespace Main.Scripts.VoxelEditor
         private ExportActionDelegate exportActionDelegate;
         private BrushActionDelegate brushActionDelegate;
         private InputActionDelegate inputActionDelegate;
+        private SpriteSettingsActionDelegate spriteSettingsActionDelegate;
 
         public EditorFeature(EditorView view, EditorEventsConsumer eventsConsumer)
         {
@@ -28,11 +29,12 @@ namespace Main.Scripts.VoxelEditor
             reducer = new EditorReducer(this);
             var repository = new EditorRepository();
             loadVoxActionDelegate = new LoadVoxActionDelegate(this, reducer, repository, eventsConsumer);
-            saveVoxActionDelegate = new SaveVoxActionDelegate(this, reducer, eventsConsumer);
-            importActionDelegate = new ImportActionDelegate(this, reducer, eventsConsumer);
+            saveVoxActionDelegate = new SaveVoxActionDelegate(this, reducer, repository, eventsConsumer);
+            importActionDelegate = new ImportActionDelegate(this, reducer, repository, eventsConsumer);
             exportActionDelegate = new ExportActionDelegate(this, reducer, eventsConsumer);
             brushActionDelegate = new BrushActionDelegate(this, reducer);
             inputActionDelegate = new InputActionDelegate(this, reducer);
+            spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
         }
 
         public void ApplyAction(EditorAction action)
@@ -44,6 +46,9 @@ namespace Main.Scripts.VoxelEditor
                     break;
                 case EditorAction.SaveVox saveVoxAction:
                     saveVoxActionDelegate.ApplyAction(state, saveVoxAction);
+                    break;
+                case EditorAction.SpriteSettings spriteSettings:
+                    spriteSettingsActionDelegate.ApplyAction(state, spriteSettings);
                     break;
                 case EditorAction.Import importAction:
                     importActionDelegate.ApplyAction(state, importAction);

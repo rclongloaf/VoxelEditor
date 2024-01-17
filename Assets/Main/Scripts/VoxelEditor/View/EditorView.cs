@@ -11,20 +11,26 @@ namespace Main.Scripts.VoxelEditor.View
 {
 public class EditorView : MonoBehaviour,
     EditorEventsConsumer,
-    EditorUIHolder.Listener
+    EditorUIHolder.Listener,
+    SpriteImportUIHolder.Listener
 {
     [SerializeField]
     private Transform freeCameraTransform = null!;
     [SerializeField]
     private Transform isometricCameraTransform = null!;
     [SerializeField]
-    private UIDocument uiDocument = null!;
+    private UIDocument editorUIDocument = null!;
+    [SerializeField]
+    private UIDocument spriteImportUIDocument = null!;
     [SerializeField]
     private GameObject voxelPrefab = null!;
     
     private EditorFeature feature = null!;
     private EditorState currentState = null!;
     private EditorVoxelsHolder voxelsHolder = null!;
+    private EditorUIHolder editorUIHolder = null!;
+    private SpriteImportUIHolder spriteImportUIHolder = null!;
+    
     private HashSet<KeyCode> pressedKeys = new();
     private HashSet<KeyCode> newPressedKeys = new();
     
@@ -32,7 +38,9 @@ public class EditorView : MonoBehaviour,
     {
         feature = new EditorFeature(this, this);
         currentState = feature.state;
-        var editorUIHolder = new EditorUIHolder(uiDocument, this);
+        editorUIHolder = new EditorUIHolder(editorUIDocument, this);
+        spriteImportUIHolder = new SpriteImportUIHolder(spriteImportUIDocument, this);
+        spriteImportUIHolder.SetVisibility(false);
         voxelsHolder = new EditorVoxelsHolder(voxelPrefab);
     }
 
@@ -103,8 +111,12 @@ public class EditorView : MonoBehaviour,
             case EditorState.Loaded loadedState:
                 ApplyLoadedState(loadedState);
                 break;
+            case EditorState.SpriteSelecting spriteSelectingState:
+                ApplySpriteSelectingState(spriteSelectingState);
+                break;
             case EditorState.WaitingForProject:
-                //init state
+                editorUIHolder.SetVisibility(true);
+                spriteImportUIHolder.SetVisibility(false);
                 break;
         }
     }
@@ -116,6 +128,7 @@ public class EditorView : MonoBehaviour,
             case EditorEvent.OpenBrowserForExport openBrowserForExport:
                 break;
             case EditorEvent.OpenBrowserForImport openBrowserForImport:
+                ImportTexture();
                 break;
             case EditorEvent.OpenBrowserForLoadVox openBrowserForLoadVox:
                 LoadVoxFile();
@@ -125,7 +138,16 @@ public class EditorView : MonoBehaviour,
                 break;
         }
     }
-    
+
+    public void OnApplyImportSettings(SpriteRectData spriteRectData)
+    {
+        feature.ApplyAction(new EditorAction.SpriteSettings.Selected(spriteRectData));
+    }
+
+    public void OnCancel()
+    {
+        feature.ApplyAction(new EditorAction.SpriteSettings.Canceled());
+    }
     
     public void OnLoadClicked()
     {
@@ -161,6 +183,9 @@ public class EditorView : MonoBehaviour,
     {
         if (currentState == state) return;
         currentState = state;
+        
+        editorUIHolder.SetVisibility(true);
+        spriteImportUIHolder.SetVisibility(false);
 
         voxelsHolder.ApplyVoxels(state.voxels);
         
@@ -169,6 +194,35 @@ public class EditorView : MonoBehaviour,
         freeCameraTransform.rotation = state.freeCameraData.rotation;
         
         isometricCameraTransform.position = state.isometricCameraData.position;
+    }
+
+    private void ApplySpriteSelectingState(EditorState.SpriteSelecting state)
+    {
+        editorUIHolder.SetVisibility(false);
+        spriteImportUIHolder.SetVisibility(true);
+    }
+
+    private void ImportTexture()
+    {
+        FileBrowser.ShowLoadDialog(
+            onSuccess: OnImportTextureSuccess,
+            onCancel: OnImportTextureCancel,
+            pickMode: FileBrowser.PickMode.Files,
+            allowMultiSelection: false,
+            initialPath: Application.persistentDataPath,
+            title: "Import",
+            loadButtonText: "Select"
+        );
+    }
+
+    private void OnImportTextureSuccess(string[] paths)
+    {
+        feature.ApplyAction(new EditorAction.Import.OnFileSelected(paths[0]));
+    }
+
+    private void OnImportTextureCancel()
+    {
+        feature.ApplyAction(new EditorAction.Import.OnCanceled());
     }
     
     private void LoadVoxFile()

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.UIElements;
 
 namespace Main.Scripts.Utils
 {
@@ -14,6 +15,11 @@ public static class Extensions
     {
         set.Remove(value);
         return set;
+    }
+    
+    public static void SetVisibility(this VisualElement view, bool isVisible)
+    {
+        view.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
     }
 }
 }

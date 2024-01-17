@@ -47,9 +47,10 @@ public class LoadVoxActionDelegate : ActionDelegate<EditorAction.LoadVox>
     {
         reducer.ApplyPatch(new EditorPatch.FileBrowser.Closed());
 
-        if (repository.LoadVoxFile(action.path, out var voxels))
+        var voxData = repository.LoadVoxFile(action.path);
+        if (voxData != null)
         {
-            reducer.ApplyPatch(new EditorPatch.VoxLoaded(voxels));
+            reducer.ApplyPatch(new EditorPatch.VoxLoaded(voxData));
         }
     }
 

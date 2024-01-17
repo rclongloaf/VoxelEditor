@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Main.Scripts.VoxelEditor.State;
+﻿using Main.Scripts.VoxelEditor.State;
 using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor
@@ -11,14 +10,29 @@ public interface EditorPatch
         public class Opened : FileBrowser { }
         public class Closed : FileBrowser { }
     }
-    
+
+    public interface Import : EditorPatch
+    {
+        public class TextureSelected : Import
+        {
+            public readonly Texture2D texture;
+
+            public TextureSelected(Texture2D texture)
+            {
+                this.texture = texture;
+            }
+        }
+
+        public class Cancel : Import { }
+    }
+
     public class VoxLoaded : EditorPatch
     {
-        public readonly HashSet<Vector3Int> voxels;
+        public readonly VoxData voxData;
 
-        public VoxLoaded(HashSet<Vector3Int> voxels)
+        public VoxLoaded(VoxData voxData)
         {
-            this.voxels = voxels;
+            this.voxData = voxData;
         }
     }
 

@@ -1,13 +1,15 @@
-﻿using UnityEngine.UIElements;
+﻿using Main.Scripts.Utils;
+using UnityEngine.UIElements;
 
 namespace Main.Scripts.VoxelEditor.View
 {
 public class EditorUIHolder
 {
-
+    private VisualElement root;
+    
     public EditorUIHolder(UIDocument doc, Listener listener)
     {
-        var root = doc.rootVisualElement;
+        root = doc.rootVisualElement;
         var loadBtn = root.Q<Button>("LoadBtn");
         var saveBtn = root.Q<Button>("SaveBtn");
         var importBtn = root.Q<Button>("ImportBtn");
@@ -21,6 +23,11 @@ public class EditorUIHolder
         exportBtn.clicked += listener.OnExportClicked;
         brushAddBtn.clicked += listener.OnBrushAddClicked;
         brushDeleteBtn.clicked += listener.OnBrushDeleteClicked;
+    }
+
+    public void SetVisibility(bool visible)
+    {
+        root.SetVisibility(visible);
     }
 
     public interface Listener

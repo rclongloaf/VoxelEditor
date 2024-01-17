@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Main.Scripts.VoxelEditor.State;
+using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor
 {
@@ -20,6 +21,24 @@ public interface EditorAction
 
         public class OnCanceled : Import { }
     }
+
+    public interface SpriteSettings : EditorAction
+    {
+        public class Selected : SpriteSettings
+        {
+            public readonly SpriteRectData spriteRectData;
+
+            public Selected(
+                SpriteRectData spriteRectData
+            )
+            {
+                this.spriteRectData = spriteRectData;
+            }
+        }
+
+        public class Canceled : SpriteSettings { }
+    }
+    
 
     public interface Export : EditorAction
     {
