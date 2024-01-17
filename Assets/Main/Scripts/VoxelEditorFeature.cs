@@ -4,14 +4,14 @@ using System.IO;
 using Main.Scripts.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SimpleFileBrowser;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
-using SimpleFileBrowser;
 
-namespace Main.VoxelEditor
+namespace Main.Scripts
 {
-public class VoxelEditor : MonoBehaviour
+public class VoxelEditorFeature : MonoBehaviour
 {
     private static readonly int PixelsPerUnit = Shader.PropertyToID("_PixelsPerUnit");
     private static readonly int SpriteTexture = Shader.PropertyToID("_SpriteTexture");
