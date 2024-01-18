@@ -47,7 +47,7 @@ public class ImportActionDelegate : ActionDelegate<EditorAction.Import>
 
     private void OnFileSelected(EditorAction.Import.OnFileSelected action)
     {
-        var texture = repository.ImportTexture(action.path);
+        var texture = repository.LoadTexture(action.path);
         if (texture != null)
         {
             reducer.ApplyPatch(new EditorPatch.Import.TextureSelected(texture));

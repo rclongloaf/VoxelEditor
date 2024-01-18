@@ -36,6 +36,16 @@ public interface EditorPatch
         }
     }
 
+    public class TextureLoaded : EditorPatch
+    {
+        public readonly Texture2D texture;
+
+        public TextureLoaded(Texture2D texture)
+        {
+            this.texture = texture;
+        }
+    }
+
     public interface VoxelsChanges : EditorPatch
     {
         public class Add : VoxelsChanges

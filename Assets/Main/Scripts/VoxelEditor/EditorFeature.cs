@@ -15,6 +15,7 @@ namespace Main.Scripts.VoxelEditor
         private EditorReducer reducer;
 
         private LoadVoxActionDelegate loadVoxActionDelegate;
+        private LoadTextureActionDelegate loadTextureActionDelegate;
         private SaveVoxActionDelegate saveVoxActionDelegate;
         private ImportActionDelegate importActionDelegate;
         private ExportActionDelegate exportActionDelegate;
@@ -29,6 +30,7 @@ namespace Main.Scripts.VoxelEditor
             reducer = new EditorReducer(this);
             var repository = new EditorRepository();
             loadVoxActionDelegate = new LoadVoxActionDelegate(this, reducer, repository, eventsConsumer);
+            loadTextureActionDelegate = new LoadTextureActionDelegate(this, reducer, repository, eventsConsumer);
             saveVoxActionDelegate = new SaveVoxActionDelegate(this, reducer, repository, eventsConsumer);
             importActionDelegate = new ImportActionDelegate(this, reducer, repository, eventsConsumer);
             exportActionDelegate = new ExportActionDelegate(this, reducer, eventsConsumer);
@@ -43,6 +45,9 @@ namespace Main.Scripts.VoxelEditor
             {
                 case EditorAction.LoadVox loadVoxAction:
                     loadVoxActionDelegate.ApplyAction(state, loadVoxAction);
+                    break;
+                case EditorAction.LoadTexture loadTextureAction:
+                    loadTextureActionDelegate.ApplyAction(state, loadTextureAction);
                     break;
                 case EditorAction.SaveVox saveVoxAction:
                     saveVoxActionDelegate.ApplyAction(state, saveVoxAction);

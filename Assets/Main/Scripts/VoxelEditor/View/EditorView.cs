@@ -135,6 +135,9 @@ public class EditorView : MonoBehaviour,
             case EditorEvent.OpenBrowserForLoadVox openBrowserForLoadVox:
                 LoadVoxFile();
                 break;
+            case EditorEvent.OpenBrowserForLoadTexture openBrowserForLoadTexture:
+                LoadTexture();
+                break;
             case EditorEvent.OpenBrowserForSaveVox openBrowserForSaveVox:
                 SaveVoxFile();
                 break;
@@ -151,12 +154,17 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.SpriteSettings.Canceled());
     }
     
-    public void OnLoadClicked()
+    public void OnLoadVoxClicked()
     {
         feature.ApplyAction(new EditorAction.LoadVox.OnLoadClicked());
     }
 
-    public void OnSaveClicked()
+    public void OnLoadTextureClicked()
+    {
+        feature.ApplyAction(new EditorAction.LoadTexture.OnLoadClicked());
+    }
+
+    public void OnSaveVoxClicked()
     {
         feature.ApplyAction(new EditorAction.SaveVox.OnSaveClicked());
     }
@@ -260,6 +268,29 @@ public class EditorView : MonoBehaviour,
     private void OnLoadVoxCancel()
     {
         feature.ApplyAction(new EditorAction.LoadVox.OnCanceled());
+    }
+
+    private void LoadTexture()
+    {
+        FileBrowser.ShowLoadDialog(
+            onSuccess: OnLoadTextureSuccess,
+            onCancel: OnLoadVoxCancel,
+            pickMode: FileBrowser.PickMode.Files,
+            allowMultiSelection: false,
+            initialPath: Application.persistentDataPath,
+            title: "Load",
+            loadButtonText: "Select"
+        );
+    }
+
+    private void OnLoadTextureSuccess(string[] paths)
+    {
+        feature.ApplyAction(new EditorAction.LoadTexture.OnPathSelected(paths[0]));
+    }
+
+    private void OnLoadTextureCancel()
+    {
+        feature.ApplyAction(new EditorAction.LoadTexture.OnCancel());
     }
 
     private void SaveVoxFile()

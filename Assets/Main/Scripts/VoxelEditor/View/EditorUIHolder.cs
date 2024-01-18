@@ -10,15 +10,17 @@ public class EditorUIHolder
     public EditorUIHolder(UIDocument doc, Listener listener)
     {
         root = doc.rootVisualElement;
-        var loadBtn = root.Q<Button>("LoadBtn");
-        var saveBtn = root.Q<Button>("SaveBtn");
+        var loadBtn = root.Q<Button>("LoadVoxBtn");
+        var loadTextureBtn = root.Q<Button>("LoadTextureBtn");
+        var saveBtn = root.Q<Button>("SaveVoxBtn");
         var importBtn = root.Q<Button>("ImportBtn");
         var exportBtn = root.Q<Button>("ExportBtn");
         var brushAddBtn = root.Q<Button>("BrushAddBtn");
         var brushDeleteBtn = root.Q<Button>("BrushDeleteBtn");
 
-        loadBtn.clicked += listener.OnLoadClicked;
-        saveBtn.clicked += listener.OnSaveClicked;
+        loadBtn.clicked += listener.OnLoadVoxClicked;
+        loadTextureBtn.clicked += listener.OnLoadTextureClicked;
+        saveBtn.clicked += listener.OnSaveVoxClicked;
         importBtn.clicked += listener.OnImportClicked;
         exportBtn.clicked += listener.OnExportClicked;
         brushAddBtn.clicked += listener.OnBrushAddClicked;
@@ -32,8 +34,9 @@ public class EditorUIHolder
 
     public interface Listener
     {
-        public void OnLoadClicked();
-        public void OnSaveClicked();
+        public void OnLoadVoxClicked();
+        public void OnLoadTextureClicked();
+        public void OnSaveVoxClicked();
         public void OnImportClicked();
         public void OnExportClicked();
         public void OnBrushAddClicked();

@@ -77,7 +77,7 @@ public class EditorRepository
         jObject.WriteTo(jsonWriter);
     }
 
-    public Texture2D? ImportTexture(string path)
+    public Texture2D? LoadTexture(string path)
     {
         if (!File.Exists(path))
         {

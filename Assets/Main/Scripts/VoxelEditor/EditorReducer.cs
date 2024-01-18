@@ -23,6 +23,7 @@ public class EditorReducer
             EditorPatch.FileBrowser fileBrowserPatch => ApplyFileBrowserPatch(fileBrowserPatch),
             EditorPatch.Import importPatch => ApplyImportPatch(importPatch),
             EditorPatch.VoxLoaded voxLoadedPatch => ApplyVoxLoadedPatch(voxLoadedPatch),
+            EditorPatch.TextureLoaded textureLoadedPatch => ApplyTextureLoadedPatch(textureLoadedPatch),
             EditorPatch.Control controlPatch => ApplyControlPatch(controlPatch),
             EditorPatch.VoxelsChanges voxelsChanges => ApplyVoxelsChangesPatch(voxelsChanges),
             EditorPatch.Brush.ChangeType brushPatch => ApplyBrushPatch(brushPatch),
@@ -84,6 +85,13 @@ public class EditorReducer
             controlState: ControlState.None,
             isFileBrowserOpened: false
         );
+    }
+
+    private EditorState ApplyTextureLoadedPatch(EditorPatch.TextureLoaded patch)
+    {
+        if (state is not EditorState.Loaded loadedState) return state;
+
+        return loadedState.Copy(texture: patch.texture);
     }
 
     private EditorState ApplyControlPatch(EditorPatch.Control patch)

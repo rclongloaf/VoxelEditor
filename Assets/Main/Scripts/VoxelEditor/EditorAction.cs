@@ -74,6 +74,23 @@ public interface EditorAction
         public class OnCanceled : LoadVox { }
     }
 
+    public interface LoadTexture : EditorAction
+    {
+        public class OnLoadClicked : LoadTexture { }
+
+        public class OnPathSelected : LoadTexture
+        {
+            public readonly string path;
+
+            public OnPathSelected(string path)
+            {
+                this.path = path;
+            }
+        }
+
+        public class OnCancel : LoadTexture { }
+    }
+
     public interface SaveVox : EditorAction
     {
         public class OnSaveClicked : SaveVox { }
@@ -90,7 +107,7 @@ public interface EditorAction
 
         public class OnCanceled : SaveVox { }
     }
-    
+
     public interface Brush : EditorAction
     {
         public class OnBrushAddClicked : Brush { }
