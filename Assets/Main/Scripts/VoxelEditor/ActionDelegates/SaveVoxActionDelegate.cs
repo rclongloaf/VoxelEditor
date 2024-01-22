@@ -32,7 +32,7 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
                 reducer.ApplyPatch(new EditorPatch.FileBrowser.Opened());
                 break;
             case EditorAction.SaveVox.OnPathSelected onPathSelected:
-                repository.SaveVoxFile(onPathSelected.path, loadedState.voxels, loadedState.spriteRectData);
+                repository.SaveVoxFile(onPathSelected.path, loadedState.voxData);
                 reducer.ApplyPatch(new EditorPatch.FileBrowser.Closed());
                 break;
             case EditorAction.SaveVox.OnCanceled onCanceled:

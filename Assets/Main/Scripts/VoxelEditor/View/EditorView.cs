@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Main.Scripts.VoxelEditor.EditModes;
 using Main.Scripts.VoxelEditor.Events;
 using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -12,7 +13,7 @@ namespace Main.Scripts.VoxelEditor.View
 public class EditorView : MonoBehaviour,
     EditorEventsConsumer,
     EditorUIHolder.Listener,
-    SpriteImportUIHolder.Listener
+    TextureImportUIHolder.Listener
 {
     [SerializeField]
     private Transform freeCameraTransform = null!;
@@ -42,7 +43,7 @@ public class EditorView : MonoBehaviour,
     private EditModeController editModeController = null!;
     private RenderModeController renderModeController = null!;
     private EditorUIHolder editorUIHolder = null!;
-    private SpriteImportUIHolder spriteImportUIHolder = null!;
+    private TextureImportUIHolder textureImportUIHolder = null!;
     
     private HashSet<KeyCode> pressedKeys = new();
     private HashSet<KeyCode> newPressedKeys = new();
@@ -52,8 +53,8 @@ public class EditorView : MonoBehaviour,
         feature = new EditorFeature(this, this);
         currentState = feature.state;
         editorUIHolder = new EditorUIHolder(editorUIDocument, this);
-        spriteImportUIHolder = new SpriteImportUIHolder(spriteImportUIDocument, this);
-        spriteImportUIHolder.SetVisibility(false);
+        textureImportUIHolder = new TextureImportUIHolder(spriteImportUIDocument, this);
+        textureImportUIHolder.SetVisibility(false);
         editModeController = new EditModeController(editModeRoot, voxelPrefab, voxelMaterial);
         editModeController.SetVisibility(true);
         renderModeController = new RenderModeController(renderModeRoot, renderModelMeshFilter, renderModelMeshRenderer, renderModelMaterial);
@@ -132,7 +133,7 @@ public class EditorView : MonoBehaviour,
                 break;
             case EditorState.WaitingForProject:
                 editorUIHolder.SetVisibility(true);
-                spriteImportUIHolder.SetVisibility(false);
+                textureImportUIHolder.SetVisibility(false);
                 break;
         }
     }
@@ -158,14 +159,14 @@ public class EditorView : MonoBehaviour,
         }
     }
 
-    public void OnApplyImportSettings(SpriteRectData spriteRectData)
+    public void OnApplyImportSettings(TextureData textureData)
     {
-        feature.ApplyAction(new EditorAction.SpriteSettings.Selected(spriteRectData));
+        feature.ApplyAction(new EditorAction.TextureSettings.Selected(textureData));
     }
 
     public void OnCancel()
     {
-        feature.ApplyAction(new EditorAction.SpriteSettings.Canceled());
+        feature.ApplyAction(new EditorAction.TextureSettings.Canceled());
     }
     
     public void OnLoadVoxClicked()
@@ -218,9 +219,9 @@ public class EditorView : MonoBehaviour,
         if (currentState == state) return;
         
         editorUIHolder.SetVisibility(true);
-        spriteImportUIHolder.SetVisibility(false);
+        textureImportUIHolder.SetVisibility(false);
 
-        editModeController.ApplyVoxels(state.voxels);
+        editModeController.ApplyVoxels(state.currentSpriteData.voxels);
 
         if (currentState is EditorState.Loaded curLoadedState
             && curLoadedState.editModeState != state.editModeState)
@@ -246,9 +247,9 @@ public class EditorView : MonoBehaviour,
             editModeController.ApplyTexture(state.texture);
         }
         if (currentState is not EditorState.Loaded curLoaded1
-            || curLoaded1.spriteRectData != state.spriteRectData)
+            || curLoaded1.voxData != state.voxData)
         {
-            editModeController.ApplySpriteRect(state.spriteRectData);
+            editModeController.ApplySpriteRect(state.voxData.textureData, state.currentSpriteIndex);
         }
 
         freeCameraTransform.position = state.freeCameraData.pivotPoint
@@ -263,7 +264,7 @@ public class EditorView : MonoBehaviour,
     private void ApplySpriteSelectingState(EditorState.SpriteSelecting state)
     {
         editorUIHolder.SetVisibility(false);
-        spriteImportUIHolder.SetVisibility(true);
+        textureImportUIHolder.SetVisibility(true);
     }
 
     private void ImportTexture()

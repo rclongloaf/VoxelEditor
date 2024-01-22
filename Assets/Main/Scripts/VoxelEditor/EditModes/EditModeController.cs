@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -15,7 +16,8 @@ public class EditModeController
     private GameObject voxelPrefab;
     private Material material;
     private Texture2D? texture;
-    private SpriteRectData? spriteRectData;
+    private TextureData? textureData;
+    private SpriteIndex? spriteIndex;
 
     private Dictionary<Vector3Int, GameObject> currentVoxels = new();
 
@@ -61,17 +63,18 @@ public class EditModeController
         }
     }
 
-    public void ApplySpriteRect(SpriteRectData spriteRectData)
+    public void ApplySpriteRect(TextureData textureData, SpriteIndex spriteIndex)
     {
-        this.spriteRectData = spriteRectData;
+        this.textureData = textureData;
+        this.spriteIndex = spriteIndex;
         if (texture != null)
         {
-            var width = texture.width / spriteRectData.columnsCount;
-            var height = texture.height / spriteRectData.rowsCount;
+            var width = texture.width / textureData.columnsCount;
+            var height = texture.height / textureData.rowsCount;
             
             var rectPosition = new Vector2(
-                spriteRectData.columnIndex * width,
-                (spriteRectData.rowsCount - spriteRectData.rowIndex - 1) * height
+                spriteIndex.columnIndex * width,
+                (textureData.rowsCount - spriteIndex.rowIndex - 1) * height
             );
             material.SetVector(SpriteRectPosition, rectPosition);
         }
@@ -84,9 +87,9 @@ public class EditModeController
         if (texture != null)
         {
             material.SetVector(TextureSize, texture.Size());
-            if (spriteRectData != null)
+            if (textureData != null && spriteIndex != null)
             {
-                ApplySpriteRect(spriteRectData);
+                ApplySpriteRect(textureData, spriteIndex);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor.State
@@ -13,9 +13,10 @@ namespace Main.Scripts.VoxelEditor.State
         ) : EditorState(isFileBrowserOpened);
 
         public record Loaded(
-            HashSet<Vector3Int> voxels,
-            SpriteRectData spriteRectData,
+            VoxData voxData,
             Texture2D? texture,
+            SpriteIndex currentSpriteIndex,
+            SpriteData currentSpriteData,
             BrushType brushType,
             FreeCameraData freeCameraData,
             IsometricCameraData isometricCameraData,

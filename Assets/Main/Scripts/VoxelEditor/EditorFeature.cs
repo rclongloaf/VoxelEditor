@@ -54,7 +54,7 @@ namespace Main.Scripts.VoxelEditor
                 case EditorAction.SaveVox saveVoxAction:
                     saveVoxActionDelegate.ApplyAction(state, saveVoxAction);
                     break;
-                case EditorAction.SpriteSettings spriteSettings:
+                case EditorAction.TextureSettings spriteSettings:
                     spriteSettingsActionDelegate.ApplyAction(state, spriteSettings);
                     break;
                 case EditorAction.Import importAction:

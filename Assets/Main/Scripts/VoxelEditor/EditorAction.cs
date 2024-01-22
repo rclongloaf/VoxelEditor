@@ -1,4 +1,5 @@
 ﻿using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor
@@ -14,11 +15,11 @@ public interface EditorAction
         public record OnCanceled : Import;
     }
 
-    public interface SpriteSettings : EditorAction
+    public interface TextureSettings : EditorAction
     {
-        public record Selected(SpriteRectData spriteRectData) : SpriteSettings;
+        public record Selected(TextureData textureData) : TextureSettings;
 
-        public record Canceled : SpriteSettings;
+        public record Canceled : TextureSettings;
     }
 
 

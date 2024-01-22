@@ -1,7 +1,6 @@
 ﻿using System;
 using Main.Scripts.VoxelEditor.Repository;
 using Main.Scripts.VoxelEditor.State;
-using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor.ActionDelegates
 {
@@ -29,10 +28,10 @@ public class EditModeActionDelegate : ActionDelegate<EditorAction.EditMode>
                 break;
             case EditorAction.EditMode.OnRenderModeClicked onRenderModeClicked:
                 var mesh = repository.GenerateMesh(
-                    loadedSate.voxels,
-                    Vector2.zero,
-                    1,
-                    loadedSate.spriteRectData,
+                    spriteData: loadedSate.currentSpriteData,
+                    pixelsPerUnit: 1,
+                    textureData: loadedSate.voxData.textureData,
+                    spriteIndex: loadedSate.currentSpriteIndex,
                     loadedSate.texture?.width ?? 1,
                     loadedSate.texture?.height ?? 1
                 );

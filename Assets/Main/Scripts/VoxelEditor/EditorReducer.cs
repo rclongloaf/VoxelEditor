@@ -1,6 +1,7 @@
 ﻿using System;
 using Main.Scripts.Utils;
 using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
 
@@ -72,10 +73,13 @@ public class EditorReducer
             _ => throw new ArgumentOutOfRangeException(nameof(state))
         };
 
+        var spriteIndex = new SpriteIndex(0, 0);
+
         return new EditorState.Loaded(
-            voxels: patch.voxData.voxels,
-            spriteRectData: patch.voxData.spriteRectData,
+            voxData: patch.voxData,
             texture: texture,
+            currentSpriteIndex: spriteIndex,
+            currentSpriteData: patch.voxData.sprites[spriteIndex],
             brushType: BrushType.Add,
             freeCameraData: new FreeCameraData(
                 pivotPoint: new Vector3(14, 18, 0),
@@ -120,8 +124,20 @@ public class EditorReducer
 
         return patch switch
         {
-            EditorPatch.VoxelsChanges.Add addPatch => loadedState with { voxels = loadedState.voxels.Plus(addPatch.voxel) },
-            EditorPatch.VoxelsChanges.Delete deletePatch => loadedState with { voxels = loadedState.voxels.Minus(deletePatch.voxel) },
+            EditorPatch.VoxelsChanges.Add addPatch => loadedState with
+            {
+                currentSpriteData = loadedState.currentSpriteData with
+                {
+                    voxels = loadedState.currentSpriteData.voxels.Plus(addPatch.voxel)
+                }
+            },
+            EditorPatch.VoxelsChanges.Delete deletePatch => loadedState with
+            {
+                currentSpriteData = loadedState.currentSpriteData with
+                {
+                    voxels = loadedState.currentSpriteData.voxels.Minus(deletePatch.voxel)
+                }
+            },
             _ => throw new ArgumentOutOfRangeException(nameof(patch))
         };
     }

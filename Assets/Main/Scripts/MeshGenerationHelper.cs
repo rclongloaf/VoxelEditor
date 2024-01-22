@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 
 namespace Main.Scripts
@@ -7,10 +7,10 @@ namespace Main.Scripts
 public static class MeshGenerationHelper
 {
     public static Mesh GenerateMesh(
-        HashSet<Vector3Int> voxels,
-        Vector2 pivot,
+        SpriteData spriteData,
         float pixelsPerUnit,
-        SpriteRectData spriteRectData,
+        TextureData textureData,
+        SpriteIndex spriteIndex,
         int textureWidth,
         int textureHeight
     )
@@ -21,15 +21,16 @@ public static class MeshGenerationHelper
         var normals = new List<Vector3>();
 
         var voxSize = 1 / pixelsPerUnit;
+        var pivot = spriteData.pivot;
         var centerOffset = new Vector3(pivot.x, pivot.y, 0);
-        var spriteWidth = textureWidth / spriteRectData.columnsCount;
-        var spriteHeight = textureHeight / spriteRectData.rowsCount;
+        var spriteWidth = textureWidth / textureData.columnsCount;
+        var spriteHeight = textureHeight / textureData.rowsCount;
         var rect = new Vector2(
-            x: spriteWidth * spriteRectData.columnIndex,
-            y: spriteHeight * (spriteRectData.rowsCount - spriteRectData.rowIndex - 1)
+            x: spriteWidth * spriteIndex.columnIndex,
+            y: spriteHeight * (textureData.rowsCount - spriteIndex.rowIndex - 1)
         );
 
-        foreach (var voxelPosition in voxels)
+        foreach (var voxelPosition in spriteData.voxels)
         {
             AddCubeVert(voxelPosition, 1, vertices, triangles);
         }

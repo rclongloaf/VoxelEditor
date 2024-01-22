@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
+using Main.Scripts.VoxelEditor.State.Vox;
 
 namespace Main.Scripts.VoxelEditor.State
 {
 public record VoxData(
-    HashSet<Vector3Int> voxels,
-    SpriteRectData spriteRectData
+    TextureData textureData,
+    Dictionary<SpriteIndex, SpriteData> sprites
 );
 }
