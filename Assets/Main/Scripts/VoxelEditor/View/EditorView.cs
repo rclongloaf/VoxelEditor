@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Main.Scripts.VoxelEditor.EditModes;
 using Main.Scripts.VoxelEditor.Events;
 using Main.Scripts.VoxelEditor.State;
-using Main.Scripts.VoxelEditor.Voxels;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -23,13 +23,24 @@ public class EditorView : MonoBehaviour,
     [SerializeField]
     private UIDocument spriteImportUIDocument = null!;
     [SerializeField]
+    private GameObject editModeRoot = null!;
+    [SerializeField]
     private GameObject voxelPrefab = null!;
     [SerializeField]
     private Material voxelMaterial = null!;
+    [SerializeField]
+    private GameObject renderModeRoot = null!;
+    [SerializeField]
+    private Material renderModelMaterial = null!;
+    [SerializeField]
+    private MeshFilter renderModelMeshFilter = null!;
+    [SerializeField]
+    private MeshRenderer renderModelMeshRenderer = null!;
     
     private EditorFeature feature = null!;
     private EditorState currentState = null!;
-    private EditorVoxelsHolder voxelsHolder = null!;
+    private EditModeController editModeController = null!;
+    private RenderModeController renderModeController = null!;
     private EditorUIHolder editorUIHolder = null!;
     private SpriteImportUIHolder spriteImportUIHolder = null!;
     
@@ -43,7 +54,10 @@ public class EditorView : MonoBehaviour,
         editorUIHolder = new EditorUIHolder(editorUIDocument, this);
         spriteImportUIHolder = new SpriteImportUIHolder(spriteImportUIDocument, this);
         spriteImportUIHolder.SetVisibility(false);
-        voxelsHolder = new EditorVoxelsHolder(voxelPrefab, voxelMaterial);
+        editModeController = new EditModeController(editModeRoot, voxelPrefab, voxelMaterial);
+        editModeController.SetVisibility(true);
+        renderModeController = new RenderModeController(renderModeRoot, renderModelMeshFilter, renderModelMeshRenderer, renderModelMaterial);
+        renderModeController.Hide();
     }
 
     private void Update()
@@ -179,6 +193,16 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.Export.OnExportClicked());
     }
 
+    public void OnEditModeClicked()
+    {
+        feature.ApplyAction(new EditorAction.EditMode.OnEditModeClicked());
+    }
+
+    public void OnRenderModeClicked()
+    {
+        feature.ApplyAction(new EditorAction.EditMode.OnRenderModeClicked());
+    }
+
     public void OnBrushAddClicked()
     {
         feature.ApplyAction(new EditorAction.Brush.OnBrushAddClicked());
@@ -196,17 +220,35 @@ public class EditorView : MonoBehaviour,
         editorUIHolder.SetVisibility(true);
         spriteImportUIHolder.SetVisibility(false);
 
-        voxelsHolder.ApplyVoxels(state.voxels);
+        editModeController.ApplyVoxels(state.voxels);
+
+        if (currentState is EditorState.Loaded curLoadedState
+            && curLoadedState.editModeState != state.editModeState)
+        {
+            switch (state.editModeState)
+            {
+                case EditModeState.EditMode editMode:
+                    renderModeController.Hide();
+                    editModeController.SetVisibility(true);
+                    break;
+                case EditModeState.RenderMode renderMode:
+                    editModeController.SetVisibility(false);
+                    renderModeController.Show(renderMode.mesh, state.texture);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
         
         if (currentState is not EditorState.Loaded curLoaded2
             || curLoaded2.texture != state.texture)
         {
-            voxelsHolder.ApplyTexture(state.texture);
+            editModeController.ApplyTexture(state.texture);
         }
         if (currentState is not EditorState.Loaded curLoaded1
             || curLoaded1.spriteRectData != state.spriteRectData)
         {
-            voxelsHolder.ApplySpriteRect(state.spriteRectData);
+            editModeController.ApplySpriteRect(state.spriteRectData);
         }
 
         freeCameraTransform.position = state.freeCameraData.pivotPoint

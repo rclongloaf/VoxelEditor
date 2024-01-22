@@ -151,7 +151,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             return false;
         }
         
-        position = Vector3Int.RoundToInt(hitInfo.transform.position - Vector3.one * 0.5f);
+        position = Vector3Int.RoundToInt(hitInfo.transform.position);
         normal = hitInfo.normal;
         return true;
     }

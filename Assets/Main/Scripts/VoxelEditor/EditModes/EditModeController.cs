@@ -3,14 +3,15 @@ using Main.Scripts.VoxelEditor.State;
 using Unity.VisualScripting;
 using UnityEngine;
 
-namespace Main.Scripts.VoxelEditor.Voxels
+namespace Main.Scripts.VoxelEditor.EditModes
 {
-public class EditorVoxelsHolder
+public class EditModeController
 {
     private static readonly int SpriteTexture = Shader.PropertyToID("_SpriteTexture");
     private static readonly int TextureSize = Shader.PropertyToID("_TextureSize");
     private static readonly int SpriteRectPosition = Shader.PropertyToID("_SpriteRectPosition");
-    
+
+    private GameObject root;
     private GameObject voxelPrefab;
     private Material material;
     private Texture2D? texture;
@@ -18,10 +19,20 @@ public class EditorVoxelsHolder
 
     private Dictionary<Vector3Int, GameObject> currentVoxels = new();
 
-    public EditorVoxelsHolder(GameObject voxelPrefab, Material voxelMaterial)
+    public EditModeController(
+        GameObject root,
+        GameObject voxelPrefab,
+        Material voxelMaterial
+    )
     {
+        this.root = root;
         this.voxelPrefab = voxelPrefab;
         material = voxelMaterial;
+    }
+
+    public void SetVisibility(bool isVisible)
+    {
+        root.SetActive(isVisible);
     }
 
     public void ApplyVoxels(HashSet<Vector3Int> voxels)
@@ -87,13 +98,13 @@ public class EditorVoxelsHolder
             return;
         }
         
-        var voxel = Object.Instantiate(voxelPrefab);
+        var voxel = Object.Instantiate(voxelPrefab, root.transform);
 
         currentVoxels.Add(position, voxel);
         var meshRenderer = voxel.GetComponentInChildren<MeshRenderer>();
         meshRenderer.sharedMaterial = material;
 
-        voxel.transform.position = Vector3.one * 0.5f + position;
+        voxel.transform.position = position;
     }
 
     private void RemoveVoxel(Vector3Int position)

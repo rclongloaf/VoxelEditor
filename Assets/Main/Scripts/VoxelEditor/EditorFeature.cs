@@ -19,6 +19,7 @@ namespace Main.Scripts.VoxelEditor
         private SaveVoxActionDelegate saveVoxActionDelegate;
         private ImportActionDelegate importActionDelegate;
         private ExportActionDelegate exportActionDelegate;
+        private EditModeActionDelegate editModeActionDelegate;
         private BrushActionDelegate brushActionDelegate;
         private InputActionDelegate inputActionDelegate;
         private SpriteSettingsActionDelegate spriteSettingsActionDelegate;
@@ -34,6 +35,7 @@ namespace Main.Scripts.VoxelEditor
             saveVoxActionDelegate = new SaveVoxActionDelegate(this, reducer, repository, eventsConsumer);
             importActionDelegate = new ImportActionDelegate(this, reducer, repository, eventsConsumer);
             exportActionDelegate = new ExportActionDelegate(this, reducer, eventsConsumer);
+            editModeActionDelegate = new EditModeActionDelegate(this, reducer, repository);
             brushActionDelegate = new BrushActionDelegate(this, reducer);
             inputActionDelegate = new InputActionDelegate(this, reducer);
             spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
@@ -60,6 +62,9 @@ namespace Main.Scripts.VoxelEditor
                     break;
                 case EditorAction.Export exportAction:
                     exportActionDelegate.ApplyAction(state, exportAction);
+                    break;
+                case EditorAction.EditMode editModeAction:
+                    editModeActionDelegate.ApplyAction(state, editModeAction);
                     break;
                 case EditorAction.Brush brushAction:
                     brushActionDelegate.ApplyAction(state, brushAction);

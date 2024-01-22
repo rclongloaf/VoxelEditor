@@ -7,131 +7,63 @@ public interface EditorPatch
 {
     public interface FileBrowser : EditorPatch
     {
-        public class Opened : FileBrowser { }
-        public class Closed : FileBrowser { }
+        public record Opened : FileBrowser;
+        public record Closed : FileBrowser;
     }
 
     public interface Import : EditorPatch
     {
-        public class TextureSelected : Import
-        {
-            public readonly Texture2D texture;
-
-            public TextureSelected(Texture2D texture)
-            {
-                this.texture = texture;
-            }
-        }
-
-        public class Cancel : Import { }
+        public record TextureSelected(Texture2D texture) : Import;
+        public record Cancel : Import;
     }
 
-    public class VoxLoaded : EditorPatch
+    public record VoxLoaded(VoxData voxData) : EditorPatch;
+
+    public record TextureLoaded(Texture2D texture) : EditorPatch;
+
+    public interface EditMode : EditorPatch
     {
-        public readonly VoxData voxData;
-
-        public VoxLoaded(VoxData voxData)
-        {
-            this.voxData = voxData;
-        }
-    }
-
-    public class TextureLoaded : EditorPatch
-    {
-        public readonly Texture2D texture;
-
-        public TextureLoaded(Texture2D texture)
-        {
-            this.texture = texture;
-        }
+        public record EditModeSelected : EditMode;
+        public record RenderModeSelected(Mesh mesh) : EditMode;
     }
 
     public interface VoxelsChanges : EditorPatch
     {
-        public class Add : VoxelsChanges
-        {
-            public readonly Vector3Int voxel;
-
-            public Add(Vector3Int voxel)
-            {
-                this.voxel = voxel;
-            }
-        }
-
-        public class Delete : VoxelsChanges
-        {
-            public readonly Vector3Int voxel;
-
-            public Delete(Vector3Int voxel)
-            {
-                this.voxel = voxel;
-            }
-        }
+        public record Add(Vector3Int voxel) : VoxelsChanges;
+        public record Delete(Vector3Int voxel) : VoxelsChanges;
     }
 
     public interface Control : EditorPatch
     {
         public interface Drawing : Control
         {
-            public class Start : Drawing {}
-            public class Finish : Drawing {}
+            public record Start : Drawing;
+            public record Finish : Drawing;
         }
         public interface Moving : Control
         {
-            public class Start : Drawing {}
-            public class Finish : Drawing {}
+            public record Start : Drawing;
+            public record Finish : Drawing;
         }
         public interface Rotating : Control
         {
-            public class Start : Drawing {}
-            public class Finish : Drawing {}
+            public record Start : Drawing;
+            public record Finish : Drawing;
         }
     }
 
     public interface Camera : EditorPatch
     {
-        public class NewPivotPoint : Camera
-        {
-            public readonly Vector3 position;
+        public record NewPivotPoint(Vector3 position) : Camera;
 
-            public NewPivotPoint(Vector3 position)
-            {
-                this.position = position;
-            }
-        }
+        public record NewDistance(float distance) : Camera;
 
-        public class NewDistance : Camera
-        {
-            public readonly float distance;
-
-            public NewDistance(float distance)
-            {
-                this.distance = distance;
-            }
-        }
-
-        public class NewRotation : Camera
-        {
-            public readonly Quaternion rotation;
-
-            public NewRotation(Quaternion rotation)
-            {
-                this.rotation = rotation;
-            }
-        }
+        public record NewRotation(Quaternion rotation) : Camera;
     }
 
     public interface Brush : EditorPatch
     {
-        public class ChangeType : Brush
-        {
-            public readonly BrushType brushType;
-
-            public ChangeType(BrushType brushType)
-            {
-                this.brushType = brushType;
-            }
-        }
+        public record ChangeType(BrushType brushType) : Brush;
     }
 }
 }

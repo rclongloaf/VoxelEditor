@@ -15,6 +15,8 @@ public class EditorUIHolder
         var saveBtn = root.Q<Button>("SaveVoxBtn");
         var importBtn = root.Q<Button>("ImportBtn");
         var exportBtn = root.Q<Button>("ExportBtn");
+        var editModeBtn = root.Q<Button>("EditModeBtn");
+        var renderModeBtn = root.Q<Button>("RenderModeBtn");
         var brushAddBtn = root.Q<Button>("BrushAddBtn");
         var brushDeleteBtn = root.Q<Button>("BrushDeleteBtn");
 
@@ -23,6 +25,8 @@ public class EditorUIHolder
         saveBtn.clicked += listener.OnSaveVoxClicked;
         importBtn.clicked += listener.OnImportClicked;
         exportBtn.clicked += listener.OnExportClicked;
+        editModeBtn.clicked += listener.OnEditModeClicked;
+        renderModeBtn.clicked += listener.OnRenderModeClicked;
         brushAddBtn.clicked += listener.OnBrushAddClicked;
         brushDeleteBtn.clicked += listener.OnBrushDeleteClicked;
     }
@@ -39,6 +43,8 @@ public class EditorUIHolder
         public void OnSaveVoxClicked();
         public void OnImportClicked();
         public void OnExportClicked();
+        public void OnEditModeClicked();
+        public void OnRenderModeClicked();
         public void OnBrushAddClicked();
         public void OnBrushDeleteClicked();
     }

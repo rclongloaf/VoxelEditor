@@ -7,157 +7,80 @@ public interface EditorAction
 {
     public interface Import : EditorAction
     {
-        public class OnImportClicked : Import { }
+        public record OnImportClicked : Import;
 
-        public class OnFileSelected : Import
-        {
-            public readonly string path;
+        public record OnFileSelected(string path) : Import;
 
-            public OnFileSelected(string path)
-            {
-                this.path = path;
-            }
-        }
-
-        public class OnCanceled : Import { }
+        public record OnCanceled : Import;
     }
 
     public interface SpriteSettings : EditorAction
     {
-        public class Selected : SpriteSettings
-        {
-            public readonly SpriteRectData spriteRectData;
+        public record Selected(SpriteRectData spriteRectData) : SpriteSettings;
 
-            public Selected(
-                SpriteRectData spriteRectData
-            )
-            {
-                this.spriteRectData = spriteRectData;
-            }
-        }
-
-        public class Canceled : SpriteSettings { }
+        public record Canceled : SpriteSettings;
     }
-    
+
 
     public interface Export : EditorAction
     {
-        public class OnExportClicked : Export { }
+        public record OnExportClicked : Export;
 
-        public class OnPathSelected : Export
-        {
-            public readonly string path;
+        public record OnPathSelected(string path) : Export;
 
-            public OnPathSelected(string path)
-            {
-                this.path = path;
-            }
-        }
-
-        public class OnCanceled : Export { }
+        public record OnCanceled : Export;
     }
 
     public interface LoadVox : EditorAction
     {
-        public class OnLoadClicked : LoadVox { }
+        public record OnLoadClicked : LoadVox;
 
-        public class OnFileSelected : LoadVox
-        {
-            public readonly string path;
+        public record OnFileSelected(string path) : LoadVox;
 
-            public OnFileSelected(string path)
-            {
-                this.path = path;
-            }
-        }
-
-        public class OnCanceled : LoadVox { }
+        public record OnCanceled : LoadVox;
     }
 
     public interface LoadTexture : EditorAction
     {
-        public class OnLoadClicked : LoadTexture { }
+        public record OnLoadClicked : LoadTexture;
 
-        public class OnPathSelected : LoadTexture
-        {
-            public readonly string path;
+        public record OnPathSelected(string path) : LoadTexture;
 
-            public OnPathSelected(string path)
-            {
-                this.path = path;
-            }
-        }
-
-        public class OnCancel : LoadTexture { }
+        public record OnCancel : LoadTexture;
     }
 
     public interface SaveVox : EditorAction
     {
-        public class OnSaveClicked : SaveVox { }
+        public record OnSaveClicked : SaveVox;
 
-        public class OnPathSelected : SaveVox
-        {
-            public readonly string path;
+        public record OnPathSelected(string path) : SaveVox;
 
-            public OnPathSelected(string path)
-            {
-                this.path = path;
-            }
-        }
+        public record OnCanceled : SaveVox;
+    }
 
-        public class OnCanceled : SaveVox { }
+    public interface EditMode : EditorAction
+    {
+        public record OnEditModeClicked : EditMode;
+
+        public record OnRenderModeClicked : EditMode;
     }
 
     public interface Brush : EditorAction
     {
-        public class OnBrushAddClicked : Brush { }
+        public record OnBrushAddClicked : Brush;
 
-        public class OnBrushDeleteClicked : Brush { }
+        public record OnBrushDeleteClicked : Brush;
     }
-    
+
     public interface Input : EditorAction
     {
-        public class OnButtonDown : Input
-        {
-            public readonly KeyCode keyCode;
+        public record OnButtonDown(KeyCode keyCode) : Input;
 
-            public OnButtonDown(KeyCode keyCode)
-            {
-                this.keyCode = keyCode;
-            }
-        }
+        public record OnButtonUp(KeyCode keyCode) : Input;
 
-        public class OnButtonUp : Input
-        {
-            public readonly KeyCode keyCode;
+        public record OnMouseDelta(float deltaX, float deltaY) : Input;
 
-            public OnButtonUp(KeyCode keyCode)
-            {
-                this.keyCode = keyCode;
-            }
-        }
-
-        public class OnMouseDelta : Input
-        {
-            public readonly float deltaX;
-            public readonly float deltaY;
-
-            public OnMouseDelta(float deltaX, float deltaY)
-            {
-                this.deltaX = deltaX;
-                this.deltaY = deltaY;
-            }
-        }
-
-        public class OnWheelScroll : Input
-        {
-            public readonly float delta;
-
-            public OnWheelScroll(float delta)
-            {
-                this.delta = delta;
-            }
-        }
+        public record OnWheelScroll(float delta) : Input;
     }
 }
 }

@@ -92,5 +92,24 @@ public class EditorRepository
 
         return texture;
     }
+
+    public Mesh GenerateMesh(
+        HashSet<Vector3Int> voxels,
+        Vector2 pivot,
+        float pixelsPerUnit,
+        SpriteRectData spriteRectData,
+        int textureWidth,
+        int textureHeight
+    )
+    {
+        return MeshGenerationHelper.GenerateMesh(
+            voxels,
+            pivot,
+            pixelsPerUnit,
+            spriteRectData,
+            textureWidth,
+            textureHeight
+        );
+    }
 }
 }
