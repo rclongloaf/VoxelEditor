@@ -1,4 +1,5 @@
 ﻿using Main.Scripts.Utils;
+using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine.UIElements;
 
 namespace Main.Scripts.VoxelEditor.View
@@ -6,6 +7,7 @@ namespace Main.Scripts.VoxelEditor.View
 public class EditorUIHolder
 {
     private VisualElement root;
+    private Label spriteIndexLabel;
     
     public EditorUIHolder(UIDocument doc, Listener listener)
     {
@@ -19,6 +21,9 @@ public class EditorUIHolder
         var renderModeBtn = root.Q<Button>("RenderModeBtn");
         var brushAddBtn = root.Q<Button>("BrushAddBtn");
         var brushDeleteBtn = root.Q<Button>("BrushDeleteBtn");
+        spriteIndexLabel = root.Q<Label>("SpriteIndexLabel");
+        var spritePreviousBtn = root.Q<Button>("PreviousSpriteBtn");
+        var spriteNextBtn = root.Q<Button>("NextSpriteBtn");
 
         loadBtn.clicked += listener.OnLoadVoxClicked;
         loadTextureBtn.clicked += listener.OnLoadTextureClicked;
@@ -29,11 +34,18 @@ public class EditorUIHolder
         renderModeBtn.clicked += listener.OnRenderModeClicked;
         brushAddBtn.clicked += listener.OnBrushAddClicked;
         brushDeleteBtn.clicked += listener.OnBrushDeleteClicked;
+        spritePreviousBtn.clicked += listener.OnPreviousSpriteClicked;
+        spriteNextBtn.clicked += listener.OnNextSpriteClicked;
     }
 
     public void SetVisibility(bool visible)
     {
         root.SetVisibility(visible);
+    }
+
+    public void SetSpriteIndex(SpriteIndex spriteIndex)
+    {
+        spriteIndexLabel.text = $"row: {spriteIndex.rowIndex + 1}, column: {spriteIndex.columnIndex + 1}";
     }
 
     public interface Listener
@@ -47,6 +59,10 @@ public class EditorUIHolder
         public void OnRenderModeClicked();
         public void OnBrushAddClicked();
         public void OnBrushDeleteClicked();
+
+        public void OnPreviousSpriteClicked();
+
+        public void OnNextSpriteClicked();
     }
 }
 }

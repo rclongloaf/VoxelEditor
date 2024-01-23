@@ -1,5 +1,4 @@
-﻿using Main.Scripts.VoxelEditor.State;
-using Main.Scripts.VoxelEditor.State.Vox;
+﻿using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor
@@ -22,6 +21,14 @@ public interface EditorAction
         public record Canceled : TextureSettings;
     }
 
+    public interface ApplyChanges : EditorAction
+    {
+        public record Apply : ApplyChanges;
+
+        public record Discard : ApplyChanges;
+
+        public record Cancel : ApplyChanges;
+    }
 
     public interface Export : EditorAction
     {
@@ -57,6 +64,13 @@ public interface EditorAction
         public record OnPathSelected(string path) : SaveVox;
 
         public record OnCanceled : SaveVox;
+    }
+    
+    public interface SpriteSelecting : EditorAction
+    {
+        public record OnNextClicked : SpriteSelecting;
+
+        public record OnPreviousClicked : SpriteSelecting;
     }
 
     public interface EditMode : EditorAction

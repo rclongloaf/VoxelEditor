@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Main.Scripts.Utils;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
@@ -21,6 +22,7 @@ public class EditorReducer
     {
         var newState = patch switch
         {
+            EditorPatch.SpriteChanges spriteChangesPatch => ApplySpriteChangesPatch(spriteChangesPatch),
             EditorPatch.FileBrowser fileBrowserPatch => ApplyFileBrowserPatch(fileBrowserPatch),
             EditorPatch.Import importPatch => ApplyImportPatch(importPatch),
             EditorPatch.VoxLoaded voxLoadedPatch => ApplyVoxLoadedPatch(voxLoadedPatch),
@@ -29,10 +31,50 @@ public class EditorReducer
             EditorPatch.VoxelsChanges voxelsChanges => ApplyVoxelsChangesPatch(voxelsChanges),
             EditorPatch.EditMode editModePatch => ApplyEditModePatch(editModePatch),
             EditorPatch.Brush.ChangeType brushPatch => ApplyBrushPatch(brushPatch),
-            EditorPatch.Camera cameraPatch => ApplyCameraPatch(cameraPatch)
+            EditorPatch.Camera cameraPatch => ApplyCameraPatch(cameraPatch),
+            EditorPatch.ChangeSpriteIndex changeSpriteIndexPatch => ApplyChangeSpriteIndex(changeSpriteIndexPatch)
         };
 
         feature.UpdateState(newState);
+    }
+
+    private EditorState ApplySpriteChangesPatch(EditorPatch.SpriteChanges patch)
+    {
+        if (state is not EditorState.Loaded loadedState) return state;
+
+        switch (patch)
+        {
+            case EditorPatch.SpriteChanges.Apply apply:
+                var sprites = loadedState.voxData.sprites;
+                var newSprites = new Dictionary<SpriteIndex, SpriteData>(sprites);
+
+                newSprites[loadedState.currentSpriteIndex] = loadedState.currentSpriteData;
+                
+                return loadedState with
+                {
+                    voxData = loadedState.voxData with
+                    {
+                        sprites = newSprites
+                    },
+                    isWaitingForApplyChanges = false
+                };
+                break;
+            case EditorPatch.SpriteChanges.ApplyRequest applyRequest:
+                return loadedState with { isWaitingForApplyChanges = true };
+                break;
+            case EditorPatch.SpriteChanges.Cancel cancel:
+                return loadedState with { isWaitingForApplyChanges = false };
+                break;
+            case EditorPatch.SpriteChanges.Discard discard:
+                return loadedState with
+                {
+                    currentSpriteData = loadedState.voxData.sprites[loadedState.currentSpriteIndex],
+                    isWaitingForApplyChanges = false
+                };
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(patch));
+        }
     }
 
     private EditorState ApplyFileBrowserPatch(EditorPatch.FileBrowser patch)
@@ -90,6 +132,7 @@ public class EditorReducer
             cameraType: CameraType.Free,
             controlState: ControlState.None,
             editModeState: new EditModeState.EditMode(),
+            isWaitingForApplyChanges: false,
             isFileBrowserOpened: false
         );
     }
@@ -128,14 +171,14 @@ public class EditorReducer
             {
                 currentSpriteData = loadedState.currentSpriteData with
                 {
-                    voxels = loadedState.currentSpriteData.voxels.Plus(addPatch.voxel)
+                    voxels = new HashSet<Vector3Int>(loadedState.currentSpriteData.voxels).Plus(addPatch.voxel)
                 }
             },
             EditorPatch.VoxelsChanges.Delete deletePatch => loadedState with
             {
                 currentSpriteData = loadedState.currentSpriteData with
                 {
-                    voxels = loadedState.currentSpriteData.voxels.Minus(deletePatch.voxel)
+                    voxels = new HashSet<Vector3Int>(loadedState.currentSpriteData.voxels).Minus(deletePatch.voxel)
                 }
             },
             _ => throw new ArgumentOutOfRangeException(nameof(patch))
@@ -226,6 +269,17 @@ public class EditorReducer
             default:
                 throw new ArgumentOutOfRangeException(nameof(patch));
         }
+    }
+
+    private EditorState ApplyChangeSpriteIndex(EditorPatch.ChangeSpriteIndex patch)
+    {
+        if (state is not EditorState.Loaded loadedState) return state;
+
+        return loadedState with
+        {
+            currentSpriteData = loadedState.voxData.sprites[patch.spriteIndex],
+            currentSpriteIndex = patch.spriteIndex
+        };
     }
 }
 }

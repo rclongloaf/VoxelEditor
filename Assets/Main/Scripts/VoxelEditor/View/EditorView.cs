@@ -13,7 +13,8 @@ namespace Main.Scripts.VoxelEditor.View
 public class EditorView : MonoBehaviour,
     EditorEventsConsumer,
     EditorUIHolder.Listener,
-    TextureImportUIHolder.Listener
+    TextureImportUIHolder.Listener,
+    ApplyChangesUIHolder.Listener
 {
     [SerializeField]
     private Transform freeCameraTransform = null!;
@@ -23,6 +24,8 @@ public class EditorView : MonoBehaviour,
     private UIDocument editorUIDocument = null!;
     [SerializeField]
     private UIDocument spriteImportUIDocument = null!;
+    [SerializeField]
+    private UIDocument applyChangesUIDocument = null!;
     [SerializeField]
     private GameObject editModeRoot = null!;
     [SerializeField]
@@ -44,6 +47,7 @@ public class EditorView : MonoBehaviour,
     private RenderModeController renderModeController = null!;
     private EditorUIHolder editorUIHolder = null!;
     private TextureImportUIHolder textureImportUIHolder = null!;
+    private ApplyChangesUIHolder applyChangesUIHolder = null!;
     
     private HashSet<KeyCode> pressedKeys = new();
     private HashSet<KeyCode> newPressedKeys = new();
@@ -55,6 +59,8 @@ public class EditorView : MonoBehaviour,
         editorUIHolder = new EditorUIHolder(editorUIDocument, this);
         textureImportUIHolder = new TextureImportUIHolder(spriteImportUIDocument, this);
         textureImportUIHolder.SetVisibility(false);
+        applyChangesUIHolder = new ApplyChangesUIHolder(applyChangesUIDocument, this);
+        applyChangesUIHolder.SetVisibility(false);
         editModeController = new EditModeController(editModeRoot, voxelPrefab, voxelMaterial);
         editModeController.SetVisibility(true);
         renderModeController = new RenderModeController(renderModeRoot, renderModelMeshFilter, renderModelMeshRenderer, renderModelMaterial);
@@ -134,11 +140,12 @@ public class EditorView : MonoBehaviour,
             case EditorState.WaitingForProject:
                 editorUIHolder.SetVisibility(true);
                 textureImportUIHolder.SetVisibility(false);
+                applyChangesUIHolder.SetVisibility(false);
                 break;
         }
     }
 
-    public void Consume(EditorEvent editorEvent)
+    void EditorEventsConsumer.Consume(EditorEvent editorEvent)
     {
         switch (editorEvent)
         {
@@ -159,86 +166,120 @@ public class EditorView : MonoBehaviour,
         }
     }
 
-    public void OnApplyImportSettings(TextureData textureData)
+    void TextureImportUIHolder.Listener.OnApplyImportSettings(TextureData textureData)
     {
         feature.ApplyAction(new EditorAction.TextureSettings.Selected(textureData));
     }
 
-    public void OnCancel()
+    void TextureImportUIHolder.Listener.OnCancel()
     {
         feature.ApplyAction(new EditorAction.TextureSettings.Canceled());
     }
-    
-    public void OnLoadVoxClicked()
+
+    void ApplyChangesUIHolder.Listener.OnApplyClicked()
+    {
+        feature.ApplyAction(new EditorAction.ApplyChanges.Apply());
+    }
+
+    void ApplyChangesUIHolder.Listener.OnDiscardClicked()
+    {
+        feature.ApplyAction(new EditorAction.ApplyChanges.Discard());
+    }
+
+    void ApplyChangesUIHolder.Listener.OnCancelClicked()
+    {
+        feature.ApplyAction(new EditorAction.ApplyChanges.Cancel());
+    }
+
+    void EditorUIHolder.Listener.OnLoadVoxClicked()
     {
         feature.ApplyAction(new EditorAction.LoadVox.OnLoadClicked());
     }
 
-    public void OnLoadTextureClicked()
+    void EditorUIHolder.Listener.OnLoadTextureClicked()
     {
         feature.ApplyAction(new EditorAction.LoadTexture.OnLoadClicked());
     }
 
-    public void OnSaveVoxClicked()
+    void EditorUIHolder.Listener.OnSaveVoxClicked()
     {
         feature.ApplyAction(new EditorAction.SaveVox.OnSaveClicked());
     }
 
-    public void OnImportClicked()
+    void EditorUIHolder.Listener.OnImportClicked()
     {
         feature.ApplyAction(new EditorAction.Import.OnImportClicked());
     }
 
-    public void OnExportClicked()
+    void EditorUIHolder.Listener.OnExportClicked()
     {
         feature.ApplyAction(new EditorAction.Export.OnExportClicked());
     }
 
-    public void OnEditModeClicked()
+    void EditorUIHolder.Listener.OnEditModeClicked()
     {
         feature.ApplyAction(new EditorAction.EditMode.OnEditModeClicked());
     }
 
-    public void OnRenderModeClicked()
+    void EditorUIHolder.Listener.OnRenderModeClicked()
     {
         feature.ApplyAction(new EditorAction.EditMode.OnRenderModeClicked());
     }
 
-    public void OnBrushAddClicked()
+    void EditorUIHolder.Listener.OnBrushAddClicked()
     {
         feature.ApplyAction(new EditorAction.Brush.OnBrushAddClicked());
     }
 
-    public void OnBrushDeleteClicked()
+    void EditorUIHolder.Listener.OnBrushDeleteClicked()
     {
         feature.ApplyAction(new EditorAction.Brush.OnBrushDeleteClicked());
+    }
+
+    void EditorUIHolder.Listener.OnPreviousSpriteClicked()
+    {
+        feature.ApplyAction(new EditorAction.SpriteSelecting.OnPreviousClicked());
+    }
+
+    void EditorUIHolder.Listener.OnNextSpriteClicked()
+    {
+        feature.ApplyAction(new EditorAction.SpriteSelecting.OnNextClicked());
     }
 
     private void ApplyLoadedState(EditorState.Loaded state)
     {
         if (currentState == state) return;
         
-        editorUIHolder.SetVisibility(true);
+        editorUIHolder.SetVisibility(!state.isWaitingForApplyChanges);
         textureImportUIHolder.SetVisibility(false);
+        applyChangesUIHolder.SetVisibility(state.isWaitingForApplyChanges);
 
         editModeController.ApplyVoxels(state.currentSpriteData.voxels);
 
-        if (currentState is EditorState.Loaded curLoadedState
-            && curLoadedState.editModeState != state.editModeState)
+        if (currentState is EditorState.Loaded curLoadedState)
         {
-            switch (state.editModeState)
+            if (curLoadedState.editModeState != state.editModeState)
             {
-                case EditModeState.EditMode editMode:
-                    renderModeController.Hide();
-                    editModeController.SetVisibility(true);
-                    break;
-                case EditModeState.RenderMode renderMode:
-                    editModeController.SetVisibility(false);
-                    renderModeController.Show(renderMode.mesh, state.texture);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                switch (state.editModeState)
+                {
+                    case EditModeState.EditMode editMode:
+                        renderModeController.Hide();
+                        editModeController.SetVisibility(true);
+                        break;
+                    case EditModeState.RenderMode renderMode:
+                        editModeController.SetVisibility(false);
+                        renderModeController.Show(renderMode.mesh, state.texture);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
+        }
+
+        if (currentState is not EditorState.Loaded curLoaded3
+            || curLoaded3.currentSpriteIndex != state.currentSpriteIndex)
+        {
+            editorUIHolder.SetSpriteIndex(state.currentSpriteIndex);
         }
         
         if (currentState is not EditorState.Loaded curLoaded2
@@ -265,6 +306,7 @@ public class EditorView : MonoBehaviour,
     {
         editorUIHolder.SetVisibility(false);
         textureImportUIHolder.SetVisibility(true);
+        applyChangesUIHolder.SetVisibility(false);
     }
 
     private void ImportTexture()

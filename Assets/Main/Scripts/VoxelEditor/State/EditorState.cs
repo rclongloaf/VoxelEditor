@@ -23,6 +23,7 @@ namespace Main.Scripts.VoxelEditor.State
             CameraType cameraType,
             ControlState controlState,
             EditModeState editModeState,
+            bool isWaitingForApplyChanges,
             bool isFileBrowserOpened
         ) : EditorState(isFileBrowserOpened);
     }

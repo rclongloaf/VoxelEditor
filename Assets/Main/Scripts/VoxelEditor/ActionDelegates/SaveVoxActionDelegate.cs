@@ -28,8 +28,7 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
         switch (action)
         {
             case EditorAction.SaveVox.OnSaveClicked onSaveClicked:
-                eventsConsumer.Consume(new EditorEvent.OpenBrowserForSaveVox());
-                reducer.ApplyPatch(new EditorPatch.FileBrowser.Opened());
+                OnSaveClicked(loadedState, onSaveClicked);
                 break;
             case EditorAction.SaveVox.OnPathSelected onPathSelected:
                 repository.SaveVoxFile(onPathSelected.path, loadedState.voxData);
@@ -40,6 +39,19 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action));
+        }
+    }
+
+    private void OnSaveClicked(EditorState.Loaded state, EditorAction.SaveVox.OnSaveClicked action)
+    {
+        if (state.currentSpriteData == state.voxData.sprites[state.currentSpriteIndex])
+        {
+            eventsConsumer.Consume(new EditorEvent.OpenBrowserForSaveVox());
+            reducer.ApplyPatch(new EditorPatch.FileBrowser.Opened());
+        }
+        else
+        {
+            reducer.ApplyPatch(new EditorPatch.SpriteChanges.ApplyRequest());
         }
     }
 }

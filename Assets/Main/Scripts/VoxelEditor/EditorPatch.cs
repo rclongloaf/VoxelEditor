@@ -1,4 +1,5 @@
 ﻿using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor
@@ -20,6 +21,17 @@ public interface EditorPatch
     public record VoxLoaded(VoxData voxData) : EditorPatch;
 
     public record TextureLoaded(Texture2D texture) : EditorPatch;
+    
+    public interface SpriteChanges : EditorPatch
+    {
+        public record ApplyRequest : SpriteChanges;
+        
+        public record Apply : SpriteChanges;
+
+        public record Discard : SpriteChanges;
+
+        public record Cancel : SpriteChanges;
+    }
 
     public interface EditMode : EditorPatch
     {
@@ -65,5 +77,7 @@ public interface EditorPatch
     {
         public record ChangeType(BrushType brushType) : Brush;
     }
+
+    public record ChangeSpriteIndex(SpriteIndex spriteIndex) : EditorPatch;
 }
 }

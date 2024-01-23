@@ -1,18 +1,24 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement style="align-items: center; align-self: flex-start;">
-        <ui:VisualElement style="flex-grow: 0; flex-direction: row;">
+        <ui:VisualElement name="TabsLayout" style="flex-grow: 0; flex-direction: row;">
             <ui:Button text="Import From Texture" name="ImportBtn" />
             <ui:Button text="Export Mesh" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ExportBtn" />
             <ui:Button text="Load Vox" parse-escape-sequences="true" display-tooltip-when-elided="true" name="LoadVoxBtn" />
             <ui:Button text="Load Texture" parse-escape-sequences="true" display-tooltip-when-elided="true" name="LoadTextureBtn" />
             <ui:Button text="Save Vox" parse-escape-sequences="true" display-tooltip-when-elided="true" name="SaveVoxBtn" />
         </ui:VisualElement>
-        <ui:VisualElement style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
+        <ui:VisualElement name="AtlasControlsLayout" style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
+            <ui:Label tabindex="-1" text="Sprite Index" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" />
+            <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="SpriteIndexLabel" />
+            <ui:Button text="Previous" parse-escape-sequences="true" display-tooltip-when-elided="true" name="PreviousSpriteBtn" />
+            <ui:Button text="Next" parse-escape-sequences="true" display-tooltip-when-elided="true" name="NextSpriteBtn" />
+        </ui:VisualElement>
+        <ui:VisualElement name="EditorModeLayout" style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
             <ui:Label tabindex="-1" text="Editor Mode" parse-escape-sequences="true" display-tooltip-when-elided="true" />
             <ui:Button text="Edit" parse-escape-sequences="true" display-tooltip-when-elided="true" name="EditModeBtn" />
             <ui:Button text="Render" parse-escape-sequences="true" display-tooltip-when-elided="true" name="RenderModeBtn" />
         </ui:VisualElement>
-        <ui:VisualElement style="flex-grow: 0; align-items: flex-start; align-self: flex-start;">
+        <ui:VisualElement name="BrushTypeLayput" style="flex-grow: 0; align-items: flex-start; align-self: flex-start;">
             <ui:VisualElement style="flex-grow: 1; flex-direction: row;">
                 <ui:Label tabindex="-1" text="Brush" parse-escape-sequences="true" display-tooltip-when-elided="true" />
                 <ui:Button text="Add" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BrushAddBtn" />

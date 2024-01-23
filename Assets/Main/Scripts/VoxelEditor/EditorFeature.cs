@@ -12,10 +12,9 @@ namespace Main.Scripts.VoxelEditor
         internal EditorState state = new EditorState.WaitingForProject(false);
         private EditorView view;
 
-        private EditorReducer reducer;
-
         private LoadVoxActionDelegate loadVoxActionDelegate;
         private LoadTextureActionDelegate loadTextureActionDelegate;
+        private ApplyChangesActionDelegate applyChangesActionDelegate;
         private SaveVoxActionDelegate saveVoxActionDelegate;
         private ImportActionDelegate importActionDelegate;
         private ExportActionDelegate exportActionDelegate;
@@ -23,15 +22,17 @@ namespace Main.Scripts.VoxelEditor
         private BrushActionDelegate brushActionDelegate;
         private InputActionDelegate inputActionDelegate;
         private SpriteSettingsActionDelegate spriteSettingsActionDelegate;
+        private SpriteSelectingActionDelegate spriteSelectingActionDelegate;
 
         public EditorFeature(EditorView view, EditorEventsConsumer eventsConsumer)
         {
             this.view = view;
             
-            reducer = new EditorReducer(this);
+            var reducer = new EditorReducer(this);
             var repository = new EditorRepository();
             loadVoxActionDelegate = new LoadVoxActionDelegate(this, reducer, repository, eventsConsumer);
             loadTextureActionDelegate = new LoadTextureActionDelegate(this, reducer, repository, eventsConsumer);
+            applyChangesActionDelegate = new ApplyChangesActionDelegate(this, reducer);
             saveVoxActionDelegate = new SaveVoxActionDelegate(this, reducer, repository, eventsConsumer);
             importActionDelegate = new ImportActionDelegate(this, reducer, repository, eventsConsumer);
             exportActionDelegate = new ExportActionDelegate(this, reducer, eventsConsumer);
@@ -39,6 +40,7 @@ namespace Main.Scripts.VoxelEditor
             brushActionDelegate = new BrushActionDelegate(this, reducer);
             inputActionDelegate = new InputActionDelegate(this, reducer);
             spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
+            spriteSelectingActionDelegate = new SpriteSelectingActionDelegate(this, reducer);
         }
 
         public void ApplyAction(EditorAction action)
@@ -51,8 +53,14 @@ namespace Main.Scripts.VoxelEditor
                 case EditorAction.LoadTexture loadTextureAction:
                     loadTextureActionDelegate.ApplyAction(state, loadTextureAction);
                     break;
+                case EditorAction.ApplyChanges applyChangesAction:
+                    applyChangesActionDelegate.ApplyAction(state, applyChangesAction);
+                    break;
                 case EditorAction.SaveVox saveVoxAction:
                     saveVoxActionDelegate.ApplyAction(state, saveVoxAction);
+                    break;
+                case EditorAction.SpriteSelecting spriteSelecting:
+                    spriteSelectingActionDelegate.ApplyAction(state, spriteSelecting);
                     break;
                 case EditorAction.TextureSettings spriteSettings:
                     spriteSettingsActionDelegate.ApplyAction(state, spriteSettings);
