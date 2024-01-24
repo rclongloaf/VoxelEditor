@@ -27,6 +27,8 @@ public class EditorUIHolder
         var spritePreviousBtn = root.Q<Button>("PreviousSpriteBtn");
         var spriteNextBtn = root.Q<Button>("NextSpriteBtn");
         var toggleCameraBtn = root.Q<Button>("ToggleCameraBtn");
+        var toggleGridBtn = root.Q<Button>("ToggleGridBtn");
+        var toggleTransparentBtn = root.Q<Button>("ToggleTransparentBtn");
 
         loadBtn.clicked += listener.OnLoadVoxClicked;
         loadTextureBtn.clicked += listener.OnLoadTextureClicked;
@@ -42,6 +44,8 @@ public class EditorUIHolder
         spritePreviousBtn.clicked += listener.OnPreviousSpriteClicked;
         spriteNextBtn.clicked += listener.OnNextSpriteClicked;
         toggleCameraBtn.clicked += listener.OnToggleCameraClicked;
+        toggleGridBtn.clicked += listener.OnToggleGridClicked;
+        toggleTransparentBtn.clicked += listener.OnToggleTransparentClicked;
     }
 
     public void SetVisibility(bool visible)
@@ -72,6 +76,8 @@ public class EditorUIHolder
         public void OnCopyModelClicked();
         public void OnPasteModelClicked();
         public void OnToggleCameraClicked();
+        public void OnToggleGridClicked();
+        public void OnToggleTransparentClicked();
     }
 }
 }

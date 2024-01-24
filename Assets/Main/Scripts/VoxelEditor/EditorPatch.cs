@@ -89,5 +89,12 @@ public interface EditorPatch
     }
 
     public record ChangeSpriteIndex(SpriteIndex spriteIndex) : EditorPatch;
+    
+    public interface Shader : EditorPatch
+    {
+        public record ChangeGridEnabled(bool enabled) : Shader;
+
+        public record ChangeTransparentEnabled(bool enabled) : Shader;
+    }
 }
 }

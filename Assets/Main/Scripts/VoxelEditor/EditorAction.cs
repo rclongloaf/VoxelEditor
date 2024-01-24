@@ -94,6 +94,13 @@ public interface EditorAction
         public record OnBrushDeleteClicked : Brush;
     }
 
+    public interface Shader : EditorAction
+    {
+        public record OnToggleGridClicked : Shader;
+
+        public record OnToggleTransparentClicked : Shader;
+    }
+
     public record OnToggleCameraClicked : EditorAction;
 
     public interface Input : EditorAction

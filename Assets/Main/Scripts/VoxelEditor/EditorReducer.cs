@@ -26,6 +26,7 @@ public class EditorReducer
             EditorPatch.FileBrowser fileBrowserPatch => ApplyFileBrowserPatch(fileBrowserPatch),
             EditorPatch.Import importPatch => ApplyImportPatch(importPatch),
             EditorPatch.ModelBuffer modelBufferPatch => ApplyModelBufferPatch(modelBufferPatch),
+            EditorPatch.Shader shaderPatch => ApplyShaderPatch(shaderPatch),
             EditorPatch.VoxLoaded voxLoadedPatch => ApplyVoxLoadedPatch(voxLoadedPatch),
             EditorPatch.TextureLoaded textureLoadedPatch => ApplyTextureLoadedPatch(textureLoadedPatch),
             EditorPatch.Control controlPatch => ApplyControlPatch(controlPatch),
@@ -119,6 +120,30 @@ public class EditorReducer
         };
     }
 
+    private EditorState ApplyShaderPatch(EditorPatch.Shader patch)
+    {
+        if (state is not EditorState.Loaded loadedState) return state;
+
+        return patch switch
+        {
+            EditorPatch.Shader.ChangeGridEnabled changeGridEnabled => loadedState with
+            {
+                shaderData = loadedState.shaderData with
+                {
+                    isGridEnabled = changeGridEnabled.enabled
+                }
+            },
+            EditorPatch.Shader.ChangeTransparentEnabled changeTransparentEnabled => loadedState with
+            {
+                shaderData = loadedState.shaderData with
+                {
+                    isTransparentEnabled = changeTransparentEnabled.enabled
+                }
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(patch))
+        };
+    }
+
     private EditorState ApplyVoxLoadedPatch(EditorPatch.VoxLoaded patch)
     {
         var texture = state switch
@@ -138,6 +163,10 @@ public class EditorReducer
             currentSpriteData: patch.voxData.sprites[spriteIndex],
             bufferedSpriteData: null,
             brushType: BrushType.Add,
+            shaderData: new ShaderData(
+                isGridEnabled: false,
+                isTransparentEnabled: false
+            ),
             freeCameraData: new FreeCameraData(
                 pivotPoint: new Vector3(14, 18, 0),
                 distance: 30,

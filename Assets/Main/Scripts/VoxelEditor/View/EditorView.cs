@@ -262,6 +262,16 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.OnToggleCameraClicked());
     }
 
+    void EditorUIHolder.Listener.OnToggleGridClicked()
+    {
+        feature.ApplyAction(new EditorAction.Shader.OnToggleGridClicked());
+    }
+
+    void EditorUIHolder.Listener.OnToggleTransparentClicked()
+    {
+        feature.ApplyAction(new EditorAction.Shader.OnToggleTransparentClicked());
+    }
+
     private void ApplyLoadedState(EditorState.Loaded state)
     {
         if (currentState == state) return;
@@ -272,7 +282,9 @@ public class EditorView : MonoBehaviour,
 
         editModeController.ApplyVoxels(state.currentSpriteData.voxels);
 
-        if (currentState is EditorState.Loaded curLoadedState)
+        var curLoadedState = currentState as EditorState.Loaded;
+
+        if (curLoadedState != null)
         {
             if (curLoadedState.editModeState != state.editModeState)
             {
@@ -292,21 +304,26 @@ public class EditorView : MonoBehaviour,
             }
         }
 
-        if (currentState is not EditorState.Loaded curLoaded3
-            || curLoaded3.currentSpriteIndex != state.currentSpriteIndex)
+        if (curLoadedState == null || curLoadedState.currentSpriteIndex != state.currentSpriteIndex)
         {
             editorUIHolder.SetSpriteIndex(state.currentSpriteIndex);
         }
         
-        if (currentState is not EditorState.Loaded curLoaded2
-            || curLoaded2.texture != state.texture)
+        if (curLoadedState == null
+            || curLoadedState.texture != state.texture)
         {
             editModeController.ApplyTexture(state.texture);
         }
-        if (currentState is not EditorState.Loaded curLoaded1
-            || curLoaded1.currentSpriteIndex != state.currentSpriteIndex)
+        if (curLoadedState == null
+            || curLoadedState.currentSpriteIndex != state.currentSpriteIndex)
         {
             editModeController.ApplySpriteRect(state.voxData.textureData, state.currentSpriteIndex);
+        }
+
+        if (curLoadedState == null
+            || curLoadedState.shaderData != state.shaderData)
+        {
+            editModeController.ApplyShaderData(state.shaderData);
         }
 
         freeCameraTransform.position = state.freeCameraData.pivotPoint

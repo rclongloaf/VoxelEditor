@@ -11,6 +11,8 @@ public class EditModeController
     private static readonly int SpriteTexture = Shader.PropertyToID("_SpriteTexture");
     private static readonly int TextureSize = Shader.PropertyToID("_TextureSize");
     private static readonly int SpriteRectPosition = Shader.PropertyToID("_SpriteRectPosition");
+    private static readonly int IsSelected = Shader.PropertyToID("_IsSelected");
+    private static readonly int IsFillInvisible = Shader.PropertyToID("_IsFillInvisible");
 
     private GameObject root;
     private GameObject voxelPrefab;
@@ -92,6 +94,12 @@ public class EditModeController
                 ApplySpriteRect(textureData, spriteIndex);
             }
         }
+    }
+
+    public void ApplyShaderData(ShaderData shaderData)
+    {
+        material.SetFloat(IsSelected, shaderData.isGridEnabled ? 1 : 0);
+        material.SetFloat(IsFillInvisible, shaderData.isTransparentEnabled ? 0 : 1);
     }
 
     private void AddVoxel(Vector3Int position)

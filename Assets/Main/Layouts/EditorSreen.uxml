@@ -31,5 +31,9 @@
                 <ui:Button text="Delete" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BrushDeleteBtn" />
             </ui:VisualElement>
         </ui:VisualElement>
+        <ui:VisualElement name="ShaderSettingsLayout" style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
+            <ui:Button text="Toggle Grid" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ToggleGridBtn" />
+            <ui:Button text="Toggle Transparent" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ToggleTransparentBtn" />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
