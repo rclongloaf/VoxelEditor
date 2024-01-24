@@ -7,6 +7,7 @@
             <ui:Button text="Load Texture" parse-escape-sequences="true" display-tooltip-when-elided="true" name="LoadTextureBtn" />
             <ui:Button text="Save Vox" parse-escape-sequences="true" display-tooltip-when-elided="true" name="SaveVoxBtn" />
         </ui:VisualElement>
+        <ui:Button text="Toggle Camera" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ToggleCameraBtn" style="align-self: flex-start;" />
         <ui:VisualElement name="AtlasControlsLayout" style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
             <ui:Label tabindex="-1" text="Sprite Index" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" />
             <ui:Button text="Previous" parse-escape-sequences="true" display-tooltip-when-elided="true" name="PreviousSpriteBtn" />

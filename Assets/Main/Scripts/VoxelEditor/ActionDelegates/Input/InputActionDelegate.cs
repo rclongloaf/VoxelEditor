@@ -99,7 +99,8 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
 
     private void OnDrawButtonDown(EditorState.Loaded state)
     {
-        if (state.controlState is not ControlState.None) return;
+        if (state.cameraType is not CameraType.Free
+            || state.controlState is not ControlState.None) return;
         
         reducer.ApplyPatch(new EditorPatch.Control.Drawing.Start());
         ApplyDrawing(state);
@@ -189,7 +190,8 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
     
     private void OnRotatingDown(EditorState.Loaded state)
     {
-        if (state.controlState is not ControlState.None) return;
+        if (state.cameraType is not CameraType.Free
+            || state.controlState is not ControlState.None) return;
         
         reducer.ApplyPatch(new EditorPatch.Control.Rotating.Start());
     }

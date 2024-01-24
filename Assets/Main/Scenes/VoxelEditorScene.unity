@@ -749,9 +749,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 1451545586}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45894de091284e56b308a31f000ce3d5, type: 3}
+  m_Script: {fileID: 11500000, guid: ce95a0ccc1b446c4bc33a8284f99ad13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_ComponentVersion: 1
+  m_AssetsPPU: 10
+  m_RefResolutionX: 640
+  m_RefResolutionY: 360
+  m_CropFrame: 0
+  m_GridSnapping: 0
+  m_FilterMode: 0
+  m_UpscaleRT: 0
+  m_PixelSnapping: 0
+  m_CropFrameX: 0
+  m_CropFrameY: 0
+  m_StretchFill: 0
 --- !u!20 &1451545589
 Camera:
   m_ObjectHideFlags: 0

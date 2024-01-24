@@ -94,6 +94,8 @@ public interface EditorAction
         public record OnBrushDeleteClicked : Brush;
     }
 
+    public record OnToggleCameraClicked : EditorAction;
+
     public interface Input : EditorAction
     {
         public record OnButtonDown(KeyCode keyCode) : Input;

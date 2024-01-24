@@ -7,6 +7,7 @@ using Main.Scripts.VoxelEditor.State.Vox;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UIElements;
+using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
 
 namespace Main.Scripts.VoxelEditor.View
 {
@@ -256,6 +257,11 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.ModelBuffer.OnPasteClicked());
     }
 
+    void EditorUIHolder.Listener.OnToggleCameraClicked()
+    {
+        feature.ApplyAction(new EditorAction.OnToggleCameraClicked());
+    }
+
     private void ApplyLoadedState(EditorState.Loaded state)
     {
         if (currentState == state) return;
@@ -306,8 +312,10 @@ public class EditorView : MonoBehaviour,
         freeCameraTransform.position = state.freeCameraData.pivotPoint
                                        + state.freeCameraData.rotation * new Vector3(0, 0, -state.freeCameraData.distance);
         freeCameraTransform.rotation = state.freeCameraData.rotation;
+        freeCameraTransform.gameObject.SetActive(state.cameraType is CameraType.Free);
         
         isometricCameraTransform.position = state.isometricCameraData.position;
+        isometricCameraTransform.gameObject.SetActive(state.cameraType is CameraType.Isometric);
         
         currentState = state;
     }

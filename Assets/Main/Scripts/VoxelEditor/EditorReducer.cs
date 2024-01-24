@@ -143,7 +143,7 @@ public class EditorReducer
                 distance: 30,
                 rotation: default
             ),
-            isometricCameraData: new IsometricCameraData(default),
+            isometricCameraData: new IsometricCameraData(new Vector3(12, 48, -30)),
             cameraType: CameraType.Free,
             controlState: ControlState.None,
             editModeState: new EditModeState.EditMode(),
@@ -279,6 +279,12 @@ public class EditorReducer
                     {
                         rotation = newRotation.rotation
                     }
+                };
+                break;
+            case EditorPatch.Camera.ChangeType changeType:
+                return loadedState with
+                {
+                    cameraType = changeType.cameraType
                 };
                 break;
             default:

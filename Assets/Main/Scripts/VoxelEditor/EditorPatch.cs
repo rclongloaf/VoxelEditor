@@ -1,6 +1,7 @@
 ﻿using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
+using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
 
 namespace Main.Scripts.VoxelEditor
 {
@@ -78,6 +79,8 @@ public interface EditorPatch
         public record NewDistance(float distance) : Camera;
 
         public record NewRotation(Quaternion rotation) : Camera;
+        
+        public record ChangeType(CameraType cameraType) : Camera;
     }
 
     public interface Brush : EditorPatch

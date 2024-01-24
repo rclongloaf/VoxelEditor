@@ -24,6 +24,7 @@ namespace Main.Scripts.VoxelEditor
         private SpriteSettingsActionDelegate spriteSettingsActionDelegate;
         private SpriteSelectingActionDelegate spriteSelectingActionDelegate;
         private ModelBufferActionDelegate modelBufferActionDelegate;
+        private ToggleCameraActionDelegate toggleCameraActionDelegate;
 
         public EditorFeature(EditorView view, EditorEventsConsumer eventsConsumer)
         {
@@ -43,6 +44,7 @@ namespace Main.Scripts.VoxelEditor
             spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
             spriteSelectingActionDelegate = new SpriteSelectingActionDelegate(this, reducer);
             modelBufferActionDelegate = new ModelBufferActionDelegate(this, reducer);
+            toggleCameraActionDelegate = new ToggleCameraActionDelegate(this, reducer);
         }
 
         public void ApplyAction(EditorAction action)
@@ -84,6 +86,9 @@ namespace Main.Scripts.VoxelEditor
                     break;
                 case EditorAction.Input inputAction:
                     inputActionDelegate.ApplyAction(state, inputAction);
+                    break;
+                case EditorAction.OnToggleCameraClicked onToggleCameraClickedAction:
+                    toggleCameraActionDelegate.ApplyAction(state, onToggleCameraClickedAction);
                     break;
             }
         }
