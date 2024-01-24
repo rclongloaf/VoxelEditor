@@ -128,7 +128,7 @@ Material:
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _SpritePivot: {r: 0, g: 0, b: 0, a: 0}
     - _SpriteRect: {r: 24, g: 36, b: 0, a: 0}
-    - _SpriteRectPosition: {r: 0, g: 200, b: 0, a: 0}
+    - _SpriteRectPosition: {r: 924, g: 200, b: 0, a: 0}
     - _TextureSize: {r: 1452, g: 250, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &5196516825259636075

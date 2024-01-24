@@ -44,6 +44,13 @@ public interface EditorPatch
         public record Add(Vector3Int voxel) : VoxelsChanges;
         public record Delete(Vector3Int voxel) : VoxelsChanges;
     }
+    
+    public interface ModelBuffer : EditorPatch
+    {
+        public record Copy(SpriteData spriteData) : ModelBuffer;
+
+        public record Paste(SpriteData spriteData) : ModelBuffer;
+    }
 
     public interface Control : EditorPatch
     {

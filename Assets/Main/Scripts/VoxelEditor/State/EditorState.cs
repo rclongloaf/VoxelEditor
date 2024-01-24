@@ -17,6 +17,7 @@ namespace Main.Scripts.VoxelEditor.State
             Texture2D? texture,
             SpriteIndex currentSpriteIndex,
             SpriteData currentSpriteData,
+            SpriteData? bufferedSpriteData,
             BrushType brushType,
             FreeCameraData freeCameraData,
             IsometricCameraData isometricCameraData,

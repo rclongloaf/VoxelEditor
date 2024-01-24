@@ -72,6 +72,13 @@ public interface EditorAction
 
         public record OnPreviousClicked : SpriteSelecting;
     }
+    
+    public interface ModelBuffer : EditorAction
+    {
+        public record OnCopyClicked : ModelBuffer;
+
+        public record OnPasteClicked : ModelBuffer;
+    }
 
     public interface EditMode : EditorAction
     {

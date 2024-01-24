@@ -23,6 +23,7 @@ namespace Main.Scripts.VoxelEditor
         private InputActionDelegate inputActionDelegate;
         private SpriteSettingsActionDelegate spriteSettingsActionDelegate;
         private SpriteSelectingActionDelegate spriteSelectingActionDelegate;
+        private ModelBufferActionDelegate modelBufferActionDelegate;
 
         public EditorFeature(EditorView view, EditorEventsConsumer eventsConsumer)
         {
@@ -41,6 +42,7 @@ namespace Main.Scripts.VoxelEditor
             inputActionDelegate = new InputActionDelegate(this, reducer);
             spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
             spriteSelectingActionDelegate = new SpriteSelectingActionDelegate(this, reducer);
+            modelBufferActionDelegate = new ModelBufferActionDelegate(this, reducer);
         }
 
         public void ApplyAction(EditorAction action)
@@ -61,6 +63,9 @@ namespace Main.Scripts.VoxelEditor
                     break;
                 case EditorAction.SpriteSelecting spriteSelecting:
                     spriteSelectingActionDelegate.ApplyAction(state, spriteSelecting);
+                    break;
+                case EditorAction.ModelBuffer modelBufferAction:
+                    modelBufferActionDelegate.ApplyAction(state, modelBufferAction);
                     break;
                 case EditorAction.TextureSettings spriteSettings:
                     spriteSettingsActionDelegate.ApplyAction(state, spriteSettings);

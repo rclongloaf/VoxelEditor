@@ -246,6 +246,16 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.SpriteSelecting.OnNextClicked());
     }
 
+    void EditorUIHolder.Listener.OnCopyModelClicked()
+    {
+        feature.ApplyAction(new EditorAction.ModelBuffer.OnCopyClicked());
+    }
+
+    void EditorUIHolder.Listener.OnPasteModelClicked()
+    {
+        feature.ApplyAction(new EditorAction.ModelBuffer.OnPasteClicked());
+    }
+
     private void ApplyLoadedState(EditorState.Loaded state)
     {
         if (currentState == state) return;
@@ -288,7 +298,7 @@ public class EditorView : MonoBehaviour,
             editModeController.ApplyTexture(state.texture);
         }
         if (currentState is not EditorState.Loaded curLoaded1
-            || curLoaded1.voxData != state.voxData)
+            || curLoaded1.currentSpriteIndex != state.currentSpriteIndex)
         {
             editModeController.ApplySpriteRect(state.voxData.textureData, state.currentSpriteIndex);
         }

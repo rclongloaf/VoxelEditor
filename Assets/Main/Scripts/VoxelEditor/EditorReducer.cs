@@ -25,6 +25,7 @@ public class EditorReducer
             EditorPatch.SpriteChanges spriteChangesPatch => ApplySpriteChangesPatch(spriteChangesPatch),
             EditorPatch.FileBrowser fileBrowserPatch => ApplyFileBrowserPatch(fileBrowserPatch),
             EditorPatch.Import importPatch => ApplyImportPatch(importPatch),
+            EditorPatch.ModelBuffer modelBufferPatch => ApplyModelBufferPatch(modelBufferPatch),
             EditorPatch.VoxLoaded voxLoadedPatch => ApplyVoxLoadedPatch(voxLoadedPatch),
             EditorPatch.TextureLoaded textureLoadedPatch => ApplyTextureLoadedPatch(textureLoadedPatch),
             EditorPatch.Control controlPatch => ApplyControlPatch(controlPatch),
@@ -32,7 +33,8 @@ public class EditorReducer
             EditorPatch.EditMode editModePatch => ApplyEditModePatch(editModePatch),
             EditorPatch.Brush.ChangeType brushPatch => ApplyBrushPatch(brushPatch),
             EditorPatch.Camera cameraPatch => ApplyCameraPatch(cameraPatch),
-            EditorPatch.ChangeSpriteIndex changeSpriteIndexPatch => ApplyChangeSpriteIndex(changeSpriteIndexPatch)
+            EditorPatch.ChangeSpriteIndex changeSpriteIndexPatch => ApplyChangeSpriteIndex(changeSpriteIndexPatch),
+            _ => throw new ArgumentOutOfRangeException(nameof(patch), patch, null)
         };
 
         feature.UpdateState(newState);
@@ -105,6 +107,18 @@ public class EditorReducer
         }
     }
 
+    private EditorState ApplyModelBufferPatch(EditorPatch.ModelBuffer patch)
+    {
+        if (state is not EditorState.Loaded loadedState) return state;
+
+        return patch switch
+        {
+            EditorPatch.ModelBuffer.Copy copy => loadedState with { bufferedSpriteData = copy.spriteData },
+            EditorPatch.ModelBuffer.Paste paste => loadedState with { currentSpriteData = paste.spriteData },
+            _ => throw new ArgumentOutOfRangeException(nameof(patch))
+        };
+    }
+
     private EditorState ApplyVoxLoadedPatch(EditorPatch.VoxLoaded patch)
     {
         var texture = state switch
@@ -122,6 +136,7 @@ public class EditorReducer
             texture: texture,
             currentSpriteIndex: spriteIndex,
             currentSpriteData: patch.voxData.sprites[spriteIndex],
+            bufferedSpriteData: null,
             brushType: BrushType.Add,
             freeCameraData: new FreeCameraData(
                 pivotPoint: new Vector3(14, 18, 0),
