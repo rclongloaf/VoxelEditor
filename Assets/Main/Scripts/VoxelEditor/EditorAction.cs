@@ -113,5 +113,12 @@ public interface EditorAction
 
         public record OnWheelScroll(float delta) : Input;
     }
+    
+    public interface ActionsHistory : EditorAction
+    {
+        public record OnCancelClicked : ActionsHistory;
+
+        public record OnRestoreClicked : ActionsHistory;
+    }
 }
 }

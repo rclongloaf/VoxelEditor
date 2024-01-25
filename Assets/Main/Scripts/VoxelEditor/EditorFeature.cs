@@ -26,6 +26,7 @@ namespace Main.Scripts.VoxelEditor
         private ModelBufferActionDelegate modelBufferActionDelegate;
         private ToggleCameraActionDelegate toggleCameraActionDelegate;
         private ShaderActionDelegate shaderActionDelegate;
+        private ActionsHistoryActionDelegate actionsHistoryActionDelegate;
 
         public EditorFeature(EditorView view, EditorEventsConsumer eventsConsumer)
         {
@@ -47,12 +48,16 @@ namespace Main.Scripts.VoxelEditor
             modelBufferActionDelegate = new ModelBufferActionDelegate(this, reducer);
             toggleCameraActionDelegate = new ToggleCameraActionDelegate(this, reducer);
             shaderActionDelegate = new ShaderActionDelegate(this, reducer);
+            actionsHistoryActionDelegate = new ActionsHistoryActionDelegate(this, reducer);
         }
 
         public void ApplyAction(EditorAction action)
         {
             switch (action)
             {
+                case EditorAction.ActionsHistory actionsHistory:
+                    actionsHistoryActionDelegate.ApplyAction(state, actionsHistory);
+                    break;
                 case EditorAction.LoadVox loadVoxAction:
                     loadVoxActionDelegate.ApplyAction(state, loadVoxAction);
                     break;

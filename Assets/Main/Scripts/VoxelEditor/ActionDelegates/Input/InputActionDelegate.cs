@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Main.Scripts.VoxelEditor.State;
 using UnityEngine;
 using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
@@ -122,12 +123,22 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         switch (state.brushType)
         {
             case BrushType.Add:
+            {
                 var addPosition = Vector3Int.RoundToInt(position + normal);
-                reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(addPosition));
+                var voxels = new List<Vector3Int>();
+                voxels.Add(addPosition);
+                reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
+                reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
                 break;
+            }
             case BrushType.Delete:
-                reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(position));
+            {
+                var voxels = new List<Vector3Int>();
+                voxels.Add(position);
+                reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
+                reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
                 break;
+            }
             default:
                 throw new ArgumentOutOfRangeException();
         }

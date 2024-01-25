@@ -29,6 +29,8 @@ public class EditorUIHolder
         var toggleCameraBtn = root.Q<Button>("ToggleCameraBtn");
         var toggleGridBtn = root.Q<Button>("ToggleGridBtn");
         var toggleTransparentBtn = root.Q<Button>("ToggleTransparentBtn");
+        var cancelLastActionBtn = root.Q<Button>("CancelActionBtn");
+        var restoreCanceledActionBtn = root.Q<Button>("RestoreActionBtn");
 
         loadBtn.clicked += listener.OnLoadVoxClicked;
         loadTextureBtn.clicked += listener.OnLoadTextureClicked;
@@ -46,6 +48,8 @@ public class EditorUIHolder
         toggleCameraBtn.clicked += listener.OnToggleCameraClicked;
         toggleGridBtn.clicked += listener.OnToggleGridClicked;
         toggleTransparentBtn.clicked += listener.OnToggleTransparentClicked;
+        cancelLastActionBtn.clicked += listener.OnCancelActionClicked;
+        restoreCanceledActionBtn.clicked += listener.OnRestoreActionClicked;
     }
 
     public void SetVisibility(bool visible)
@@ -78,6 +82,8 @@ public class EditorUIHolder
         public void OnToggleCameraClicked();
         public void OnToggleGridClicked();
         public void OnToggleTransparentClicked();
+        public void OnCancelActionClicked();
+        public void OnRestoreActionClicked();
     }
 }
 }

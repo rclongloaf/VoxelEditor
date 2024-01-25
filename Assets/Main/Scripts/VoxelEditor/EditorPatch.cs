@@ -1,4 +1,5 @@
-﻿using Main.Scripts.VoxelEditor.State;
+﻿using System.Collections.Generic;
+using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
@@ -42,8 +43,8 @@ public interface EditorPatch
 
     public interface VoxelsChanges : EditorPatch
     {
-        public record Add(Vector3Int voxel) : VoxelsChanges;
-        public record Delete(Vector3Int voxel) : VoxelsChanges;
+        public record Add(List<Vector3Int> voxel) : VoxelsChanges;
+        public record Delete(List<Vector3Int> voxel) : VoxelsChanges;
     }
     
     public interface ModelBuffer : EditorPatch
@@ -95,6 +96,15 @@ public interface EditorPatch
         public record ChangeGridEnabled(bool enabled) : Shader;
 
         public record ChangeTransparentEnabled(bool enabled) : Shader;
+    }
+
+    public interface ActionsHistory : EditorPatch
+    {
+        public record CancelAction : ActionsHistory;
+
+        public record RestoreAction : ActionsHistory;
+
+        public record NewAction(EditAction action) : ActionsHistory;
     }
 }
 }

@@ -5,15 +5,21 @@ namespace Main.Scripts.Utils
 {
 public static class Extensions
 {
-    public static HashSet<T> Plus<T>(this HashSet<T> set, T value)
+    public static HashSet<T> Plus<T>(this HashSet<T> set, List<T> values)
     {
-        set.Add(value);
+        foreach (var value in values)
+        {
+            set.Add(value);
+        }
         return set;
     }
     
-    public static HashSet<T> Minus<T>(this HashSet<T> set, T value)
+    public static HashSet<T> Minus<T>(this HashSet<T> set, List<T> values)
     {
-        set.Remove(value);
+        foreach (var value in values)
+        {
+            set.Remove(value);
+        }
         return set;
     }
     

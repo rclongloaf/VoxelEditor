@@ -272,6 +272,16 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.Shader.OnToggleTransparentClicked());
     }
 
+    void EditorUIHolder.Listener.OnCancelActionClicked()
+    {
+        feature.ApplyAction(new EditorAction.ActionsHistory.OnCancelClicked());
+    }
+
+    void EditorUIHolder.Listener.OnRestoreActionClicked()
+    {
+        feature.ApplyAction(new EditorAction.ActionsHistory.OnRestoreClicked());
+    }
+
     private void ApplyLoadedState(EditorState.Loaded state)
     {
         if (currentState == state) return;

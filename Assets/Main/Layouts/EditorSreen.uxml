@@ -35,5 +35,9 @@
             <ui:Button text="Toggle Grid" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ToggleGridBtn" />
             <ui:Button text="Toggle Transparent" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ToggleTransparentBtn" />
         </ui:VisualElement>
+        <ui:VisualElement name="ActionsHistoryLayout" style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
+            <ui:Button text="Cancel Last Action" parse-escape-sequences="true" display-tooltip-when-elided="true" name="CancelActionBtn" />
+            <ui:Button text="Restore Canceled Action" parse-escape-sequences="true" display-tooltip-when-elided="true" name="RestoreActionBtn" />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

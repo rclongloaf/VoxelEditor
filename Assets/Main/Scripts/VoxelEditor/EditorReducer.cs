@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Main.Scripts.Utils;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
@@ -22,6 +23,7 @@ public class EditorReducer
     {
         var newState = patch switch
         {
+            EditorPatch.ActionsHistory actionsHistoryPatch => ApplyActionsHistoryPatch(actionsHistoryPatch),
             EditorPatch.SpriteChanges spriteChangesPatch => ApplySpriteChangesPatch(spriteChangesPatch),
             EditorPatch.FileBrowser fileBrowserPatch => ApplyFileBrowserPatch(fileBrowserPatch),
             EditorPatch.Import importPatch => ApplyImportPatch(importPatch),
@@ -61,20 +63,18 @@ public class EditorReducer
                     },
                     isWaitingForApplyChanges = false
                 };
-                break;
             case EditorPatch.SpriteChanges.ApplyRequest applyRequest:
                 return loadedState with { isWaitingForApplyChanges = true };
-                break;
             case EditorPatch.SpriteChanges.Cancel cancel:
                 return loadedState with { isWaitingForApplyChanges = false };
-                break;
             case EditorPatch.SpriteChanges.Discard discard:
                 return loadedState with
                 {
                     currentSpriteData = loadedState.voxData.sprites[loadedState.currentSpriteIndex],
+                    actionsHistory = new Stack<EditAction>(),
+                    canceledActionsHistory = new Stack<EditAction>(),
                     isWaitingForApplyChanges = false
                 };
-                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(patch));
         }
@@ -115,7 +115,12 @@ public class EditorReducer
         return patch switch
         {
             EditorPatch.ModelBuffer.Copy copy => loadedState with { bufferedSpriteData = copy.spriteData },
-            EditorPatch.ModelBuffer.Paste paste => loadedState with { currentSpriteData = paste.spriteData },
+            EditorPatch.ModelBuffer.Paste paste => loadedState with
+            {
+                currentSpriteData = paste.spriteData,
+                actionsHistory = new Stack<EditAction>(),
+                canceledActionsHistory = new Stack<EditAction>()
+            },
             _ => throw new ArgumentOutOfRangeException(nameof(patch))
         };
     }
@@ -167,6 +172,8 @@ public class EditorReducer
                 isGridEnabled: false,
                 isTransparentEnabled: false
             ),
+            actionsHistory: new Stack<EditAction>(),
+            canceledActionsHistory: new Stack<EditAction>(),
             freeCameraData: new FreeCameraData(
                 pivotPoint: new Vector3(14, 18, 0),
                 distance: 30,
@@ -227,6 +234,58 @@ public class EditorReducer
             },
             _ => throw new ArgumentOutOfRangeException(nameof(patch))
         };
+    }
+
+    private EditorState ApplyActionsHistoryPatch(EditorPatch.ActionsHistory patch)
+    {
+        if (state is not EditorState.Loaded loadedState) return state;
+
+        switch (patch)
+        {
+            case EditorPatch.ActionsHistory.NewAction newAction:
+            {
+                var newActionHistory = new Stack<EditAction>(loadedState.actionsHistory.Reverse());
+                newActionHistory.Push(newAction.action);
+                
+                var canceledActionsHistory = loadedState.canceledActionsHistory;
+                
+                return loadedState with
+                {
+                    actionsHistory = newActionHistory,
+                    canceledActionsHistory = canceledActionsHistory.Count > 0 ? new Stack<EditAction>() : canceledActionsHistory
+                };
+            }
+            case EditorPatch.ActionsHistory.CancelAction cancelAction:
+            {
+                var newActionHistory = new Stack<EditAction>(loadedState.actionsHistory.Reverse());
+                var lastAction = newActionHistory.Pop();
+
+                var newCanceledActionsHistory = new Stack<EditAction>(loadedState.canceledActionsHistory.Reverse());
+                newCanceledActionsHistory.Push(lastAction);
+
+                return loadedState with
+                {
+                    actionsHistory = newActionHistory,
+                    canceledActionsHistory = newCanceledActionsHistory
+                };
+            }
+            case EditorPatch.ActionsHistory.RestoreAction restoreAction:
+            {
+                var newCanceledActionsHistory = new Stack<EditAction>(loadedState.canceledActionsHistory.Reverse());
+                var lastCanceledAction = newCanceledActionsHistory.Pop();
+
+                var newActionsHistory = new Stack<EditAction>(loadedState.actionsHistory.Reverse());
+                newActionsHistory.Push(lastCanceledAction);
+
+                return loadedState with
+                {
+                    actionsHistory = newActionsHistory,
+                    canceledActionsHistory = newCanceledActionsHistory
+                };
+            }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(patch));
+        }
     }
 
     private EditorState ApplyEditModePatch(EditorPatch.EditMode patch)
@@ -328,7 +387,9 @@ public class EditorReducer
         return loadedState with
         {
             currentSpriteData = loadedState.voxData.sprites[patch.spriteIndex],
-            currentSpriteIndex = patch.spriteIndex
+            currentSpriteIndex = patch.spriteIndex,
+            actionsHistory = new Stack<EditAction>(),
+            canceledActionsHistory = new Stack<EditAction>()
         };
     }
 }

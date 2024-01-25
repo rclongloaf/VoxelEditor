@@ -1,4 +1,5 @@
-﻿using Main.Scripts.VoxelEditor.State.Vox;
+﻿using System.Collections.Generic;
+using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor.State
@@ -20,6 +21,8 @@ namespace Main.Scripts.VoxelEditor.State
             SpriteData? bufferedSpriteData,
             BrushType brushType,
             ShaderData shaderData,
+            Stack<EditAction> actionsHistory,
+            Stack<EditAction> canceledActionsHistory,
             FreeCameraData freeCameraData,
             IsometricCameraData isometricCameraData,
             CameraType cameraType,
