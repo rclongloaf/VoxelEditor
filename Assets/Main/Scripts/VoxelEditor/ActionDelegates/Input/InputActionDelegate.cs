@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Brush;
 using UnityEngine;
 using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
 
@@ -120,28 +122,123 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
 
         if (!GetVoxelUnderCursor(out var position, out var normal)) return;
 
-        switch (state.brushType)
+        switch (state.brushData.mode)
         {
-            case BrushType.Add:
-            {
-                var addPosition = Vector3Int.RoundToInt(position + normal);
-                var voxels = new List<Vector3Int>();
-                voxels.Add(addPosition);
-                reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
-                reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
+            case BrushMode.One:
+                switch (state.brushData.type)
+                {
+                    case BrushType.Add:
+                    {
+                        var addPosition = Vector3Int.RoundToInt(position + normal);
+                        var voxels = new List<Vector3Int>();
+                        voxels.Add(addPosition);
+                        reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
+                        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
+                        break;
+                    }
+                    case BrushType.Delete:
+                    {
+                        var voxels = new List<Vector3Int>();
+                        voxels.Add(position);
+                        reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
+                        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
                 break;
-            }
-            case BrushType.Delete:
-            {
-                var voxels = new List<Vector3Int>();
-                voxels.Add(position);
-                reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
-                reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
+            case BrushMode.Section:
+                switch (state.brushData.type)
+                {
+                    case BrushType.Add:
+                    {
+                        var voxels = GetVoxelsSection(
+                            model: state.currentSpriteData.voxels,
+                            position: position,
+                            normal: Vector3Int.RoundToInt(normal),
+                            applyNormal: true
+                        );
+                        reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
+                        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
+                        break;
+                    }
+                    case BrushType.Delete:
+                    {
+                        var voxels = GetVoxelsSection(
+                            model: state.currentSpriteData.voxels,
+                            position: position,
+                            normal: Vector3Int.RoundToInt(normal),
+                            applyNormal: false
+                        );
+                        reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
+                        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
                 break;
-            }
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    private List<Vector3Int> GetVoxelsSection(
+        HashSet<Vector3Int> model,
+        Vector3Int position,
+        Vector3Int normal,
+        bool applyNormal
+    )
+    {
+        var voxels = new HashSet<Vector3Int>();
+
+        var queue = new Queue<Vector3Int>();
+        queue.Enqueue(position);
+        while (queue.Count > 0)
+        {
+            var voxel = queue.Dequeue();
+            if (voxels.Contains(voxel))
+            {
+                continue;
+            }
+
+            if (!model.Contains(voxel)
+                || model.Contains(voxel + normal))
+            {
+                continue;
+            }
+
+            voxels.Add(voxel);
+            
+            if (normal.z != 0)
+            {
+                queue.Enqueue(voxel + Vector3Int.left);
+                queue.Enqueue(voxel + Vector3Int.right);
+                queue.Enqueue(voxel + Vector3Int.up);
+                queue.Enqueue(voxel + Vector3Int.down);
+            }
+            else if (normal.y != 0)
+            {
+                queue.Enqueue(voxel + Vector3Int.left);
+                queue.Enqueue(voxel + Vector3Int.right);
+                queue.Enqueue(voxel + Vector3Int.forward);
+                queue.Enqueue(voxel + Vector3Int.back);
+            } else if (normal.x != 0)
+            {
+                queue.Enqueue(voxel + Vector3Int.forward);
+                queue.Enqueue(voxel + Vector3Int.back);
+                queue.Enqueue(voxel + Vector3Int.up);
+                queue.Enqueue(voxel + Vector3Int.down);
+            }
+        }
+
+        if (applyNormal)
+        {
+            return voxels.ToList().ConvertAll(pos => pos + normal);
+        }
+
+        return voxels.ToList();
     }
     
     private bool GetVoxelUnderCursor(out Vector3Int position, out Vector3 normal)

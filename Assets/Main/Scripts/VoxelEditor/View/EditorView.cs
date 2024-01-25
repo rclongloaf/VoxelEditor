@@ -289,6 +289,16 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.OnApplyPivotClicked(pivotPoint));
     }
 
+    void EditorUIHolder.Listener.OnBrushModeOneClicked()
+    {
+        feature.ApplyAction(new EditorAction.Brush.OnBrushModeOneClicked());
+    }
+
+    void EditorUIHolder.Listener.OnBrushModeSectionClicked()
+    {
+        feature.ApplyAction(new EditorAction.Brush.OnBrushModeSectionClicked());
+    }
+
     private void ApplyLoadedState(EditorState.Loaded state)
     {
         if (currentState == state) return;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Main.Scripts.Utils;
 using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Brush;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
@@ -34,7 +35,7 @@ public class EditorReducer
             EditorPatch.Control controlPatch => ApplyControlPatch(controlPatch),
             EditorPatch.VoxelsChanges voxelsChanges => ApplyVoxelsChangesPatch(voxelsChanges),
             EditorPatch.EditMode editModePatch => ApplyEditModePatch(editModePatch),
-            EditorPatch.Brush.ChangeType brushPatch => ApplyBrushPatch(brushPatch),
+            EditorPatch.Brush brushPatch => ApplyBrushPatch(brushPatch),
             EditorPatch.NewPivotPoint newPivotPointPatch => ApplyNewPivotPointPatch(newPivotPointPatch),
             EditorPatch.Camera cameraPatch => ApplyCameraPatch(cameraPatch),
             EditorPatch.ChangeSpriteIndex changeSpriteIndexPatch => ApplyChangeSpriteIndex(changeSpriteIndexPatch),
@@ -168,7 +169,10 @@ public class EditorReducer
             currentSpriteIndex: spriteIndex,
             currentSpriteData: patch.voxData.sprites[spriteIndex],
             bufferedSpriteData: null,
-            brushType: BrushType.Add,
+            brushData: new BrushData(
+                mode: BrushMode.One,
+                type: BrushType.Add
+            ),
             shaderData: new ShaderData(
                 isGridEnabled: false,
                 isTransparentEnabled: false
@@ -314,13 +318,27 @@ public class EditorReducer
         }
     }
 
-    private EditorState ApplyBrushPatch(EditorPatch.Brush.ChangeType patch)
+    private EditorState ApplyBrushPatch(EditorPatch.Brush patch)
     {
         if (state is not EditorState.Loaded loadedState) return state;
 
-        return loadedState with
+        return patch switch
         {
-            brushType = patch.brushType
+            EditorPatch.Brush.ChangeMode changeMode => loadedState with
+            {
+                brushData = loadedState.brushData with
+                {
+                    mode = changeMode.brushMode
+                }
+            },
+            EditorPatch.Brush.ChangeType changeType => loadedState with
+            {
+                brushData = loadedState.brushData with
+                {
+                    type = changeType.brushType
+                }
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(patch))
         };
     }
 
