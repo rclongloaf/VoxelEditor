@@ -39,5 +39,11 @@
             <ui:Button text="Cancel Last Action" parse-escape-sequences="true" display-tooltip-when-elided="true" name="CancelActionBtn" />
             <ui:Button text="Restore Canceled Action" parse-escape-sequences="true" display-tooltip-when-elided="true" name="RestoreActionBtn" />
         </ui:VisualElement>
+        <ui:VisualElement name="PivotPointLayout" style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
+            <ui:Label tabindex="-1" text="Pivot Point (x, y)" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+            <ui:IntegerField value="0" name="PivotXField" style="align-items: stretch; align-self: auto;" />
+            <ui:IntegerField value="0" name="PivotYField" />
+            <ui:Button text="Apply" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ApplyPivotBtn" />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

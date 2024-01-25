@@ -1,5 +1,6 @@
 ﻿using Main.Scripts.Utils;
 using Main.Scripts.VoxelEditor.State.Vox;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Main.Scripts.VoxelEditor.View
@@ -8,6 +9,8 @@ public class EditorUIHolder
 {
     private VisualElement root;
     private Label spriteIndexLabel;
+    private IntegerField pivotXField;
+    private IntegerField pivotYField;
     
     public EditorUIHolder(UIDocument doc, Listener listener)
     {
@@ -31,6 +34,9 @@ public class EditorUIHolder
         var toggleTransparentBtn = root.Q<Button>("ToggleTransparentBtn");
         var cancelLastActionBtn = root.Q<Button>("CancelActionBtn");
         var restoreCanceledActionBtn = root.Q<Button>("RestoreActionBtn");
+        pivotXField = root.Q<IntegerField>("PivotXField");
+        pivotYField = root.Q<IntegerField>("PivotYField");
+        var applyPivotBtn = root.Q<Button>("ApplyPivotBtn");
 
         loadBtn.clicked += listener.OnLoadVoxClicked;
         loadTextureBtn.clicked += listener.OnLoadTextureClicked;
@@ -50,6 +56,10 @@ public class EditorUIHolder
         toggleTransparentBtn.clicked += listener.OnToggleTransparentClicked;
         cancelLastActionBtn.clicked += listener.OnCancelActionClicked;
         restoreCanceledActionBtn.clicked += listener.OnRestoreActionClicked;
+        applyPivotBtn.clicked += () =>
+        {
+            listener.OnApplyPivotClicked(new Vector2(pivotXField.value, pivotYField.value));
+        };
     }
 
     public void SetVisibility(bool visible)
@@ -60,6 +70,12 @@ public class EditorUIHolder
     public void SetSpriteIndex(SpriteIndex spriteIndex)
     {
         spriteIndexLabel.text = $"row: {spriteIndex.rowIndex + 1}, column: {spriteIndex.columnIndex + 1}";
+    }
+
+    public void SetPivotPoint(Vector2 pivotPoint)
+    {
+        pivotXField.value = (int)pivotPoint.x;
+        pivotYField.value = (int)pivotPoint.y;
     }
 
     public interface Listener
@@ -84,6 +100,8 @@ public class EditorUIHolder
         public void OnToggleTransparentClicked();
         public void OnCancelActionClicked();
         public void OnRestoreActionClicked();
+
+        public void OnApplyPivotClicked(Vector2 pivotPoint);
     }
 }
 }

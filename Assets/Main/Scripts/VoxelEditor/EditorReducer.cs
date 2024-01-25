@@ -35,6 +35,7 @@ public class EditorReducer
             EditorPatch.VoxelsChanges voxelsChanges => ApplyVoxelsChangesPatch(voxelsChanges),
             EditorPatch.EditMode editModePatch => ApplyEditModePatch(editModePatch),
             EditorPatch.Brush.ChangeType brushPatch => ApplyBrushPatch(brushPatch),
+            EditorPatch.NewPivotPoint newPivotPointPatch => ApplyNewPivotPointPatch(newPivotPointPatch),
             EditorPatch.Camera cameraPatch => ApplyCameraPatch(cameraPatch),
             EditorPatch.ChangeSpriteIndex changeSpriteIndexPatch => ApplyChangeSpriteIndex(changeSpriteIndexPatch),
             _ => throw new ArgumentOutOfRangeException(nameof(patch), patch, null)
@@ -320,6 +321,19 @@ public class EditorReducer
         return loadedState with
         {
             brushType = patch.brushType
+        };
+    }
+
+    private EditorState ApplyNewPivotPointPatch(EditorPatch.NewPivotPoint patch)
+    {
+        if (state is not EditorState.Loaded loadedState) return state;
+
+        return loadedState with
+        {
+            currentSpriteData = loadedState.currentSpriteData with
+            {
+                pivot = patch.pivotPoint
+            }
         };
     }
 

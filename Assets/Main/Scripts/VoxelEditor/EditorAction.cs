@@ -120,5 +120,7 @@ public interface EditorAction
 
         public record OnRestoreClicked : ActionsHistory;
     }
+
+    public record OnApplyPivotClicked(Vector2 pivotPoint) : EditorAction;
 }
 }

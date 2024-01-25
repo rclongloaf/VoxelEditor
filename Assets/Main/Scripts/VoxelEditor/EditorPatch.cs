@@ -106,5 +106,7 @@ public interface EditorPatch
 
         public record NewAction(EditAction action) : ActionsHistory;
     }
+
+    public record NewPivotPoint(Vector2 pivotPoint) : EditorPatch;
 }
 }

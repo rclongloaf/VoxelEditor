@@ -27,6 +27,7 @@ namespace Main.Scripts.VoxelEditor
         private ToggleCameraActionDelegate toggleCameraActionDelegate;
         private ShaderActionDelegate shaderActionDelegate;
         private ActionsHistoryActionDelegate actionsHistoryActionDelegate;
+        private ApplyPivotActionDelegate applyPivotActionDelegate;
 
         public EditorFeature(EditorView view, EditorEventsConsumer eventsConsumer)
         {
@@ -49,6 +50,7 @@ namespace Main.Scripts.VoxelEditor
             toggleCameraActionDelegate = new ToggleCameraActionDelegate(this, reducer);
             shaderActionDelegate = new ShaderActionDelegate(this, reducer);
             actionsHistoryActionDelegate = new ActionsHistoryActionDelegate(this, reducer);
+            applyPivotActionDelegate = new ApplyPivotActionDelegate(this, reducer);
         }
 
         public void ApplyAction(EditorAction action)
@@ -78,6 +80,9 @@ namespace Main.Scripts.VoxelEditor
                     break;
                 case EditorAction.ModelBuffer modelBufferAction:
                     modelBufferActionDelegate.ApplyAction(state, modelBufferAction);
+                    break;
+                case EditorAction.OnApplyPivotClicked onApplyPivotClicked:
+                    applyPivotActionDelegate.ApplyAction(state, onApplyPivotClicked);
                     break;
                 case EditorAction.TextureSettings spriteSettings:
                     spriteSettingsActionDelegate.ApplyAction(state, spriteSettings);

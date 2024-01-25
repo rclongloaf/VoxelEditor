@@ -30,6 +30,8 @@ public class EditorView : MonoBehaviour,
     [SerializeField]
     private GameObject editModeRoot = null!;
     [SerializeField]
+    private Transform pivotPointTransform = null!;
+    [SerializeField]
     private GameObject voxelPrefab = null!;
     [SerializeField]
     private Material voxelMaterial = null!;
@@ -282,6 +284,11 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.ActionsHistory.OnRestoreClicked());
     }
 
+    void EditorUIHolder.Listener.OnApplyPivotClicked(Vector2 pivotPoint)
+    {
+        feature.ApplyAction(new EditorAction.OnApplyPivotClicked(pivotPoint));
+    }
+
     private void ApplyLoadedState(EditorState.Loaded state)
     {
         if (currentState == state) return;
@@ -334,14 +341,25 @@ public class EditorView : MonoBehaviour,
             || curLoadedState.shaderData != state.shaderData)
         {
             editModeController.ApplyShaderData(state.shaderData);
+            pivotPointTransform.gameObject.SetActive(state.shaderData.isGridEnabled);
+        }
+
+        if (curLoadedState == null
+            || curLoadedState.currentSpriteData.pivot != state.currentSpriteData.pivot)
+        {
+            var pivotPoint = state.currentSpriteData.pivot;
+            editorUIHolder.SetPivotPoint(pivotPoint);
+            pivotPointTransform.transform.position = new Vector3(pivotPoint.x, pivotPoint.y, 0);
         }
 
         freeCameraTransform.position = state.freeCameraData.pivotPoint
+                                       - (state.editModeState is EditModeState.RenderMode ? state.currentSpriteData.pivot : Vector3.zero)
                                        + state.freeCameraData.rotation * new Vector3(0, 0, -state.freeCameraData.distance);
         freeCameraTransform.rotation = state.freeCameraData.rotation;
         freeCameraTransform.gameObject.SetActive(state.cameraType is CameraType.Free);
         
-        isometricCameraTransform.position = state.isometricCameraData.position;
+        isometricCameraTransform.position = state.isometricCameraData.position
+                                            - (state.editModeState is EditModeState.RenderMode ? state.currentSpriteData.pivot : Vector3.zero);
         isometricCameraTransform.gameObject.SetActive(state.cameraType is CameraType.Isometric);
         
         currentState = state;
