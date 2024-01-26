@@ -93,7 +93,7 @@ public class EditModeController
         material.SetTexture(SpriteTexture, texture);
         if (texture != null)
         {
-            material.SetVector(TextureSize, texture.Size());
+            material.SetVector(TextureSize, new Vector2(texture.width, texture.height));
             if (textureData != null && spriteIndex != null)
             {
                 ApplySpriteRect(textureData, spriteIndex);
