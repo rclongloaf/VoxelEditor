@@ -109,9 +109,25 @@ public interface EditorAction
 
     public interface Input : EditorAction
     {
-        public record OnButtonDown(KeyCode keyCode) : Input;
+        public record OnButtonDown : Input
+        {
+            public record Draw(bool withCtrl, bool withShift) : OnButtonDown;
 
-        public record OnButtonUp(KeyCode keyCode) : Input;
+            public record Rotate : OnButtonDown;
+
+            public record MoveCamera : OnButtonDown;
+        }
+
+        public record OnButtonUp : Input
+        {
+            public record Draw : OnButtonUp;
+            
+            public record Rotate : OnButtonUp;
+
+            public record MoveCamera : OnButtonUp;
+        }
+        
+        public record OnMenu : Input;
 
         public record OnMouseDelta(float deltaX, float deltaY) : Input;
 

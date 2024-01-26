@@ -9,7 +9,7 @@ public class ApplyChangesActionDelegate : ActionDelegate<EditorAction.ApplyChang
     
     public override void ApplyAction(EditorState state, EditorAction.ApplyChanges action)
     {
-        if (state is not EditorState.Loaded { isWaitingForApplyChanges: true }) return;
+        if (state is not EditorState.Loaded { uiState: UIState.ApplyChanges }) return;
 
         switch (action)
         {

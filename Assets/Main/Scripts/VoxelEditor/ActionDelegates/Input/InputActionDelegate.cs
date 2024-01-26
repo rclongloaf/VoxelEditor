@@ -19,10 +19,20 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         switch (action)
         {
             case EditorAction.Input.OnButtonDown onButtonDown:
-                OnButtonDown(loadedState, onButtonDown.keyCode);
+                OnButtonDown(loadedState, onButtonDown);
                 break;
             case EditorAction.Input.OnButtonUp onButtonUp:
-                OnButtonUp(loadedState, onButtonUp.keyCode);
+                OnButtonUp(loadedState, onButtonUp);
+                break;
+            case EditorAction.Input.OnMenu onMenu:
+                if (loadedState.uiState is UIState.None)
+                {
+                    reducer.ApplyPatch(new EditorPatch.MenuVisibility(true));
+                }
+                else if (loadedState.uiState is UIState.Menu)
+                {
+                    reducer.ApplyPatch(new EditorPatch.MenuVisibility(false));
+                }
                 break;
             case EditorAction.Input.OnMouseDelta onMouseDelta:
                 OnMouseDelta(loadedState, onMouseDelta);
@@ -35,39 +45,39 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         }
     }
 
-    private void OnButtonDown(EditorState.Loaded state, KeyCode keyCode)
+    private void OnButtonDown(EditorState.Loaded state, EditorAction.Input.OnButtonDown action)
     {
-        switch (keyCode)
+        switch (action)
         {
-            case KeyCode.Mouse0:
+            case EditorAction.Input.OnButtonDown.Draw:
                 OnDrawButtonDown(state);
                 break;
-            case KeyCode.Mouse1:
+            case EditorAction.Input.OnButtonDown.Rotate:
                 OnRotatingDown(state);
                 break;
-            case KeyCode.Mouse2:
+            case EditorAction.Input.OnButtonDown.MoveCamera:
                 OnMoveButtonDown(state);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(keyCode), keyCode, null);
+                throw new ArgumentOutOfRangeException(nameof(action), action, null);
         }
     }
 
-    private void OnButtonUp(EditorState.Loaded state, KeyCode keyCode)
+    private void OnButtonUp(EditorState.Loaded state, EditorAction.Input.OnButtonUp action)
     {
-        switch (keyCode)
+        switch (action)
         {
-            case KeyCode.Mouse0:
+            case EditorAction.Input.OnButtonUp.Draw:
                 OnDrawButtonUp(state);
                 break;
-            case KeyCode.Mouse1:
+            case EditorAction.Input.OnButtonUp.Rotate:
                 OnRotatingUp(state);
                 break;
-            case KeyCode.Mouse2:
+            case EditorAction.Input.OnButtonUp.MoveCamera:
                 OnMoveButtonUp(state);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(keyCode), keyCode, null);
+                throw new ArgumentOutOfRangeException(nameof(action), action, null);
         }
     }
 

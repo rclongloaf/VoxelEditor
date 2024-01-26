@@ -15,6 +15,8 @@ public interface EditorPatch
         public record Closed : FileBrowser;
     }
 
+    public record MenuVisibility(bool visible) : EditorPatch;
+
     public interface Import : EditorPatch
     {
         public record TextureSelected(Texture2D texture) : Import;

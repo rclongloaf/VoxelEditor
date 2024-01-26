@@ -5,14 +5,13 @@ using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor.State
 {
-    public abstract record EditorState(bool isFileBrowserOpened)
+    public abstract record EditorState
     {
-        public record WaitingForProject(bool isFileBrowserOpened) : EditorState(isFileBrowserOpened);
+        public record WaitingForProject : EditorState;
 
         public record SpriteSelecting(
-            bool isFileBrowserOpened,
             Texture2D texture
-        ) : EditorState(isFileBrowserOpened);
+        ) : EditorState;
 
         public record Loaded(
             VoxData voxData,
@@ -29,8 +28,7 @@ namespace Main.Scripts.VoxelEditor.State
             CameraType cameraType,
             ControlState controlState,
             EditModeState editModeState,
-            bool isWaitingForApplyChanges,
-            bool isFileBrowserOpened
-        ) : EditorState(isFileBrowserOpened);
+            UIState uiState
+        ) : EditorState;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Main.Scripts.Utils;
+﻿using System.Collections.Generic;
+using Main.Scripts.Utils;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -11,6 +12,9 @@ public class EditorUIHolder
     private Label spriteIndexLabel;
     private IntegerField pivotXField;
     private IntegerField pivotYField;
+
+    private VisualElement[] loadedStateElements;
+    
     
     public EditorUIHolder(UIDocument doc, Listener listener)
     {
@@ -64,6 +68,22 @@ public class EditorUIHolder
         {
             listener.OnApplyPivotClicked(new Vector2(pivotXField.value, pivotYField.value));
         };
+
+        loadedStateElements = new VisualElement[]
+        {
+            loadTextureBtn,
+            saveBtn,
+            exportBtn,
+            root.Q<VisualElement>("LoadedStateLayout")
+        };
+    }
+
+    public void SetLoadedState(bool isLoadedState)
+    {
+        foreach (var element in loadedStateElements)
+        {
+            element.SetVisibility(isLoadedState);
+        }
     }
 
     public void SetVisibility(bool visible)

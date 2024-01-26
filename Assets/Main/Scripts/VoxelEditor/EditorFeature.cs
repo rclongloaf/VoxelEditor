@@ -9,7 +9,7 @@ namespace Main.Scripts.VoxelEditor
 {
     public class EditorFeature
     {
-        internal EditorState state = new EditorState.WaitingForProject(false);
+        internal EditorState state = new EditorState.WaitingForProject();
         private EditorView view;
 
         private LoadVoxActionDelegate loadVoxActionDelegate;

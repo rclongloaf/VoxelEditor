@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Label tabindex="-1" text="Menu: Esc" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="ChangeSprite : Left/Righ Arrows" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Switch Camera: TAB" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Switch Scene: R" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Copy: CTRL + C" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Paste: CTRL + V" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Draw By Section: Hold SHIFT" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Delete Voxels: Hold CTRL" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Cancel: CTRL + Z" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Revert: CTRL + Y / CTRL + SHIFT + Z" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Toggle Grid: G" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Toggle Transparent: T" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Move Pivot: IJKL (aka WASD)" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+</ui:UXML>

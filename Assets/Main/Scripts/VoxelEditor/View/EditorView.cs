@@ -60,6 +60,7 @@ public class EditorView : MonoBehaviour,
         feature = new EditorFeature(this, this);
         currentState = feature.state;
         editorUIHolder = new EditorUIHolder(editorUIDocument, this);
+        editorUIHolder.SetLoadedState(false);
         textureImportUIHolder = new TextureImportUIHolder(spriteImportUIDocument, this);
         textureImportUIHolder.SetVisibility(false);
         applyChangesUIHolder = new ApplyChangesUIHolder(applyChangesUIDocument, this);
@@ -74,15 +75,112 @@ public class EditorView : MonoBehaviour,
     {
         newPressedKeys.Clear();
 
+        UpdateKeyPressedStatus(KeyCode.Escape);
         UpdateKeyPressedStatus(KeyCode.Mouse0);
         UpdateKeyPressedStatus(KeyCode.Mouse1);
         UpdateKeyPressedStatus(KeyCode.Mouse2);
+        UpdateKeyPressedStatus(KeyCode.LeftArrow);
+        UpdateKeyPressedStatus(KeyCode.RightArrow);
+        UpdateKeyPressedStatus(KeyCode.Tab);
+        UpdateKeyPressedStatus(KeyCode.R);
+        UpdateKeyPressedStatus(KeyCode.C);
+        UpdateKeyPressedStatus(KeyCode.V);
+        UpdateKeyPressedStatus(KeyCode.Z);
+        UpdateKeyPressedStatus(KeyCode.Y);
+        UpdateKeyPressedStatus(KeyCode.G);
+        UpdateKeyPressedStatus(KeyCode.T);
+        UpdateKeyPressedStatus(KeyCode.I);
+        UpdateKeyPressedStatus(KeyCode.J);
+        UpdateKeyPressedStatus(KeyCode.K);
+        UpdateKeyPressedStatus(KeyCode.L);
+
+        var withCtrl = Input.GetKey(KeyCode.LeftControl);
+        var withShift = Input.GetKey(KeyCode.LeftShift);
+
+        var editorUIHolderListener = (EditorUIHolder.Listener)this;
+
+        var loadedState = currentState as EditorState.Loaded;
+        
+        if (newPressedKeys.Contains(KeyCode.Escape) && !pressedKeys.Contains(KeyCode.Escape))
+        {
+            feature.ApplyAction(new EditorAction.Input.OnMenu());
+            (pressedKeys, newPressedKeys) = (newPressedKeys, pressedKeys);
+            return;
+        }
+
+        if (loadedState != null && loadedState.uiState is not UIState.None)
+        {
+            (pressedKeys, newPressedKeys) = (newPressedKeys, pressedKeys);
+            return;
+        }
+
 
         foreach (var key in newPressedKeys)
         {
             if (!pressedKeys.Contains(key))
             {
-                feature.ApplyAction(new EditorAction.Input.OnButtonDown(key));
+                switch (key)
+                {
+                    case KeyCode.Mouse0 when loadedState != null:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withCtrl, withShift));
+                        break;
+                    case KeyCode.Mouse1 when loadedState != null:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Rotate());
+                        break;
+                    case KeyCode.Mouse2 when loadedState != null:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.MoveCamera());
+                        break;
+                    case KeyCode.LeftArrow when loadedState != null:
+                        editorUIHolderListener.OnPreviousSpriteClicked();
+                        break;
+                    case KeyCode.RightArrow when loadedState != null:
+                        editorUIHolderListener.OnNextSpriteClicked();
+                        break;
+                    case KeyCode.Tab when loadedState != null:
+                        editorUIHolderListener.OnToggleCameraClicked();
+                        break;
+                    case KeyCode.R when loadedState != null:
+                        if (loadedState.editModeState is EditModeState.EditMode)
+                        {
+                            editorUIHolderListener.OnRenderModeClicked();
+                        }
+                        else
+                        {
+                            editorUIHolderListener.OnEditModeClicked();
+                        }
+                        break;
+                    case KeyCode.C when loadedState != null && withCtrl:
+                        editorUIHolderListener.OnCopyModelClicked();
+                        break;
+                    case KeyCode.V when loadedState != null && withCtrl:
+                        editorUIHolderListener.OnPasteModelClicked();
+                        break;
+                    case KeyCode.Z when loadedState != null && withCtrl:
+                        editorUIHolderListener.OnCancelActionClicked();
+                        break;
+                    case KeyCode.Z when loadedState != null && withCtrl && withShift:
+                    case KeyCode.Y when loadedState != null && withCtrl:
+                        editorUIHolderListener.OnRestoreActionClicked();
+                        break;
+                    case KeyCode.G when loadedState != null:
+                        editorUIHolderListener.OnToggleGridClicked();
+                        break;
+                    case KeyCode.T when loadedState != null:
+                        editorUIHolderListener.OnToggleTransparentClicked();
+                        break;
+                    case KeyCode.I when loadedState != null:
+                        editorUIHolderListener.OnApplyPivotClicked(loadedState.currentSpriteData.pivot + Vector2.up);
+                        break;
+                    case KeyCode.J when loadedState != null:
+                        editorUIHolderListener.OnApplyPivotClicked(loadedState.currentSpriteData.pivot + Vector2.left);
+                        break;
+                    case KeyCode.K when loadedState != null:
+                        editorUIHolderListener.OnApplyPivotClicked(loadedState.currentSpriteData.pivot + Vector2.down);
+                        break;
+                    case KeyCode.L when loadedState != null:
+                        editorUIHolderListener.OnApplyPivotClicked(loadedState.currentSpriteData.pivot + Vector2.right);
+                        break;
+                }
             }
         }
 
@@ -90,11 +188,22 @@ public class EditorView : MonoBehaviour,
         {
             if (!newPressedKeys.Contains(key))
             {
-                feature.ApplyAction(new EditorAction.Input.OnButtonUp(key));
+                switch (key)
+                {
+                    case KeyCode.Mouse0 when loadedState != null:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.Draw());
+                        break;
+                    case KeyCode.Mouse1 when loadedState != null:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.Rotate());
+                        break;
+                    case KeyCode.Mouse2 when loadedState != null:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.MoveCamera());
+                        break;
+                }
             }
         }
 
-        if (currentState is EditorState.Loaded loadedState)
+        if (loadedState != null)
         {
             switch (loadedState.controlState)
             {
@@ -141,6 +250,7 @@ public class EditorView : MonoBehaviour,
                 ApplySpriteSelectingState(spriteSelectingState);
                 break;
             case EditorState.WaitingForProject:
+                editorUIHolder.SetLoadedState(false);
                 editorUIHolder.SetVisibility(true);
                 textureImportUIHolder.SetVisibility(false);
                 applyChangesUIHolder.SetVisibility(false);
@@ -303,9 +413,10 @@ public class EditorView : MonoBehaviour,
     {
         if (currentState == state) return;
         
-        editorUIHolder.SetVisibility(!state.isWaitingForApplyChanges);
-        textureImportUIHolder.SetVisibility(false);
-        applyChangesUIHolder.SetVisibility(state.isWaitingForApplyChanges);
+        editorUIHolder.SetLoadedState(true);
+        editorUIHolder.SetVisibility(state.uiState is UIState.Menu);
+        textureImportUIHolder.SetVisibility(state.uiState is UIState.TextureImport);
+        applyChangesUIHolder.SetVisibility(state.uiState is UIState.ApplyChanges);
 
         editModeController.ApplyVoxels(state.currentSpriteData.voxels);
 

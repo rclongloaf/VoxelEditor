@@ -28,6 +28,7 @@ public class EditorReducer
             EditorPatch.SpriteChanges spriteChangesPatch => ApplySpriteChangesPatch(spriteChangesPatch),
             EditorPatch.FileBrowser fileBrowserPatch => ApplyFileBrowserPatch(fileBrowserPatch),
             EditorPatch.Import importPatch => ApplyImportPatch(importPatch),
+            EditorPatch.MenuVisibility menuVisibilityPatch => ApplyMenuVisibilityPatch(menuVisibilityPatch),
             EditorPatch.ModelBuffer modelBufferPatch => ApplyModelBufferPatch(modelBufferPatch),
             EditorPatch.Shader shaderPatch => ApplyShaderPatch(shaderPatch),
             EditorPatch.VoxLoaded voxLoadedPatch => ApplyVoxLoadedPatch(voxLoadedPatch),
@@ -63,19 +64,19 @@ public class EditorReducer
                     {
                         sprites = newSprites
                     },
-                    isWaitingForApplyChanges = false
+                    uiState = UIState.None
                 };
             case EditorPatch.SpriteChanges.ApplyRequest applyRequest:
-                return loadedState with { isWaitingForApplyChanges = true };
+                return loadedState with { uiState = UIState.ApplyChanges };
             case EditorPatch.SpriteChanges.Cancel cancel:
-                return loadedState with { isWaitingForApplyChanges = false };
+                return loadedState with { uiState = UIState.None };
             case EditorPatch.SpriteChanges.Discard discard:
                 return loadedState with
                 {
                     currentSpriteData = loadedState.voxData.sprites[loadedState.currentSpriteIndex],
                     actionsHistory = new Stack<EditAction>(),
                     canceledActionsHistory = new Stack<EditAction>(),
-                    isWaitingForApplyChanges = false
+                    uiState = UIState.None
                 };
             default:
                 throw new ArgumentOutOfRangeException(nameof(patch));
@@ -88,7 +89,7 @@ public class EditorReducer
 
         return loadedState with
         {
-            isFileBrowserOpened = patch is EditorPatch.FileBrowser.Opened
+            uiState = patch is EditorPatch.FileBrowser.Opened ? UIState.FileBrowser : UIState.None
         };
     }
 
@@ -98,16 +99,26 @@ public class EditorReducer
         {
             case EditorPatch.Import.TextureSelected textureSelected:
                 return new EditorState.SpriteSelecting(
-                    texture: textureSelected.texture,
-                    isFileBrowserOpened: false
+                    texture: textureSelected.texture
                 );
                 break;
             case EditorPatch.Import.Cancel cancel:
-                return new EditorState.WaitingForProject(false);
+                return new EditorState.WaitingForProject();
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(patch));
         }
+    }
+
+    private EditorState ApplyMenuVisibilityPatch(EditorPatch.MenuVisibility patch)
+    {
+        if (state is not EditorState.Loaded loadedState
+            || loadedState.uiState is not UIState.None and not UIState.Menu) return state;
+
+        return loadedState with
+        {
+            uiState = patch.visible ? UIState.Menu : UIState.None
+        };
     }
 
     private EditorState ApplyModelBufferPatch(EditorPatch.ModelBuffer patch)
@@ -188,8 +199,7 @@ public class EditorReducer
             cameraType: CameraType.Free,
             controlState: ControlState.None,
             editModeState: new EditModeState.EditMode(),
-            isWaitingForApplyChanges: false,
-            isFileBrowserOpened: false
+            uiState: UIState.None
         );
     }
 
