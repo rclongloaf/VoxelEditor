@@ -49,8 +49,8 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
     {
         switch (action)
         {
-            case EditorAction.Input.OnButtonDown.Draw:
-                OnDrawButtonDown(state);
+            case EditorAction.Input.OnButtonDown.Draw drawAction:
+                OnDrawButtonDown(state, drawAction);
                 break;
             case EditorAction.Input.OnButtonDown.Rotate:
                 OnRotatingDown(state);
@@ -110,13 +110,13 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         ));
     }
 
-    private void OnDrawButtonDown(EditorState.Loaded state)
+    private void OnDrawButtonDown(EditorState.Loaded state, EditorAction.Input.OnButtonDown.Draw action)
     {
         if (state.cameraType is not CameraType.Free
             || state.controlState is not ControlState.None) return;
         
         reducer.ApplyPatch(new EditorPatch.Control.Drawing.Start());
-        ApplyDrawing(state);
+        ApplyDrawing(state, action);
     }
 
     private void OnDrawButtonUp(EditorState.Loaded state)
@@ -126,18 +126,18 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         reducer.ApplyPatch(new EditorPatch.Control.Drawing.Finish());
     }
 
-    private void ApplyDrawing(EditorState.Loaded state)
+    private void ApplyDrawing(EditorState.Loaded state, EditorAction.Input.OnButtonDown.Draw action)
     {
         if (state.cameraType is not CameraType.Free) return;
 
         if (!GetVoxelUnderCursor(out var position, out var normal)) return;
 
-        switch (state.brushData.mode)
+        switch (action.withShift)
         {
-            case BrushMode.One:
-                switch (state.brushData.type)
+            case false:
+                switch (action.withCtrl)
                 {
-                    case BrushType.Add:
+                    case false:
                     {
                         var addPosition = Vector3Int.RoundToInt(position + normal);
                         var voxels = new List<Vector3Int>();
@@ -146,7 +146,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                         reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
                         break;
                     }
-                    case BrushType.Delete:
+                    case true:
                     {
                         var voxels = new List<Vector3Int>();
                         voxels.Add(position);
@@ -154,14 +154,12 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                         reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
                         break;
                     }
-                    default:
-                        throw new ArgumentOutOfRangeException();
                 }
                 break;
-            case BrushMode.Section:
-                switch (state.brushData.type)
+            case true:
+                switch (action.withCtrl)
                 {
-                    case BrushType.Add:
+                    case false:
                     {
                         var voxels = GetVoxelsSection(
                             model: state.currentSpriteData.voxels,
@@ -173,7 +171,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                         reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
                         break;
                     }
-                    case BrushType.Delete:
+                    case true:
                     {
                         var voxels = GetVoxelsSection(
                             model: state.currentSpriteData.voxels,
