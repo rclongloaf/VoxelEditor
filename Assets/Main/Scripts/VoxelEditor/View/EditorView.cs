@@ -30,6 +30,8 @@ public class EditorView : MonoBehaviour,
     [SerializeField]
     private GameObject editModeRoot = null!;
     [SerializeField]
+    private SpriteRenderer spriteReference = null!;
+    [SerializeField]
     private Transform pivotPointTransform = null!;
     [SerializeField]
     private GameObject voxelPrefab = null!;
@@ -65,7 +67,7 @@ public class EditorView : MonoBehaviour,
         textureImportUIHolder.SetVisibility(false);
         applyChangesUIHolder = new ApplyChangesUIHolder(applyChangesUIDocument, this);
         applyChangesUIHolder.SetVisibility(false);
-        editModeController = new EditModeController(editModeRoot, voxelPrefab, voxelMaterial);
+        editModeController = new EditModeController(editModeRoot, spriteReference, voxelPrefab, voxelMaterial);
         editModeController.SetVisibility(true);
         renderModeController = new RenderModeController(renderModeRoot, renderModelMeshFilter, renderModelMeshRenderer, renderModelMaterial);
         renderModeController.Hide();
@@ -89,6 +91,7 @@ public class EditorView : MonoBehaviour,
         UpdateKeyPressedStatus(KeyCode.Y);
         UpdateKeyPressedStatus(KeyCode.G);
         UpdateKeyPressedStatus(KeyCode.T);
+        UpdateKeyPressedStatus(KeyCode.Q);
         UpdateKeyPressedStatus(KeyCode.I);
         UpdateKeyPressedStatus(KeyCode.J);
         UpdateKeyPressedStatus(KeyCode.K);
@@ -167,6 +170,9 @@ public class EditorView : MonoBehaviour,
                         break;
                     case KeyCode.T when loadedState != null:
                         editorUIHolderListener.OnToggleTransparentClicked();
+                        break;
+                    case KeyCode.Q when loadedState != null:
+                        editorUIHolderListener.OnToggleSpriteRefClicked();
                         break;
                     case KeyCode.I when loadedState != null:
                         editorUIHolderListener.OnApplyPivotClicked(loadedState.currentSpriteData.pivot + Vector2.up);
@@ -409,6 +415,11 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.Brush.OnBrushModeSectionClicked());
     }
 
+    public void OnToggleSpriteRefClicked()
+    {
+        feature.ApplyAction(new EditorAction.Input.OnToggleSpriteRef());
+    }
+
     private void ApplyLoadedState(EditorState.Loaded state)
     {
         if (currentState == state) return;
@@ -471,6 +482,12 @@ public class EditorView : MonoBehaviour,
             var pivotPoint = state.currentSpriteData.pivot;
             editorUIHolder.SetPivotPoint(pivotPoint);
             pivotPointTransform.transform.position = new Vector3(pivotPoint.x, pivotPoint.y, 0);
+        }
+
+        if (curLoadedState == null
+            || curLoadedState.isSpriteRefVisible != state.isSpriteRefVisible)
+        {
+            editModeController.SetReferenceVisibility(state.isSpriteRefVisible);
         }
 
         freeCameraTransform.position = state.freeCameraData.pivotPoint

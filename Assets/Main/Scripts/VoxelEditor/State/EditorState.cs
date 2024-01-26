@@ -21,6 +21,7 @@ namespace Main.Scripts.VoxelEditor.State
             SpriteData? bufferedSpriteData,
             BrushData brushData,
             ShaderData shaderData,
+            bool isSpriteRefVisible,
             Stack<EditAction> actionsHistory,
             Stack<EditAction> canceledActionsHistory,
             FreeCameraData freeCameraData,

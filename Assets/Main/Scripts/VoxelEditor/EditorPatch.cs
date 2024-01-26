@@ -113,5 +113,7 @@ public interface EditorPatch
     }
 
     public record NewPivotPoint(Vector2 pivotPoint) : EditorPatch;
+
+    public record ChangeSpriteRefVisibility(bool visible) : EditorPatch;
 }
 }

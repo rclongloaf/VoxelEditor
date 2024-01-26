@@ -15,6 +15,7 @@ public class EditModeController
     private static readonly int IsFillInvisible = Shader.PropertyToID("_IsFillInvisible");
 
     private GameObject root;
+    private SpriteRenderer spriteReference;
     private GameObject voxelPrefab;
     private Material material;
     private Texture2D? texture;
@@ -25,11 +26,13 @@ public class EditModeController
 
     public EditModeController(
         GameObject root,
+        SpriteRenderer spriteReference,
         GameObject voxelPrefab,
         Material voxelMaterial
     )
     {
         this.root = root;
+        this.spriteReference = spriteReference;
         this.voxelPrefab = voxelPrefab;
         material = voxelMaterial;
     }
@@ -79,6 +82,8 @@ public class EditModeController
                 (textureData.rowsCount - spriteIndex.rowIndex - 1) * height
             );
             material.SetVector(SpriteRectPosition, rectPosition);
+            
+            spriteReference.sprite = Sprite.Create(texture, new Rect(rectPosition.x, rectPosition.y, width, height), Vector2.zero, 1);
         }
     }
 
@@ -100,6 +105,11 @@ public class EditModeController
     {
         material.SetFloat(IsSelected, shaderData.isGridEnabled ? 1 : 0);
         material.SetFloat(IsFillInvisible, shaderData.isTransparentEnabled ? 0 : 1);
+    }
+
+    public void SetReferenceVisibility(bool visible)
+    {
+        spriteReference.gameObject.SetActive(visible);
     }
 
     private void AddVoxel(Vector3Int position)

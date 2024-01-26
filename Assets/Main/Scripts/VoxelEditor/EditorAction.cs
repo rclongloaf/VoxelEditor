@@ -126,6 +126,8 @@ public interface EditorAction
 
             public record MoveCamera : OnButtonUp;
         }
+
+        public record OnToggleSpriteRef : Input;
         
         public record OnMenu : Input;
 

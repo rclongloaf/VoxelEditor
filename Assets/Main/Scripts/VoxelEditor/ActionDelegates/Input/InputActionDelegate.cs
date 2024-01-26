@@ -40,6 +40,9 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             case EditorAction.Input.OnWheelScroll onWheelScroll:
                 OnWheelScroll(loadedState, onWheelScroll);
                 break;
+            case EditorAction.Input.OnToggleSpriteRef onToggleSpriteRefAction:
+                OnToggleSpriteRef(loadedState, onToggleSpriteRefAction);
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action));
         }
@@ -108,6 +111,11 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         reducer.ApplyPatch(new EditorPatch.Camera.NewDistance(
             state.freeCameraData.distance * (action.delta > 0 ? 0.9f : 1.1f)
         ));
+    }
+
+    private void OnToggleSpriteRef(EditorState.Loaded state, EditorAction.Input.OnToggleSpriteRef action)
+    {
+        reducer.ApplyPatch(new EditorPatch.ChangeSpriteRefVisibility(!state.isSpriteRefVisible));
     }
 
     private void OnDrawButtonDown(EditorState.Loaded state, EditorAction.Input.OnButtonDown.Draw action)

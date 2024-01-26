@@ -38,6 +38,7 @@ public class EditorUIHolder
         var toggleCameraBtn = root.Q<Button>("ToggleCameraBtn");
         var toggleGridBtn = root.Q<Button>("ToggleGridBtn");
         var toggleTransparentBtn = root.Q<Button>("ToggleTransparentBtn");
+        var toggleSpriteRefBtn = root.Q<Button>("ToggleSpriteRefBtn");
         var cancelLastActionBtn = root.Q<Button>("CancelActionBtn");
         var restoreCanceledActionBtn = root.Q<Button>("RestoreActionBtn");
         pivotXField = root.Q<IntegerField>("PivotXField");
@@ -62,6 +63,7 @@ public class EditorUIHolder
         toggleCameraBtn.clicked += listener.OnToggleCameraClicked;
         toggleGridBtn.clicked += listener.OnToggleGridClicked;
         toggleTransparentBtn.clicked += listener.OnToggleTransparentClicked;
+        toggleSpriteRefBtn.clicked += listener.OnToggleSpriteRefClicked;
         cancelLastActionBtn.clicked += listener.OnCancelActionClicked;
         restoreCanceledActionBtn.clicked += listener.OnRestoreActionClicked;
         applyPivotBtn.clicked += () =>
@@ -124,6 +126,8 @@ public class EditorUIHolder
         public void OnToggleCameraClicked();
         public void OnToggleGridClicked();
         public void OnToggleTransparentClicked();
+
+        public void OnToggleSpriteRefClicked();
         public void OnCancelActionClicked();
         public void OnRestoreActionClicked();
 

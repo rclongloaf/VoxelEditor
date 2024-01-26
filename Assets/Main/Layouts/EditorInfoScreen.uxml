@@ -3,6 +3,7 @@
     <ui:Label tabindex="-1" text="ChangeSprite : Left/Righ Arrows" parse-escape-sequences="true" display-tooltip-when-elided="true" />
     <ui:Label tabindex="-1" text="Switch Camera: TAB" parse-escape-sequences="true" display-tooltip-when-elided="true" />
     <ui:Label tabindex="-1" text="Switch Scene: R" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Toggle Sprite Ref: Q" parse-escape-sequences="true" display-tooltip-when-elided="true" />
     <ui:Label tabindex="-1" text="Copy: CTRL + C" parse-escape-sequences="true" display-tooltip-when-elided="true" />
     <ui:Label tabindex="-1" text="Paste: CTRL + V" parse-escape-sequences="true" display-tooltip-when-elided="true" />
     <ui:Label tabindex="-1" text="Draw By Section: Hold SHIFT" parse-escape-sequences="true" display-tooltip-when-elided="true" />

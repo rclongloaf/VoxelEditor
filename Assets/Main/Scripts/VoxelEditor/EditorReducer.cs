@@ -40,6 +40,7 @@ public class EditorReducer
             EditorPatch.NewPivotPoint newPivotPointPatch => ApplyNewPivotPointPatch(newPivotPointPatch),
             EditorPatch.Camera cameraPatch => ApplyCameraPatch(cameraPatch),
             EditorPatch.ChangeSpriteIndex changeSpriteIndexPatch => ApplyChangeSpriteIndex(changeSpriteIndexPatch),
+            EditorPatch.ChangeSpriteRefVisibility changeSpriteRefVisibilityPatch => ApplyChangeSpriteRefVisibilityPatch(changeSpriteRefVisibilityPatch),
             _ => throw new ArgumentOutOfRangeException(nameof(patch), patch, null)
         };
 
@@ -162,6 +163,16 @@ public class EditorReducer
         };
     }
 
+    private EditorState ApplyChangeSpriteRefVisibilityPatch(EditorPatch.ChangeSpriteRefVisibility patch)
+    {
+        if (state is not EditorState.Loaded loadedState) return state;
+
+        return loadedState with
+        {
+            isSpriteRefVisible = patch.visible
+        };
+    }
+
     private EditorState ApplyVoxLoadedPatch(EditorPatch.VoxLoaded patch)
     {
         var texture = state switch
@@ -188,6 +199,7 @@ public class EditorReducer
                 isGridEnabled: false,
                 isTransparentEnabled: false
             ),
+            isSpriteRefVisible: false,
             actionsHistory: new Stack<EditAction>(),
             canceledActionsHistory: new Stack<EditAction>(),
             freeCameraData: new FreeCameraData(
@@ -195,7 +207,7 @@ public class EditorReducer
                 distance: 30,
                 rotation: default
             ),
-            isometricCameraData: new IsometricCameraData(new Vector3(12, 48, -30)),
+            isometricCameraData: new IsometricCameraData(new Vector3(20, 60, -35)),
             cameraType: CameraType.Free,
             controlState: ControlState.None,
             editModeState: new EditModeState.EditMode(),
