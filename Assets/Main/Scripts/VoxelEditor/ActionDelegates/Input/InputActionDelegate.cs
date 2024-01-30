@@ -139,15 +139,19 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         if (state.cameraType is not CameraType.Free) return;
 
         if (!GetVoxelUnderCursor(out var position, out var normal)) return;
-
-        switch (action.withShift)
+        
+        switch (action.withSection)
         {
             case false:
-                switch (action.withCtrl)
+                switch (action.withDelete)
                 {
                     case false:
                     {
-                        var addPosition = Vector3Int.RoundToInt(position + normal);
+                        var addPosition = Vector3Int.RoundToInt(
+                            position
+                            + normal
+                            + (action.withProjection ? new Vector3Int(0, (int)-normal.z, 0) : Vector3Int.zero)
+                        );
                         var voxels = new List<Vector3Int>();
                         voxels.Add(addPosition);
                         reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
@@ -165,7 +169,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                 }
                 break;
             case true:
-                switch (action.withCtrl)
+                switch (action.withDelete)
                 {
                     case false:
                     {
@@ -173,6 +177,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                             model: state.currentSpriteData.voxels,
                             position: position,
                             normal: Vector3Int.RoundToInt(normal),
+                            withProjection: true,
                             applyNormal: true
                         );
                         reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
@@ -185,6 +190,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                             model: state.currentSpriteData.voxels,
                             position: position,
                             normal: Vector3Int.RoundToInt(normal),
+                            withProjection: false,
                             applyNormal: false
                         );
                         reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
@@ -204,6 +210,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         HashSet<Vector3Int> model,
         Vector3Int position,
         Vector3Int normal,
+        bool withProjection,
         bool applyNormal
     )
     {
@@ -251,7 +258,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
 
         if (applyNormal)
         {
-            return voxels.ToList().ConvertAll(pos => pos + normal);
+            return voxels.ToList().ConvertAll(pos => pos + normal + (withProjection ? new Vector3Int(0, -normal.z, 0) : Vector3Int.zero));
         }
 
         return voxels.ToList();

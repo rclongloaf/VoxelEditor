@@ -111,7 +111,7 @@ public interface EditorAction
     {
         public record OnButtonDown : Input
         {
-            public record Draw(bool withCtrl, bool withShift) : OnButtonDown;
+            public record Draw(bool withDelete, bool withSection, bool withProjection) : OnButtonDown;
 
             public record Rotate : OnButtonDown;
 

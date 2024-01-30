@@ -103,6 +103,7 @@ public class EditorView : MonoBehaviour,
 
         var withCtrl = Input.GetKey(KeyCode.LeftControl);
         var withShift = Input.GetKey(KeyCode.LeftShift);
+        var withX = Input.GetKey(KeyCode.X);
 
         var editorUIHolderListener = (EditorUIHolder.Listener)this;
 
@@ -129,7 +130,7 @@ public class EditorView : MonoBehaviour,
                 switch (key)
                 {
                     case KeyCode.Mouse0 when loadedState != null:
-                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withCtrl, withShift));
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withCtrl, withShift, withX));
                         break;
                     case KeyCode.Mouse1 when loadedState != null:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.Rotate());
