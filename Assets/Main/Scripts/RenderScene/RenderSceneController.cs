@@ -17,10 +17,13 @@ public class RenderSceneController : MonoBehaviour
 
     private void Awake()
     {
-        var eulerAngles = transform.rotation.eulerAngles;
+        var eulerAngles = directionLightTransform.rotation.eulerAngles;
         
         directionLightXAngle = eulerAngles.x;
-        directionLightYAngle = eulerAngles.y;
+        directionLightYAngle = eulerAngles.y - 180f;
+
+        directionLightXSlider.value = directionLightXAngle / 180f;
+        directionLightYSlider.value = directionLightYAngle / 360f + 0.5f;
 
         directionLightXSlider.onValueChanged.AddListener(value =>
         {
@@ -30,7 +33,7 @@ public class RenderSceneController : MonoBehaviour
 
         directionLightYSlider.onValueChanged.AddListener(value =>
         {
-            directionLightYAngle = 360 * value;
+            directionLightYAngle = 360 * (value - 0.5f);
             directionLightTransform.rotation = Quaternion.Euler(directionLightXAngle, directionLightYAngle, 0);
         });
     }
