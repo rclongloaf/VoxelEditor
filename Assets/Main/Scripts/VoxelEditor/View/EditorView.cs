@@ -70,6 +70,10 @@ public class EditorView : MonoBehaviour,
         editModeController = new EditModeController(editModeRoot, spriteReference, voxelPrefab, voxelMaterial);
         editModeController.SetVisibility(true);
         renderModeController = new RenderModeController(renderModeRoot, renderModelMeshFilter, renderModelMeshRenderer, renderModelMaterial);
+    }
+
+    private void Start()
+    {
         renderModeController.Hide();
     }
 
