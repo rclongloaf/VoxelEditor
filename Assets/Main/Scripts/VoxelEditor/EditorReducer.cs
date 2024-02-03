@@ -209,7 +209,7 @@ public class EditorReducer
             ),
             isometricCameraData: new IsometricCameraData(new Vector3(20, 60, -35)),
             cameraType: CameraType.Free,
-            controlState: ControlState.None,
+            controlState: new ControlState.None(),
             editModeState: new EditModeState.EditMode(),
             uiState: UIState.None
         );
@@ -228,12 +228,21 @@ public class EditorReducer
 
         return patch switch
         {
-            EditorPatch.Control.Drawing.Start => loadedState with { controlState = ControlState.Drawing },
-            EditorPatch.Control.Drawing.Finish => loadedState with { controlState = ControlState.None },
-            EditorPatch.Control.Moving.Start => loadedState with { controlState = ControlState.Moving },
-            EditorPatch.Control.Moving.Finish => loadedState with { controlState = ControlState.None },
-            EditorPatch.Control.Rotating.Start => loadedState with { controlState = ControlState.Rotating },
-            EditorPatch.Control.Rotating.Finish => loadedState with { controlState = ControlState.None },
+            EditorPatch.Control.Drawing.Start drawingStartAction => loadedState with
+            {
+                controlState = new ControlState.Drawing(
+                    position: drawingStartAction.position,
+                    normal: drawingStartAction.normal,
+                    deleting: drawingStartAction.deleting,
+                    bySection: drawingStartAction.bySection,
+                    withProjection: drawingStartAction.withProjection
+                )
+            },
+            EditorPatch.Control.Drawing.Finish => loadedState with { controlState = new ControlState.None() },
+            EditorPatch.Control.Moving.Start => loadedState with { controlState = new ControlState.Moving() },
+            EditorPatch.Control.Moving.Finish => loadedState with { controlState = new ControlState.None() },
+            EditorPatch.Control.Rotating.Start => loadedState with { controlState = new ControlState.Rotating() },
+            EditorPatch.Control.Rotating.Finish => loadedState with { controlState = new ControlState.None() },
 
             _ => throw new ArgumentOutOfRangeException(nameof(patch), patch, null)
         };

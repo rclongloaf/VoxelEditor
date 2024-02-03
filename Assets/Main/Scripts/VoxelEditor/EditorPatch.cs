@@ -61,7 +61,14 @@ public interface EditorPatch
     {
         public interface Drawing : Control
         {
-            public record Start : Drawing;
+            public record Start(
+                Vector3Int position,
+                Vector3Int normal,
+                bool deleting,
+                bool bySection,
+                bool withProjection
+            ) : Drawing;
+            
             public record Finish : Drawing;
         }
         public interface Moving : Control

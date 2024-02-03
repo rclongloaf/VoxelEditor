@@ -1,10 +1,21 @@
-﻿namespace Main.Scripts.VoxelEditor.State
+﻿using UnityEngine;
+
+namespace Main.Scripts.VoxelEditor.State
 {
-public enum ControlState
+public interface ControlState
 {
-    None,
-    Drawing,
-    Moving,
-    Rotating
+    public record None : ControlState;
+
+    public record Drawing(
+        Vector3Int position,
+        Vector3Int normal,
+        bool deleting,
+        bool bySection,
+        bool withProjection
+    ) : ControlState;
+
+    public record Moving : ControlState;
+
+    public record Rotating : ControlState;
 }
 }

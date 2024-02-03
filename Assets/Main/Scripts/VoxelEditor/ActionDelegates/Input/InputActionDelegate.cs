@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Main.Scripts.VoxelEditor.State;
-using Main.Scripts.VoxelEditor.State.Brush;
 using UnityEngine;
 using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
 
@@ -23,6 +22,9 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                 break;
             case EditorAction.Input.OnButtonUp onButtonUp:
                 OnButtonUp(loadedState, onButtonUp);
+                break;
+            case EditorAction.Input.OnButtonDraw onButtonDrawAction:
+                OnButtonDraw(loadedState, onButtonDrawAction);
                 break;
             case EditorAction.Input.OnMenu onMenu:
                 if (loadedState.uiState is UIState.None)
@@ -123,8 +125,21 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         if (state.cameraType is not CameraType.Free
             || state.controlState is not ControlState.None) return;
         
-        reducer.ApplyPatch(new EditorPatch.Control.Drawing.Start());
-        ApplyDrawing(state, action);
+        if (!GetVoxelUnderCursor(out var position, out var normalFloat)) return;
+
+        var normal = Vector3Int.RoundToInt(normalFloat);
+        
+        reducer.ApplyPatch(new EditorPatch.Control.Drawing.Start(
+            position: position,
+            normal: normal,
+            deleting: action.withDelete,
+            bySection: action.withSection,
+            withProjection: action.withProjection
+        ));
+        if (action.withSection)
+        {
+            ApplyDrawingBySection(state, action, position, normal);
+        }
     }
 
     private void OnDrawButtonUp(EditorState.Loaded state)
@@ -133,76 +148,85 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         
         reducer.ApplyPatch(new EditorPatch.Control.Drawing.Finish());
     }
-
-    private void ApplyDrawing(EditorState.Loaded state, EditorAction.Input.OnButtonDown.Draw action)
+    
+    private void OnButtonDraw(EditorState.Loaded state, EditorAction.Input.OnButtonDraw action)
     {
-        if (state.cameraType is not CameraType.Free) return;
+        if (state.controlState is not ControlState.Drawing drawingState
+            || drawingState.bySection
+            || state.cameraType is not CameraType.Free) return;
 
-        if (!GetVoxelUnderCursor(out var position, out var normal)) return;
+        var normal = drawingState.normal;
+        var deltaNormal = normal.x > 0 ||
+                          normal.y > 0 ||
+                          normal.z > 0
+            ? normal
+            : Vector3Int.zero;
         
-        switch (action.withSection)
+        var planePosition = drawingState.position + deltaNormal;
+        
+        var plane = new Plane(normal, planePosition);
+        if (!GetVoxelUnderCursorOnPlane(plane, out var position)) return;
+        
+        ApplyDrawingByOne(state, drawingState, position - deltaNormal);
+    }
+
+    private void ApplyDrawingByOne(
+        EditorState.Loaded state,
+        ControlState.Drawing drawingState,
+        Vector3Int position
+    )
+    {
+        if (drawingState.deleting)
         {
-            case false:
-                switch (action.withDelete)
-                {
-                    case false:
-                    {
-                        var addPosition = Vector3Int.RoundToInt(
-                            position
-                            + normal
-                            + (action.withProjection ? new Vector3Int(0, (int)-normal.z, 0) : Vector3Int.zero)
-                        );
-                        var voxels = new List<Vector3Int>();
-                        voxels.Add(addPosition);
-                        reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
-                        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
-                        break;
-                    }
-                    case true:
-                    {
-                        var voxels = new List<Vector3Int>();
-                        voxels.Add(position);
-                        reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
-                        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
-                        break;
-                    }
-                }
-                break;
-            case true:
-                switch (action.withDelete)
-                {
-                    case false:
-                    {
-                        var voxels = GetVoxelsSection(
-                            model: state.currentSpriteData.voxels,
-                            position: position,
-                            normal: Vector3Int.RoundToInt(normal),
-                            withProjection: true,
-                            applyNormal: true
-                        );
-                        reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
-                        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
-                        break;
-                    }
-                    case true:
-                    {
-                        var voxels = GetVoxelsSection(
-                            model: state.currentSpriteData.voxels,
-                            position: position,
-                            normal: Vector3Int.RoundToInt(normal),
-                            withProjection: false,
-                            applyNormal: false
-                        );
-                        reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
-                        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
-                        break;
-                    }
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+            if (!state.currentSpriteData.voxels.Contains(position)) return;
+            
+            var voxels = new List<Vector3Int>();
+            voxels.Add(position);
+            reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
+            reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
+        }
+        else
+        {
+            var addPosition = position + drawingState.normal + (drawingState.withProjection ? new Vector3Int(0, -drawingState.normal.z, 0) : Vector3Int.zero);
+            if (state.currentSpriteData.voxels.Contains(addPosition)) return;
+            
+            var voxels = new List<Vector3Int>();
+            voxels.Add(addPosition);
+            reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
+            reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
+        }
+    }
+
+    private void ApplyDrawingBySection(
+        EditorState.Loaded state,
+        EditorAction.Input.OnButtonDown.Draw action,
+        Vector3Int position,
+        Vector3Int normal
+    )
+    {
+        if (action.withDelete)
+        {
+            var voxels = GetVoxelsSection(
+                model: state.currentSpriteData.voxels,
+                position: position,
+                normal: Vector3Int.RoundToInt(normal),
+                withProjection: false,
+                applyNormal: false
+            );
+            reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
+            reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
+        }
+        else
+        {
+            var voxels = GetVoxelsSection(
+                model: state.currentSpriteData.voxels,
+                position: position,
+                normal: Vector3Int.RoundToInt(normal),
+                withProjection: action.withProjection,
+                applyNormal: true
+            );
+            reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
+            reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
         }
     }
 
@@ -286,6 +310,26 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         position = Vector3Int.RoundToInt(hitInfo.transform.position);
         normal = hitInfo.normal;
         return true;
+    }
+    
+    private bool GetVoxelUnderCursorOnPlane(Plane plane, out Vector3Int position)
+    {
+        var camera = Camera.main;
+        if (camera == null)
+        {
+            position = Vector3Int.zero;
+            return false;
+        }
+
+        var ray = camera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+        if (plane.Raycast(ray, out var cursorDistance))
+        {
+            position = Vector3Int.FloorToInt(ray.GetPoint(cursorDistance));
+            return true;
+        }
+
+        position = Vector3Int.zero;
+        return false;
     }
 
     private void OnMoveButtonDown(EditorState.Loaded state)

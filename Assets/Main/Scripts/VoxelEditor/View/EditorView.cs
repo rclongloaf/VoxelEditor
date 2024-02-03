@@ -226,6 +226,10 @@ public class EditorView : MonoBehaviour,
                     }
                     break;
                 case ControlState.Drawing:
+                    if (Input.GetKey(KeyCode.Mouse0))
+                    {
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDraw());
+                    }
                     break;
                 case ControlState.Moving:
                 case ControlState.Rotating:
