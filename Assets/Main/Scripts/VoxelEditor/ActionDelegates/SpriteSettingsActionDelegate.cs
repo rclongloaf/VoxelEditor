@@ -12,12 +12,12 @@ public class SpriteSettingsActionDelegate : ActionDelegate<EditorAction.TextureS
     
     public override void ApplyAction(EditorState state, EditorAction.TextureSettings action)
     {
-        if (state is not EditorState.SpriteSelecting spriteState) return;
+        if (state.activeLayer is not VoxLayerState.SpriteSelecting activeLayer) return;
 
         switch (action)
         {
             case EditorAction.TextureSettings.Selected selected:
-                ApplySpriteSelected(spriteState, selected);
+                ApplySpriteSelected(activeLayer, selected);
                 break;
             case EditorAction.TextureSettings.Canceled canceled:
                 reducer.ApplyPatch(new EditorPatch.Import.Cancel());
@@ -27,10 +27,10 @@ public class SpriteSettingsActionDelegate : ActionDelegate<EditorAction.TextureS
         }
     }
 
-    private void ApplySpriteSelected(EditorState.SpriteSelecting state, EditorAction.TextureSettings.Selected action)
+    private void ApplySpriteSelected(VoxLayerState.SpriteSelecting activeLayer, EditorAction.TextureSettings.Selected action)
     {
         var textureData = action.textureData;
-        var texture = state.texture;
+        var texture = activeLayer.texture;
         
         var width = texture.width / textureData.columnsCount;
         var height = texture.height / textureData.rowsCount;
@@ -85,7 +85,7 @@ public class SpriteSettingsActionDelegate : ActionDelegate<EditorAction.TextureS
         }
 
         return new SpriteData(
-            pivot: Vector2.zero,
+            pivot: new Vector2(width / 2, height / 2),
             voxels: voxels
         );
     }

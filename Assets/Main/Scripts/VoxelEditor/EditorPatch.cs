@@ -17,6 +17,24 @@ public interface EditorPatch
 
     public record MenuVisibility(bool visible) : EditorPatch;
 
+    public interface Layers : EditorPatch
+    {
+        public record Create(int key) : Layers;
+
+        public record Select(int key) : Layers;
+
+        public record ChangeVisibility(int key) : Layers;
+        
+        public interface Delete : Layers
+        {
+            public record Request : Delete;
+
+            public record Apply(int key) : Delete;
+
+            public record Cancel : Delete;
+        }
+    }
+
     public interface Import : EditorPatch
     {
         public record TextureSelected(Texture2D texture) : Import;
@@ -41,13 +59,13 @@ public interface EditorPatch
     public interface EditMode : EditorPatch
     {
         public record EditModeSelected : EditMode;
-        public record RenderModeSelected(Mesh mesh) : EditMode;
+        public record RenderModeSelected : EditMode;
     }
 
     public interface VoxelsChanges : EditorPatch
     {
-        public record Add(List<Vector3Int> voxel) : VoxelsChanges;
-        public record Delete(List<Vector3Int> voxel) : VoxelsChanges;
+        public record Add(List<Vector3Int> voxels) : VoxelsChanges;
+        public record Delete(List<Vector3Int> voxels) : VoxelsChanges;
     }
     
     public interface ModelBuffer : EditorPatch
@@ -61,7 +79,14 @@ public interface EditorPatch
     {
         public interface Drawing : Control
         {
-            public record Start : Drawing;
+            public record Start(
+                Vector3Int position,
+                Vector3Int normal,
+                bool deleting,
+                bool bySection,
+                bool withProjection
+            ) : Drawing;
+            
             public record Finish : Drawing;
         }
         public interface Moving : Control

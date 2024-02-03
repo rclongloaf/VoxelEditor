@@ -1,5 +1,6 @@
 ﻿using System;
 using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 
 namespace Main.Scripts.VoxelEditor.ActionDelegates
 {
@@ -9,24 +10,24 @@ public class ActionsHistoryActionDelegate : ActionDelegate<EditorAction.ActionsH
 
     public override void ApplyAction(EditorState state, EditorAction.ActionsHistory action)
     {
-        if (state is not EditorState.Loaded loadedState) return;
+        if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
 
         switch (action)
         {
             case EditorAction.ActionsHistory.OnCancelClicked onCancelClicked:
-                OnCancelClicked(loadedState, onCancelClicked);
+                OnCancelClicked(activeLayer, onCancelClicked);
                 break;
             case EditorAction.ActionsHistory.OnRestoreClicked onRestoreClicked:
-                OnRestoreClicked(loadedState, onRestoreClicked);
+                OnRestoreClicked(activeLayer, onRestoreClicked);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action));
         }
     }
 
-    private void OnCancelClicked(EditorState.Loaded state, EditorAction.ActionsHistory.OnCancelClicked action)
+    private void OnCancelClicked(VoxLayerState.Loaded activeLayer, EditorAction.ActionsHistory.OnCancelClicked action)
     {
-        if (state.actionsHistory.TryPeek(out var lastAction))
+        if (activeLayer.actionsHistory.TryPeek(out var lastAction))
         {
             reducer.ApplyPatch(new EditorPatch.ActionsHistory.CancelAction());
             switch (lastAction)
@@ -43,9 +44,9 @@ public class ActionsHistoryActionDelegate : ActionDelegate<EditorAction.ActionsH
         }
     }
 
-    private void OnRestoreClicked(EditorState.Loaded state, EditorAction.ActionsHistory.OnRestoreClicked action)
+    private void OnRestoreClicked(VoxLayerState.Loaded activeLayer, EditorAction.ActionsHistory.OnRestoreClicked action)
     {
-        if (state.canceledActionsHistory.TryPeek(out var lastCanceledAction))
+        if (activeLayer.canceledActionsHistory.TryPeek(out var lastCanceledAction))
         {
             reducer.ApplyPatch(new EditorPatch.ActionsHistory.RestoreAction());
             switch (lastCanceledAction)

@@ -2,10 +2,16 @@
 {
 public interface EditorEvent
 {
-    public class OpenBrowserForLoadVox : EditorEvent { }
-    public class OpenBrowserForLoadTexture : EditorEvent { }
-    public class OpenBrowserForSaveVox : EditorEvent { }
-    public class OpenBrowserForImport : EditorEvent { }
-    public class OpenBrowserForExport : EditorEvent { }
+    public record OpenBrowserForLoadVox : EditorEvent;
+
+    public record OpenBrowserForLoadTexture : EditorEvent;
+
+    public record OpenBrowserForSaveVox : EditorEvent;
+
+    public record OpenBrowserForImport : EditorEvent;
+
+    public record OpenBrowserForExport : EditorEvent;
+
+    public record DeleteLayerRequest(int key) : EditorEvent;
 }
 }

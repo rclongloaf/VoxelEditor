@@ -1,4 +1,5 @@
 ﻿using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 
 namespace Main.Scripts.VoxelEditor.ActionDelegates
 {
@@ -8,7 +9,7 @@ public class ApplyPivotActionDelegate : ActionDelegate<EditorAction.OnApplyPivot
     
     public override void ApplyAction(EditorState state, EditorAction.OnApplyPivotClicked action)
     {
-        if (state is not EditorState.Loaded loadedState) return;
+        if (state.activeLayer is not VoxLayerState.Loaded) return;
         
         reducer.ApplyPatch(new EditorPatch.NewPivotPoint(action.pivotPoint));
     }

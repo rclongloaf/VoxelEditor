@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor.EditModes
@@ -11,6 +10,7 @@ public class EditModeController
     private static readonly int SpriteTexture = Shader.PropertyToID("_SpriteTexture");
     private static readonly int TextureSize = Shader.PropertyToID("_TextureSize");
     private static readonly int SpriteRectPosition = Shader.PropertyToID("_SpriteRectPosition");
+    private static readonly int PivotPoint = Shader.PropertyToID("_PivotPoint");
     private static readonly int IsSelected = Shader.PropertyToID("_IsSelected");
     private static readonly int IsFillInvisible = Shader.PropertyToID("_IsFillInvisible");
 
@@ -21,6 +21,10 @@ public class EditModeController
     private Texture2D? texture;
     private TextureData? textureData;
     private SpriteIndex? spriteIndex;
+    private Vector2 pivotPoint;
+    private Sprite? cachedSpriteRef;
+    private bool isActive;
+    private ShaderData shaderData;
 
     private Dictionary<Vector3Int, GameObject> currentVoxels = new();
 
@@ -34,7 +38,13 @@ public class EditModeController
         this.root = root;
         this.spriteReference = spriteReference;
         this.voxelPrefab = voxelPrefab;
-        material = voxelMaterial;
+        material = new Material(voxelMaterial);
+        shaderData = new ShaderData(false, false);
+    }
+    
+    public void Release()
+    {
+        Object.Destroy(root);
     }
 
     public void SetVisibility(bool isVisible)
@@ -83,7 +93,21 @@ public class EditModeController
             );
             material.SetVector(SpriteRectPosition, rectPosition);
             
-            spriteReference.sprite = Sprite.Create(texture, new Rect(rectPosition.x, rectPosition.y, width, height), Vector2.zero, 1);
+            cachedSpriteRef = Sprite.Create(texture, new Rect(rectPosition.x, rectPosition.y, width, height), Vector2.zero, 1);
+            spriteReference.sprite = cachedSpriteRef;
+            spriteReference.transform.position = new Vector3(0, 20, -20) - (Vector3)pivotPoint;
+        }
+    }
+
+    public void ApplyPivotPoint(Vector2 pivotPoint)
+    {
+        this.pivotPoint = pivotPoint;
+        material.SetVector(PivotPoint, pivotPoint);
+        
+        spriteReference.transform.position = new Vector3(0, 20, -20) - (Vector3)pivotPoint;
+        foreach (var (pos, voxel) in currentVoxels)
+        {
+            voxel.transform.position = pos - (Vector3)pivotPoint;
         }
     }
 
@@ -103,12 +127,33 @@ public class EditModeController
 
     public void ApplyShaderData(ShaderData shaderData)
     {
-        material.SetFloat(IsSelected, shaderData.isGridEnabled ? 1 : 0);
+        this.shaderData = shaderData;
+        material.SetFloat(IsSelected, shaderData.isGridEnabled && isActive ? 1 : 0);
         material.SetFloat(IsFillInvisible, shaderData.isTransparentEnabled ? 0 : 1);
+    }
+
+    public void SetActive(bool isActive)
+    {
+        this.isActive = isActive;
+        ApplyShaderData(shaderData);
+        foreach (var (_, voxel) in currentVoxels)
+        {
+            voxel.GetComponentInChildren<Collider>().enabled = isActive;
+        }
     }
 
     public void SetReferenceVisibility(bool visible)
     {
+        if (texture == null
+            || textureData == null
+            || spriteIndex == null) return;
+
+        if (visible)
+        {
+            spriteReference.sprite = cachedSpriteRef;
+            spriteReference.transform.position = new Vector3(0, 20, -20) - (Vector3)pivotPoint;
+        }
+        
         spriteReference.gameObject.SetActive(visible);
     }
 
@@ -125,7 +170,7 @@ public class EditModeController
         var meshRenderer = voxel.GetComponentInChildren<MeshRenderer>();
         meshRenderer.sharedMaterial = material;
 
-        voxel.transform.position = position;
+        voxel.transform.position = position - (Vector3)pivotPoint;
     }
 
     private void RemoveVoxel(Vector3Int position)

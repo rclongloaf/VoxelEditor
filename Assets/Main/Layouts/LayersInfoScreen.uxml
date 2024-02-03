@@ -1,0 +1,18 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="LayerLayout" src="project://database/Assets/Main/Layouts/LayerLayout.uxml?fileID=9197481963319205126&amp;guid=3e126871c82f44e4ca621b620f6c72f9&amp;type=3#LayerLayout" />
+    <ui:VisualElement name="VisualElement" style="flex-grow: 0; align-items: center; align-self: flex-end; justify-content: flex-start; margin-top: auto; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; background-color: rgba(0, 0, 0, 0.5);">
+        <ui:Instance template="LayerLayout" name="LayerLayout1" />
+        <ui:Instance template="LayerLayout" name="LayerLayout2">
+            <AttributeOverrides element-name="Title" text="Layer 2" />
+        </ui:Instance>
+        <ui:Instance template="LayerLayout" name="LayerLayout3">
+            <AttributeOverrides element-name="Title" text="Layer 3" />
+        </ui:Instance>
+        <ui:Instance template="LayerLayout" name="LayerLayout4">
+            <AttributeOverrides element-name="Title" text="Layer 4" />
+        </ui:Instance>
+        <ui:Instance template="LayerLayout" name="LayerLayout5">
+            <AttributeOverrides element-name="Title" text="Layer 5" />
+        </ui:Instance>
+    </ui:VisualElement>
+</ui:UXML>

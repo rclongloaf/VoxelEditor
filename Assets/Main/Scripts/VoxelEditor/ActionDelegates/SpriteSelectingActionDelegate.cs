@@ -10,12 +10,13 @@ public class SpriteSelectingActionDelegate : ActionDelegate<EditorAction.SpriteS
 
     public override void ApplyAction(EditorState state, EditorAction.SpriteSelecting action)
     {
-        if (state is not EditorState.Loaded loadedState) return;
+        if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
+        
+        var (_, voxData, _, curIndex, currentSpriteData, _, _) = activeLayer;
 
-        var curIndex = loadedState.currentSpriteIndex;
-        var textureData = loadedState.voxData.textureData;
+        var textureData = voxData.textureData;
 
-        if (loadedState.currentSpriteData != loadedState.voxData.sprites[loadedState.currentSpriteIndex])
+        if (currentSpriteData != voxData.sprites[curIndex])
         {
             reducer.ApplyPatch(new EditorPatch.SpriteChanges.ApplyRequest());
             return;

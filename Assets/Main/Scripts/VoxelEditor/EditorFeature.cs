@@ -1,18 +1,25 @@
-﻿using Main.Scripts.VoxelEditor.ActionDelegates;
+﻿using System;
+using System.Collections.Generic;
+using Main.Scripts.VoxelEditor.ActionDelegates;
 using Main.Scripts.VoxelEditor.ActionDelegates.Input;
 using Main.Scripts.VoxelEditor.Events;
 using Main.Scripts.VoxelEditor.Repository;
 using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Brush;
+using Main.Scripts.VoxelEditor.State.Vox;
 using Main.Scripts.VoxelEditor.View;
+using UnityEngine;
+using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
 
 namespace Main.Scripts.VoxelEditor
 {
     public class EditorFeature
     {
-        internal EditorState state = new EditorState.WaitingForProject();
+        internal EditorState state;
         private EditorView view;
 
         private LoadVoxActionDelegate loadVoxActionDelegate;
+        private LayersActionDelegate layersActionDelegate;
         private LoadTextureActionDelegate loadTextureActionDelegate;
         private ApplyChangesActionDelegate applyChangesActionDelegate;
         private SaveVoxActionDelegate saveVoxActionDelegate;
@@ -31,17 +38,38 @@ namespace Main.Scripts.VoxelEditor
 
         public EditorFeature(EditorView view, EditorEventsConsumer eventsConsumer)
         {
+            var layers = new Dictionary<int, VoxLayerState>();
+            layers[1] = new VoxLayerState.Init();
+            state = new EditorState(
+                layers: layers,
+                activeLayerKey: 1,
+                bufferedSpriteData: null,
+                brushData: new BrushData(BrushMode.One, BrushType.Add),
+                shaderData: new ShaderData(true, false),
+                isSpriteRefVisible: false,
+                freeCameraData: new FreeCameraData(
+                    pivotPoint: new Vector3(0, 0, 0),
+                    distance: 30,
+                    rotation: Quaternion.Euler(30, 0, 0)
+                ),
+                isometricCameraData: new IsometricCameraData(new Vector3(0, 35, -35)),
+                cameraType: CameraType.Free,
+                controlState: new ControlState.None(),
+                editModeState: new EditModeState.EditMode(),
+                uiState: UIState.Menu
+            );
             this.view = view;
             
             var reducer = new EditorReducer(this);
             var repository = new EditorRepository();
             loadVoxActionDelegate = new LoadVoxActionDelegate(this, reducer, repository, eventsConsumer);
+            layersActionDelegate = new LayersActionDelegate(this, reducer, eventsConsumer);
             loadTextureActionDelegate = new LoadTextureActionDelegate(this, reducer, repository, eventsConsumer);
             applyChangesActionDelegate = new ApplyChangesActionDelegate(this, reducer);
             saveVoxActionDelegate = new SaveVoxActionDelegate(this, reducer, repository, eventsConsumer);
             importActionDelegate = new ImportActionDelegate(this, reducer, repository, eventsConsumer);
             exportActionDelegate = new ExportActionDelegate(this, reducer, eventsConsumer);
-            editModeActionDelegate = new EditModeActionDelegate(this, reducer, repository);
+            editModeActionDelegate = new EditModeActionDelegate(this, reducer);
             brushActionDelegate = new BrushActionDelegate(this, reducer);
             inputActionDelegate = new InputActionDelegate(this, reducer);
             spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
@@ -102,9 +130,14 @@ namespace Main.Scripts.VoxelEditor
                 case EditorAction.Input inputAction:
                     inputActionDelegate.ApplyAction(state, inputAction);
                     break;
+                case EditorAction.Layers layersAction:
+                    layersActionDelegate.ApplyAction(state, layersAction);
+                    break;
                 case EditorAction.OnToggleCameraClicked onToggleCameraClickedAction:
                     toggleCameraActionDelegate.ApplyAction(state, onToggleCameraClickedAction);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(action));
             }
         }
 

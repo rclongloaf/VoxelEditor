@@ -3,11 +3,11 @@ using UnityEngine.UIElements;
 
 namespace Main.Scripts.VoxelEditor.View
 {
-public class ApplyChangesUIHolder
+public class ApplySpriteChangesUIHolder
 {
     private UIDocument doc;
 
-    public ApplyChangesUIHolder(UIDocument doc, Listener listener)
+    public ApplySpriteChangesUIHolder(UIDocument doc, Listener listener)
     {
         this.doc = doc;
         var root = doc.rootVisualElement;
