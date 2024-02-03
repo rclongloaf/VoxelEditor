@@ -6,6 +6,6 @@ public interface EditModeState
 {
     public record EditMode : EditModeState;
 
-    public record RenderMode(Mesh mesh) : EditModeState;
+    public record RenderMode : EditModeState;
 }
 }

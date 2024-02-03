@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Main.Scripts.VoxelEditor.EditModes;
+using Main.Scripts.VoxelEditor.EditModes.Render;
 using Main.Scripts.VoxelEditor.Events;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
@@ -15,7 +16,8 @@ public class EditorView : MonoBehaviour,
     EditorEventsConsumer,
     EditorUIHolder.Listener,
     TextureImportUIHolder.Listener,
-    ApplyChangesUIHolder.Listener
+    ApplySpriteChangesUIHolder.Listener,
+    ApplyDeleteLayerUIHolder.Listener
 {
     [SerializeField]
     private Transform freeCameraTransform = null!;
@@ -28,11 +30,15 @@ public class EditorView : MonoBehaviour,
     [SerializeField]
     private UIDocument applyChangesUIDocument = null!;
     [SerializeField]
+    private UIDocument applyDeleteLayerUIDocument = null!;
+    [SerializeField]
+    private UIDocument layersInfoUIDocument = null!;
+    [SerializeField]
     private GameObject editModeRoot = null!;
     [SerializeField]
     private SpriteRenderer spriteReference = null!;
     [SerializeField]
-    private Transform pivotPointTransform = null!;
+    private GameObject pivotPointObject = null!;
     [SerializeField]
     private GameObject voxelPrefab = null!;
     [SerializeField]
@@ -40,19 +46,19 @@ public class EditorView : MonoBehaviour,
     [SerializeField]
     private GameObject renderModeRoot = null!;
     [SerializeField]
+    private GameObject renderModelPrefab = null!;
+    [SerializeField]
     private Material renderModelMaterial = null!;
-    [SerializeField]
-    private MeshFilter renderModelMeshFilter = null!;
-    [SerializeField]
-    private MeshRenderer renderModelMeshRenderer = null!;
     
     private EditorFeature feature = null!;
-    private EditorState currentState = null!;
-    private EditModeController editModeController = null!;
+    private EditorState? currentState;
+    private Dictionary<int, EditModeController> editModeControllers = new();
     private RenderModeController renderModeController = null!;
     private EditorUIHolder editorUIHolder = null!;
     private TextureImportUIHolder textureImportUIHolder = null!;
-    private ApplyChangesUIHolder applyChangesUIHolder = null!;
+    private ApplySpriteChangesUIHolder applySpriteChangesUIHolder = null!;
+    private ApplyDeleteLayerUIHolder applyDeleteLayerUIHolder = null!;
+    private LayersInfoUIHolder layersInfoUIHolder = null!;
     
     private HashSet<KeyCode> pressedKeys = new();
     private HashSet<KeyCode> newPressedKeys = new();
@@ -60,21 +66,27 @@ public class EditorView : MonoBehaviour,
     private void Awake()
     {
         feature = new EditorFeature(this, this);
-        currentState = feature.state;
         editorUIHolder = new EditorUIHolder(editorUIDocument, this);
         editorUIHolder.SetLoadedState(false);
         textureImportUIHolder = new TextureImportUIHolder(spriteImportUIDocument, this);
         textureImportUIHolder.SetVisibility(false);
-        applyChangesUIHolder = new ApplyChangesUIHolder(applyChangesUIDocument, this);
-        applyChangesUIHolder.SetVisibility(false);
-        editModeController = new EditModeController(editModeRoot, spriteReference, voxelPrefab, voxelMaterial);
-        editModeController.SetVisibility(true);
-        renderModeController = new RenderModeController(renderModeRoot, renderModelMeshFilter, renderModelMeshRenderer, renderModelMaterial);
+        applySpriteChangesUIHolder = new ApplySpriteChangesUIHolder(applyChangesUIDocument, this);
+        applySpriteChangesUIHolder.SetVisibility(false);
+        applyDeleteLayerUIHolder = new ApplyDeleteLayerUIHolder(applyDeleteLayerUIDocument, this);
+        applyDeleteLayerUIHolder.SetVisibility(false);
+        layersInfoUIHolder = new LayersInfoUIHolder(layersInfoUIDocument);
+        renderModeController = new RenderModeController(
+            renderModeRoot, 
+            renderModelPrefab, 
+            renderModelMaterial
+        );
+        
+        ApplyState(feature.state);
     }
 
     private void Start()
     {
-        renderModeController.Hide();
+        renderModeController.SetVisibility(false);
     }
 
     private void Update()
@@ -100,6 +112,11 @@ public class EditorView : MonoBehaviour,
         UpdateKeyPressedStatus(KeyCode.J);
         UpdateKeyPressedStatus(KeyCode.K);
         UpdateKeyPressedStatus(KeyCode.L);
+        UpdateKeyPressedStatus(KeyCode.Alpha1);
+        UpdateKeyPressedStatus(KeyCode.Alpha2);
+        UpdateKeyPressedStatus(KeyCode.Alpha3);
+        UpdateKeyPressedStatus(KeyCode.Alpha4);
+        UpdateKeyPressedStatus(KeyCode.Alpha5);
 
         var withCtrl = Input.GetKey(KeyCode.LeftControl);
         var withShift = Input.GetKey(KeyCode.LeftShift);
@@ -107,8 +124,6 @@ public class EditorView : MonoBehaviour,
 
         var editorUIHolderListener = (EditorUIHolder.Listener)this;
 
-        var loadedState = currentState as EditorState.Loaded;
-        
         if (newPressedKeys.Contains(KeyCode.Escape) && !pressedKeys.Contains(KeyCode.Escape))
         {
             feature.ApplyAction(new EditorAction.Input.OnMenu());
@@ -116,12 +131,14 @@ public class EditorView : MonoBehaviour,
             return;
         }
 
-        if (loadedState != null && loadedState.uiState is not UIState.None)
+        if (currentState is not { uiState: UIState.None })
         {
             (pressedKeys, newPressedKeys) = (newPressedKeys, pressedKeys);
             return;
         }
 
+        var activeLayer = currentState.activeLayer as VoxLayerState.Loaded;
+        var layerActionKey = 0;
 
         foreach (var key in newPressedKeys)
         {
@@ -129,26 +146,26 @@ public class EditorView : MonoBehaviour,
             {
                 switch (key)
                 {
-                    case KeyCode.Mouse0 when loadedState != null:
+                    case KeyCode.Mouse0 when activeLayer != null:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withCtrl, withShift, withX));
                         break;
-                    case KeyCode.Mouse1 when loadedState != null:
+                    case KeyCode.Mouse1:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.Rotate());
                         break;
-                    case KeyCode.Mouse2 when loadedState != null:
+                    case KeyCode.Mouse2:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.MoveCamera());
                         break;
-                    case KeyCode.LeftArrow when loadedState != null:
+                    case KeyCode.LeftArrow when activeLayer != null:
                         editorUIHolderListener.OnPreviousSpriteClicked();
                         break;
-                    case KeyCode.RightArrow when loadedState != null:
+                    case KeyCode.RightArrow when activeLayer != null:
                         editorUIHolderListener.OnNextSpriteClicked();
                         break;
-                    case KeyCode.Tab when loadedState != null:
+                    case KeyCode.Tab:
                         editorUIHolderListener.OnToggleCameraClicked();
                         break;
-                    case KeyCode.R when loadedState != null:
-                        if (loadedState.editModeState is EditModeState.EditMode)
+                    case KeyCode.R:
+                        if (currentState.editModeState is EditModeState.EditMode)
                         {
                             editorUIHolderListener.OnRenderModeClicked();
                         }
@@ -157,41 +174,72 @@ public class EditorView : MonoBehaviour,
                             editorUIHolderListener.OnEditModeClicked();
                         }
                         break;
-                    case KeyCode.C when loadedState != null && withCtrl:
+                    case KeyCode.C when activeLayer != null && withCtrl:
                         editorUIHolderListener.OnCopyModelClicked();
                         break;
-                    case KeyCode.V when loadedState != null && withCtrl:
+                    case KeyCode.V when activeLayer != null && withCtrl:
                         editorUIHolderListener.OnPasteModelClicked();
                         break;
-                    case KeyCode.Z when loadedState != null && withCtrl:
+                    case KeyCode.Z when activeLayer != null && withCtrl:
                         editorUIHolderListener.OnCancelActionClicked();
                         break;
-                    case KeyCode.Z when loadedState != null && withCtrl && withShift:
-                    case KeyCode.Y when loadedState != null && withCtrl:
+                    case KeyCode.Z when activeLayer != null && withCtrl && withShift:
+                    case KeyCode.Y when activeLayer != null && withCtrl:
                         editorUIHolderListener.OnRestoreActionClicked();
                         break;
-                    case KeyCode.G when loadedState != null:
+                    case KeyCode.G:
                         editorUIHolderListener.OnToggleGridClicked();
                         break;
-                    case KeyCode.T when loadedState != null:
+                    case KeyCode.T:
                         editorUIHolderListener.OnToggleTransparentClicked();
                         break;
-                    case KeyCode.Q when loadedState != null:
+                    case KeyCode.Q when activeLayer != null:
                         editorUIHolderListener.OnToggleSpriteRefClicked();
                         break;
-                    case KeyCode.I when loadedState != null:
-                        editorUIHolderListener.OnApplyPivotClicked(loadedState.currentSpriteData.pivot + Vector2.up);
+                    case KeyCode.I when activeLayer != null:
+                        editorUIHolderListener.OnApplyPivotClicked(activeLayer.currentSpriteData.pivot + Vector2.down);
                         break;
-                    case KeyCode.J when loadedState != null:
-                        editorUIHolderListener.OnApplyPivotClicked(loadedState.currentSpriteData.pivot + Vector2.left);
+                    case KeyCode.J when activeLayer != null:
+                        editorUIHolderListener.OnApplyPivotClicked(activeLayer.currentSpriteData.pivot + Vector2.right);
                         break;
-                    case KeyCode.K when loadedState != null:
-                        editorUIHolderListener.OnApplyPivotClicked(loadedState.currentSpriteData.pivot + Vector2.down);
+                    case KeyCode.K when activeLayer != null:
+                        editorUIHolderListener.OnApplyPivotClicked(activeLayer.currentSpriteData.pivot + Vector2.up);
                         break;
-                    case KeyCode.L when loadedState != null:
-                        editorUIHolderListener.OnApplyPivotClicked(loadedState.currentSpriteData.pivot + Vector2.right);
+                    case KeyCode.L when activeLayer != null:
+                        editorUIHolderListener.OnApplyPivotClicked(activeLayer.currentSpriteData.pivot + Vector2.left);
+                        break;
+                    case KeyCode.Alpha1:
+                        layerActionKey = 1;
+                        break;
+                    case KeyCode.Alpha2:
+                        layerActionKey = 2;
+                        break;
+                    case KeyCode.Alpha3:
+                        layerActionKey = 3;
+                        break;
+                    case KeyCode.Alpha4:
+                        layerActionKey = 4;
+                        break;
+                    case KeyCode.Alpha5:
+                        layerActionKey = 5;
                         break;
                 }
+            }
+        }
+
+        if (layerActionKey != 0)
+        {
+            if (withShift)
+            {
+                feature.ApplyAction(new EditorAction.Layers.OnChangeVisibility(layerActionKey));
+            }
+            else if (withCtrl)
+            {
+                feature.ApplyAction(new EditorAction.Layers.Delete.OnRequest(layerActionKey));
+            }
+            else
+            {
+                feature.ApplyAction(new EditorAction.Layers.OnSelected(layerActionKey));
             }
         }
 
@@ -201,46 +249,43 @@ public class EditorView : MonoBehaviour,
             {
                 switch (key)
                 {
-                    case KeyCode.Mouse0 when loadedState != null:
+                    case KeyCode.Mouse0 when activeLayer != null:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.Draw());
                         break;
-                    case KeyCode.Mouse1 when loadedState != null:
+                    case KeyCode.Mouse1:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.Rotate());
                         break;
-                    case KeyCode.Mouse2 when loadedState != null:
+                    case KeyCode.Mouse2:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.MoveCamera());
                         break;
                 }
             }
         }
 
-        if (loadedState != null)
+        switch (currentState.controlState)
         {
-            switch (loadedState.controlState)
-            {
-                case ControlState.None:
-                    var wheelDelta = Input.GetAxis("Mouse ScrollWheel");
-                    if (Math.Abs(wheelDelta) > 0)
-                    {
-                        feature.ApplyAction(new EditorAction.Input.OnWheelScroll(wheelDelta));
-                    }
-                    break;
-                case ControlState.Drawing:
-                    if (Input.GetKey(KeyCode.Mouse0))
-                    {
-                        feature.ApplyAction(new EditorAction.Input.OnButtonDraw());
-                    }
-                    break;
-                case ControlState.Moving:
-                case ControlState.Rotating:
-                    feature.ApplyAction(new EditorAction.Input.OnMouseDelta(
-                        deltaX: Input.GetAxis("Mouse X"),
-                        deltaY: Input.GetAxis("Mouse Y")
-                    ));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            case ControlState.None:
+                var wheelDelta = Input.GetAxis("Mouse ScrollWheel");
+                if (Math.Abs(wheelDelta) > 0)
+                {
+                    feature.ApplyAction(new EditorAction.Input.OnWheelScroll(wheelDelta));
+                }
+                break;
+            case ControlState.Drawing:
+                if (activeLayer != null && Input.GetKey(KeyCode.Mouse0))
+                {
+                    feature.ApplyAction(new EditorAction.Input.OnButtonDraw());
+                }
+                break;
+            case ControlState.Moving:
+            case ControlState.Rotating:
+                feature.ApplyAction(new EditorAction.Input.OnMouseDelta(
+                    deltaX: Input.GetAxis("Mouse X"),
+                    deltaY: Input.GetAxis("Mouse Y")
+                ));
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
         (pressedKeys, newPressedKeys) = (newPressedKeys, pressedKeys);
@@ -254,29 +299,13 @@ public class EditorView : MonoBehaviour,
         }
     }
 
-    public void ApplyState(EditorState state)
-    {
-        switch (state)
-        {
-            case EditorState.Loaded loadedState:
-                ApplyLoadedState(loadedState);
-                break;
-            case EditorState.SpriteSelecting spriteSelectingState:
-                ApplySpriteSelectingState(spriteSelectingState);
-                break;
-            case EditorState.WaitingForProject:
-                editorUIHolder.SetLoadedState(false);
-                editorUIHolder.SetVisibility(true);
-                textureImportUIHolder.SetVisibility(false);
-                applyChangesUIHolder.SetVisibility(false);
-                break;
-        }
-    }
-
     void EditorEventsConsumer.Consume(EditorEvent editorEvent)
     {
         switch (editorEvent)
         {
+            case EditorEvent.DeleteLayerRequest deleteLayerRequest:
+                OnDeleteLayerRequest(deleteLayerRequest.key);
+                break;
             case EditorEvent.OpenBrowserForExport openBrowserForExport:
                 break;
             case EditorEvent.OpenBrowserForImport openBrowserForImport:
@@ -304,17 +333,27 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.TextureSettings.Canceled());
     }
 
-    void ApplyChangesUIHolder.Listener.OnApplyClicked()
+    void ApplyDeleteLayerUIHolder.Listener.OnApplyClicked(int layerKey)
+    {
+        feature.ApplyAction(new EditorAction.Layers.Delete.OnApply(layerKey));
+    }
+
+    void ApplyDeleteLayerUIHolder.Listener.OnCancelClicked()
+    {
+        feature.ApplyAction(new EditorAction.Layers.Delete.OnCancel());
+    }
+
+    void ApplySpriteChangesUIHolder.Listener.OnApplyClicked()
     {
         feature.ApplyAction(new EditorAction.ApplyChanges.Apply());
     }
 
-    void ApplyChangesUIHolder.Listener.OnDiscardClicked()
+    void ApplySpriteChangesUIHolder.Listener.OnDiscardClicked()
     {
         feature.ApplyAction(new EditorAction.ApplyChanges.Discard());
     }
 
-    void ApplyChangesUIHolder.Listener.OnCancelClicked()
+    void ApplySpriteChangesUIHolder.Listener.OnCancelClicked()
     {
         feature.ApplyAction(new EditorAction.ApplyChanges.Cancel());
     }
@@ -429,94 +468,155 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.Input.OnToggleSpriteRef());
     }
 
-    private void ApplyLoadedState(EditorState.Loaded state)
+    public void ApplyState(EditorState state)
     {
         if (currentState == state) return;
         
-        editorUIHolder.SetLoadedState(true);
-        editorUIHolder.SetVisibility(state.uiState is UIState.Menu);
         textureImportUIHolder.SetVisibility(state.uiState is UIState.TextureImport);
-        applyChangesUIHolder.SetVisibility(state.uiState is UIState.ApplyChanges);
-
-        editModeController.ApplyVoxels(state.currentSpriteData.voxels);
-
-        var curLoadedState = currentState as EditorState.Loaded;
-
-        if (curLoadedState != null)
+        applySpriteChangesUIHolder.SetVisibility(state.uiState is UIState.ApplySpriteChanges);
+        applyDeleteLayerUIHolder.SetVisibility(state.uiState is UIState.ApplyLayerDelete);
+        layersInfoUIHolder.Bind(state);
+        
+        foreach (var (key, _) in state.layers)
         {
-            if (curLoadedState.editModeState != state.editModeState)
+            if (currentState == null || !currentState.layers.ContainsKey(key))
             {
-                switch (state.editModeState)
+                var layerRoot = Instantiate(new GameObject(), editModeRoot.transform);
+                var editModeController = new EditModeController(layerRoot, spriteReference, voxelPrefab, voxelMaterial);
+                editModeController.SetActive(true);
+                editModeController.ApplyShaderData(state.shaderData);
+                editModeControllers.Add(key, editModeController);
+            }
+        }
+
+        if (currentState != null)
+        {
+            foreach (var (key, _) in currentState.layers)
+            {
+                if (!state.layers.ContainsKey(key))
                 {
-                    case EditModeState.EditMode editMode:
-                        renderModeController.Hide();
-                        editModeController.SetVisibility(true);
-                        break;
-                    case EditModeState.RenderMode renderMode:
-                        editModeController.SetVisibility(false);
-                        renderModeController.Show(renderMode.mesh, state.texture);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    editModeControllers[key].Release();
+                    editModeControllers.Remove(key);
                 }
             }
         }
 
-        if (curLoadedState == null || curLoadedState.currentSpriteIndex != state.currentSpriteIndex)
+        switch (state.editModeState)
         {
-            editorUIHolder.SetSpriteIndex(state.currentSpriteIndex);
+            case EditModeState.EditMode editMode:
+                renderModeController.SetVisibility(false);
+                foreach (var (key, controller) in editModeControllers)
+                {
+                    controller.SetVisibility(state.layers[key] is VoxLayerState.Loaded loadedLayer && loadedLayer.isVisible);
+                }
+                break;
+            case EditModeState.RenderMode renderMode:
+                foreach (var (_, controller) in editModeControllers)
+                {
+                    controller.SetVisibility(false);
+                }
+
+                renderModeController.ApplyLayersData(state.layers);
+                renderModeController.SetVisibility(true);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        if (currentState == null || currentState.activeLayerKey != state.activeLayerKey)
+        {
+            if (currentState != null)
+            {
+                editModeControllers[currentState.activeLayerKey].SetActive(false);
+            }
+            
+            editModeControllers[state.activeLayerKey].SetActive(true);
         }
         
-        if (curLoadedState == null
-            || curLoadedState.texture != state.texture)
+        if (currentState == null || currentState.shaderData != state.shaderData)
         {
-            editModeController.ApplyTexture(state.texture);
-        }
-        if (curLoadedState == null
-            || curLoadedState.currentSpriteIndex != state.currentSpriteIndex)
-        {
-            editModeController.ApplySpriteRect(state.voxData.textureData, state.currentSpriteIndex);
+            foreach (var (_, controller) in editModeControllers)
+            {
+                controller.ApplyShaderData(state.shaderData);
+            }
+            pivotPointObject.SetActive(state.shaderData.isGridEnabled);
         }
 
-        if (curLoadedState == null
-            || curLoadedState.shaderData != state.shaderData)
-        {
-            editModeController.ApplyShaderData(state.shaderData);
-            pivotPointTransform.gameObject.SetActive(state.shaderData.isGridEnabled);
-        }
+        var activeLayer = state.activeLayer;
+        
+        editorUIHolder.SetLoadedState(activeLayer is VoxLayerState.Loaded);
+        editorUIHolder.SetVisibility(state.uiState is UIState.Menu);
+        spriteReference.gameObject.SetActive(false);
 
-        if (curLoadedState == null
-            || curLoadedState.currentSpriteData.pivot != state.currentSpriteData.pivot)
+        switch (activeLayer)
         {
-            var pivotPoint = state.currentSpriteData.pivot;
-            editorUIHolder.SetPivotPoint(pivotPoint);
-            pivotPointTransform.transform.position = new Vector3(pivotPoint.x, pivotPoint.y, 0);
+            case VoxLayerState.Loaded loaded:
+                ApplyLoadedActiveLayer(state, loaded);
+                break;
+            case VoxLayerState.SpriteSelecting spriteSelecting:
+                ApplySpriteSelectingState(spriteSelecting);
+                break;
+            case VoxLayerState.Init waitingForProject:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(activeLayer));
         }
-
-        if (curLoadedState == null
-            || curLoadedState.isSpriteRefVisible != state.isSpriteRefVisible)
-        {
-            editModeController.SetReferenceVisibility(state.isSpriteRefVisible);
-        }
-
+        
         freeCameraTransform.position = state.freeCameraData.pivotPoint
-                                       - (state.editModeState is EditModeState.RenderMode ? state.currentSpriteData.pivot : Vector3.zero)
                                        + state.freeCameraData.rotation * new Vector3(0, 0, -state.freeCameraData.distance);
         freeCameraTransform.rotation = state.freeCameraData.rotation;
         freeCameraTransform.gameObject.SetActive(state.cameraType is CameraType.Free);
         
-        isometricCameraTransform.position = state.isometricCameraData.position
-                                            - (state.editModeState is EditModeState.RenderMode ? state.currentSpriteData.pivot : Vector3.zero);
+        isometricCameraTransform.position = state.isometricCameraData.position;
         isometricCameraTransform.gameObject.SetActive(state.cameraType is CameraType.Isometric);
         
         currentState = state;
     }
 
-    private void ApplySpriteSelectingState(EditorState.SpriteSelecting state)
+    private void ApplyLoadedActiveLayer(EditorState state, VoxLayerState.Loaded activeLayer)
+    {
+        if (currentState == null) return;
+
+        var activeLayerKey = state.activeLayerKey;
+        var curActiveLayer = currentState.activeLayer as VoxLayerState.Loaded;
+        
+        editModeControllers[activeLayerKey].ApplyVoxels(activeLayer.currentSpriteData.voxels);
+        editModeControllers[activeLayerKey].SetReferenceVisibility(state.isSpriteRefVisible && activeLayer.isVisible);
+
+        if (curActiveLayer == null || curActiveLayer.currentSpriteIndex != activeLayer.currentSpriteIndex)
+        {
+            editorUIHolder.SetSpriteIndex(activeLayer.currentSpriteIndex);
+        }
+        
+        if (curActiveLayer == null || curActiveLayer.texture != activeLayer.texture)
+        {
+            editModeControllers[activeLayerKey].ApplyTexture(activeLayer.texture);
+        }
+        
+        if (curActiveLayer == null || curActiveLayer.currentSpriteIndex != activeLayer.currentSpriteIndex)
+        {
+            editModeControllers[activeLayerKey].ApplySpriteRect(activeLayer.voxData.textureData, activeLayer.currentSpriteIndex);
+        }
+
+        if (curActiveLayer == null || curActiveLayer.currentSpriteData.pivot != activeLayer.currentSpriteData.pivot)
+        {
+            var pivotPoint = activeLayer.currentSpriteData.pivot;
+            editorUIHolder.SetPivotPoint(pivotPoint);
+            editModeControllers[activeLayerKey].ApplyPivotPoint(pivotPoint);
+        }
+    }
+
+    private void ApplySpriteSelectingState(VoxLayerState.SpriteSelecting state)
     {
         editorUIHolder.SetVisibility(false);
         textureImportUIHolder.SetVisibility(true);
-        applyChangesUIHolder.SetVisibility(false);
+        applySpriteChangesUIHolder.SetVisibility(false);
+    }
+
+    private void OnDeleteLayerRequest(int key)
+    {
+        applyDeleteLayerUIHolder.Bind(key);
+        applyDeleteLayerUIHolder.SetVisibility(true);
     }
 
     private void ImportTexture()

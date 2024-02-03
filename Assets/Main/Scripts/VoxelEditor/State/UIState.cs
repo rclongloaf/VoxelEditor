@@ -4,7 +4,8 @@ public enum UIState
 {
     None,
     Menu,
-    ApplyChanges,
+    ApplySpriteChanges,
+    ApplyLayerDelete,
     TextureImport,
     FileBrowser
 }

@@ -1,5 +1,6 @@
 ﻿using Main.Scripts.VoxelEditor.Events;
 using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 
 namespace Main.Scripts.VoxelEditor.ActionDelegates
 {
@@ -18,7 +19,7 @@ public class ExportActionDelegate : ActionDelegate<EditorAction.Export>
     
     public override void ApplyAction(EditorState state, EditorAction.Export action)
     {
-        if (state is not EditorState.Loaded) return;
+        if (state.activeLayer is not VoxLayerState.Loaded) return;
         
     }
 }

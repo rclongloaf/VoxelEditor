@@ -10,8 +10,6 @@ public class BrushActionDelegate : ActionDelegate<EditorAction.Brush>
     
     public override void ApplyAction(EditorState state, EditorAction.Brush action)
     {
-        if (state is not EditorState.Loaded) return;
-
         switch (action)
         {
             case EditorAction.Brush.OnBrushAddClicked onBrushAddClicked:

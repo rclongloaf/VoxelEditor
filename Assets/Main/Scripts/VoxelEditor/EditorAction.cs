@@ -138,6 +138,22 @@ public interface EditorAction
         public record OnWheelScroll(float delta) : Input;
     }
     
+    public interface Layers : EditorAction
+    {
+        public record OnSelected(int key) : Layers;
+
+        public interface Delete : Layers
+        {
+            public record OnRequest(int key) : Delete;
+
+            public record OnApply(int key) : Delete;
+
+            public record OnCancel : Delete;
+        }
+
+        public record OnChangeVisibility(int key) : Layers;
+    }
+    
     public interface ActionsHistory : EditorAction
     {
         public record OnCancelClicked : ActionsHistory;

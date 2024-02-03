@@ -14,4 +14,7 @@
     <ui:Label tabindex="-1" text="Toggle Grid: G" parse-escape-sequences="true" display-tooltip-when-elided="true" />
     <ui:Label tabindex="-1" text="Toggle Transparent: T" parse-escape-sequences="true" display-tooltip-when-elided="true" />
     <ui:Label tabindex="-1" text="Move Pivot: IJKL (aka WASD)" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Select/Create Layer: 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Show/Hide Layer: SHIFT + 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Delete Layer: CTRL + 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" />
 </ui:UXML>
