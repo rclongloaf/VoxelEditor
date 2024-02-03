@@ -23,8 +23,6 @@ public class LoadTextureActionDelegate : ActionDelegate<EditorAction.LoadTexture
 
     public override void ApplyAction(EditorState state, EditorAction.LoadTexture action)
     {
-        if (state is not EditorState.Loaded loadedState) return;
-        
         switch (action)
         {
             case EditorAction.LoadTexture.OnLoadClicked onLoadClicked:
@@ -32,7 +30,7 @@ public class LoadTextureActionDelegate : ActionDelegate<EditorAction.LoadTexture
                 reducer.ApplyPatch(new EditorPatch.FileBrowser.Opened());
                 break;
             case EditorAction.LoadTexture.OnPathSelected onPathSelected:
-                OnPathSelected(loadedState, onPathSelected);
+                OnPathSelected(state, onPathSelected);
                 reducer.ApplyPatch(new EditorPatch.FileBrowser.Closed());
                 break;
             case EditorAction.LoadTexture.OnCancel onCancel:
@@ -43,7 +41,7 @@ public class LoadTextureActionDelegate : ActionDelegate<EditorAction.LoadTexture
         }
     }
 
-    private void OnPathSelected(EditorState.Loaded state, EditorAction.LoadTexture.OnPathSelected action)
+    private void OnPathSelected(EditorState state, EditorAction.LoadTexture.OnPathSelected action)
     {
         var texture = repository.LoadTexture(action.path);
         if (texture != null)

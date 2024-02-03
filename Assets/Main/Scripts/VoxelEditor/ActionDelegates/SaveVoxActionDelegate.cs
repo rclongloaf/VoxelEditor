@@ -2,6 +2,7 @@
 using Main.Scripts.VoxelEditor.Events;
 using Main.Scripts.VoxelEditor.Repository;
 using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 
 namespace Main.Scripts.VoxelEditor.ActionDelegates
 {
@@ -23,15 +24,15 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
     
     public override void ApplyAction(EditorState state, EditorAction.SaveVox action)
     {
-        if (state is not EditorState.Loaded loadedState) return;
+        if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
 
         switch (action)
         {
             case EditorAction.SaveVox.OnSaveClicked onSaveClicked:
-                OnSaveClicked(loadedState, onSaveClicked);
+                OnSaveClicked(activeLayer, onSaveClicked);
                 break;
             case EditorAction.SaveVox.OnPathSelected onPathSelected:
-                repository.SaveVoxFile(onPathSelected.path, loadedState.voxData);
+                repository.SaveVoxFile(onPathSelected.path, activeLayer.voxData);
                 reducer.ApplyPatch(new EditorPatch.FileBrowser.Closed());
                 break;
             case EditorAction.SaveVox.OnCanceled onCanceled:
@@ -42,9 +43,9 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
         }
     }
 
-    private void OnSaveClicked(EditorState.Loaded state, EditorAction.SaveVox.OnSaveClicked action)
+    private void OnSaveClicked(VoxLayerState.Loaded activeLayer, EditorAction.SaveVox.OnSaveClicked action)
     {
-        if (state.currentSpriteData == state.voxData.sprites[state.currentSpriteIndex])
+        if (activeLayer.currentSpriteData == activeLayer.voxData.sprites[activeLayer.currentSpriteIndex])
         {
             eventsConsumer.Consume(new EditorEvent.OpenBrowserForSaveVox());
             reducer.ApplyPatch(new EditorPatch.FileBrowser.Opened());

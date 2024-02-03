@@ -9,15 +9,13 @@ public class ShaderActionDelegate : ActionDelegate<EditorAction.Shader>
 
     public override void ApplyAction(EditorState state, EditorAction.Shader action)
     {
-        if (state is not EditorState.Loaded loadedState) return;
-
         switch (action)
         {
             case EditorAction.Shader.OnToggleGridClicked onToggleGridClicked:
-                reducer.ApplyPatch(new EditorPatch.Shader.ChangeGridEnabled(!loadedState.shaderData.isGridEnabled));
+                reducer.ApplyPatch(new EditorPatch.Shader.ChangeGridEnabled(!state.shaderData.isGridEnabled));
                 break;
             case EditorAction.Shader.OnToggleTransparentClicked onToggleTransparentClicked:
-                reducer.ApplyPatch(new EditorPatch.Shader.ChangeTransparentEnabled(!loadedState.shaderData.isTransparentEnabled));
+                reducer.ApplyPatch(new EditorPatch.Shader.ChangeTransparentEnabled(!state.shaderData.isTransparentEnabled));
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action));

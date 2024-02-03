@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Main.Scripts.VoxelEditor.State;
+using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
 
@@ -13,44 +14,44 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
     
     public override void ApplyAction(EditorState state, EditorAction.Input action)
     {
-        if (state is not EditorState.Loaded loadedState) return;
+        if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
 
         switch (action)
         {
             case EditorAction.Input.OnButtonDown onButtonDown:
-                OnButtonDown(loadedState, onButtonDown);
+                OnButtonDown(state, onButtonDown);
                 break;
             case EditorAction.Input.OnButtonUp onButtonUp:
-                OnButtonUp(loadedState, onButtonUp);
+                OnButtonUp(state, onButtonUp);
                 break;
             case EditorAction.Input.OnButtonDraw onButtonDrawAction:
-                OnButtonDraw(loadedState, onButtonDrawAction);
+                OnButtonDraw(state, onButtonDrawAction);
                 break;
             case EditorAction.Input.OnMenu onMenu:
-                if (loadedState.uiState is UIState.None)
+                if (state.uiState is UIState.None)
                 {
                     reducer.ApplyPatch(new EditorPatch.MenuVisibility(true));
                 }
-                else if (loadedState.uiState is UIState.Menu)
+                else if (state.uiState is UIState.Menu)
                 {
                     reducer.ApplyPatch(new EditorPatch.MenuVisibility(false));
                 }
                 break;
             case EditorAction.Input.OnMouseDelta onMouseDelta:
-                OnMouseDelta(loadedState, onMouseDelta);
+                OnMouseDelta(state, onMouseDelta);
                 break;
             case EditorAction.Input.OnWheelScroll onWheelScroll:
-                OnWheelScroll(loadedState, onWheelScroll);
+                OnWheelScroll(state, onWheelScroll);
                 break;
             case EditorAction.Input.OnToggleSpriteRef onToggleSpriteRefAction:
-                OnToggleSpriteRef(loadedState, onToggleSpriteRefAction);
+                OnToggleSpriteRef(state, onToggleSpriteRefAction);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action));
         }
     }
 
-    private void OnButtonDown(EditorState.Loaded state, EditorAction.Input.OnButtonDown action)
+    private void OnButtonDown(EditorState state, EditorAction.Input.OnButtonDown action)
     {
         switch (action)
         {
@@ -68,7 +69,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         }
     }
 
-    private void OnButtonUp(EditorState.Loaded state, EditorAction.Input.OnButtonUp action)
+    private void OnButtonUp(EditorState state, EditorAction.Input.OnButtonUp action)
     {
         switch (action)
         {
@@ -86,7 +87,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         }
     }
 
-    private void OnMouseDelta(EditorState.Loaded state, EditorAction.Input.OnMouseDelta action)
+    private void OnMouseDelta(EditorState state, EditorAction.Input.OnMouseDelta action)
     {
         switch (state.controlState)
         {
@@ -105,7 +106,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         }
     }
 
-    private void OnWheelScroll(EditorState.Loaded state, EditorAction.Input.OnWheelScroll action)
+    private void OnWheelScroll(EditorState state, EditorAction.Input.OnWheelScroll action)
     {
         if (state.controlState is not ControlState.None
             || state.cameraType is not CameraType.Free) return;
@@ -115,22 +116,23 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         ));
     }
 
-    private void OnToggleSpriteRef(EditorState.Loaded state, EditorAction.Input.OnToggleSpriteRef action)
+    private void OnToggleSpriteRef(EditorState state, EditorAction.Input.OnToggleSpriteRef action)
     {
         reducer.ApplyPatch(new EditorPatch.ChangeSpriteRefVisibility(!state.isSpriteRefVisible));
     }
 
-    private void OnDrawButtonDown(EditorState.Loaded state, EditorAction.Input.OnButtonDown.Draw action)
+    private void OnDrawButtonDown(EditorState state, EditorAction.Input.OnButtonDown.Draw action)
     {
         if (state.cameraType is not CameraType.Free
-            || state.controlState is not ControlState.None) return;
+            || state.controlState is not ControlState.None
+            || state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
         
-        if (!GetVoxelUnderCursor(out var position, out var normalFloat)) return;
+        if (!GetVoxelUnderCursor(out var hitPosition, out var normalFloat)) return;
 
         var normal = Vector3Int.RoundToInt(normalFloat);
         
         reducer.ApplyPatch(new EditorPatch.Control.Drawing.Start(
-            position: position,
+            position: hitPosition,
             normal: normal,
             deleting: action.withDelete,
             bySection: action.withSection,
@@ -138,22 +140,32 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         ));
         if (action.withSection)
         {
-            ApplyDrawingBySection(state, action, position, normal);
+            ApplyDrawingBySection(
+                activeLayer,
+                action,
+                hitPosition + Vector3Int.RoundToInt(activeLayer.currentSpriteData.pivot),
+                normal
+            );
         }
     }
 
-    private void OnDrawButtonUp(EditorState.Loaded state)
+    private void OnDrawButtonUp(EditorState state)
     {
-        if (state.controlState is not ControlState.Drawing) return;
-        
+        if (state.controlState is not ControlState.Drawing drawingState) return;
+
+        reducer.ApplyPatch(drawingState.deleting
+            ? new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(drawingState.drawnVoxels))
+            : new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(drawingState.drawnVoxels))
+        );
         reducer.ApplyPatch(new EditorPatch.Control.Drawing.Finish());
     }
     
-    private void OnButtonDraw(EditorState.Loaded state, EditorAction.Input.OnButtonDraw action)
+    private void OnButtonDraw(EditorState state, EditorAction.Input.OnButtonDraw action)
     {
         if (state.controlState is not ControlState.Drawing drawingState
             || drawingState.bySection
-            || state.cameraType is not CameraType.Free) return;
+            || state.cameraType is not CameraType.Free
+            || state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
 
         var normal = drawingState.normal;
         var deltaNormal = normal.x > 0 ||
@@ -161,44 +173,42 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                           normal.z > 0
             ? normal
             : Vector3Int.zero;
-        
+
         var planePosition = drawingState.position + deltaNormal;
         
         var plane = new Plane(normal, planePosition);
         if (!GetVoxelUnderCursorOnPlane(plane, out var position)) return;
         
-        ApplyDrawingByOne(state, drawingState, position - deltaNormal);
+        ApplyDrawingByOne(activeLayer, drawingState, position - deltaNormal + Vector3Int.RoundToInt(activeLayer.currentSpriteData.pivot));
     }
 
     private void ApplyDrawingByOne(
-        EditorState.Loaded state,
+        VoxLayerState.Loaded activeLayer,
         ControlState.Drawing drawingState,
         Vector3Int position
     )
     {
         if (drawingState.deleting)
         {
-            if (!state.currentSpriteData.voxels.Contains(position)) return;
+            if (!activeLayer.currentSpriteData.voxels.Contains(position)) return;
             
             var voxels = new List<Vector3Int>();
             voxels.Add(position);
             reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
-            reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
         }
         else
         {
             var addPosition = position + drawingState.normal + (drawingState.withProjection ? new Vector3Int(0, -drawingState.normal.z, 0) : Vector3Int.zero);
-            if (state.currentSpriteData.voxels.Contains(addPosition)) return;
+            if (activeLayer.currentSpriteData.voxels.Contains(addPosition)) return;
             
             var voxels = new List<Vector3Int>();
             voxels.Add(addPosition);
             reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
-            reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
         }
     }
 
     private void ApplyDrawingBySection(
-        EditorState.Loaded state,
+        VoxLayerState.Loaded activeLayer,
         EditorAction.Input.OnButtonDown.Draw action,
         Vector3Int position,
         Vector3Int normal
@@ -207,26 +217,24 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         if (action.withDelete)
         {
             var voxels = GetVoxelsSection(
-                model: state.currentSpriteData.voxels,
+                model: activeLayer.currentSpriteData.voxels,
                 position: position,
                 normal: Vector3Int.RoundToInt(normal),
                 withProjection: false,
                 applyNormal: false
             );
             reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
-            reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Delete(voxels)));
         }
         else
         {
             var voxels = GetVoxelsSection(
-                model: state.currentSpriteData.voxels,
+                model: activeLayer.currentSpriteData.voxels,
                 position: position,
                 normal: Vector3Int.RoundToInt(normal),
                 withProjection: action.withProjection,
                 applyNormal: true
             );
             reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
-            reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Add(voxels)));
         }
     }
 
@@ -332,21 +340,21 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         return false;
     }
 
-    private void OnMoveButtonDown(EditorState.Loaded state)
+    private void OnMoveButtonDown(EditorState state)
     {
         if (state.controlState is not ControlState.None) return;
         
         reducer.ApplyPatch(new EditorPatch.Control.Moving.Start());
     }
 
-    private void OnMoveButtonUp(EditorState.Loaded state)
+    private void OnMoveButtonUp(EditorState state)
     {
         if (state.controlState is not ControlState.Moving) return;
         
         reducer.ApplyPatch(new EditorPatch.Control.Moving.Finish());
     }
 
-    private void MoveByMouseDelta(EditorState.Loaded state, float deltaX, float deltaY)
+    private void MoveByMouseDelta(EditorState state, float deltaX, float deltaY)
     {
         var deltaPos = new Vector3(-deltaX, -deltaY, 0);
         var position = state.cameraType switch
@@ -363,7 +371,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         reducer.ApplyPatch(new EditorPatch.Camera.NewPivotPoint(position));
     }
     
-    private void OnRotatingDown(EditorState.Loaded state)
+    private void OnRotatingDown(EditorState state)
     {
         if (state.cameraType is not CameraType.Free
             || state.controlState is not ControlState.None) return;
@@ -371,14 +379,14 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         reducer.ApplyPatch(new EditorPatch.Control.Rotating.Start());
     }
 
-    private void OnRotatingUp(EditorState.Loaded state)
+    private void OnRotatingUp(EditorState state)
     {
         if (state.controlState is not ControlState.Rotating) return;
         
         reducer.ApplyPatch(new EditorPatch.Control.Rotating.Finish());
     }
 
-    private void RotateByMouseDelta(EditorState.Loaded state, float deltaX, float deltaY)
+    private void RotateByMouseDelta(EditorState state, float deltaX, float deltaY)
     {
         if (state.controlState is not ControlState.Rotating
             || state.cameraType is not CameraType.Free) return;

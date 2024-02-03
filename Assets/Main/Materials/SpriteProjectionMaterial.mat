@@ -16,7 +16,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -91,6 +91,7 @@ Material:
     - _BlendModePreserveSpecular: 1
     - _BorderWidth: 0.1
     - _BumpScale: 1
+    - _CastShadows: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _Cull: 2
@@ -119,7 +120,9 @@ Material:
     - _SrcBlendAlpha: 1
     - _Surface: 0
     - _WorkflowMode: 1
+    - _ZTest: 4
     - _ZWrite: 1
+    - _ZWriteControl: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BorderColor: {r: 0, g: 0, b: 0, a: 0.6745098}
@@ -128,7 +131,7 @@ Material:
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _SpritePivot: {r: 0, g: 0, b: 0, a: 0}
     - _SpriteRect: {r: 24, g: 36, b: 0, a: 0}
-    - _SpriteRectPosition: {r: 66, g: 200, b: 0, a: 0}
+    - _SpriteRectPosition: {r: 0, g: 200, b: 0, a: 0}
     - _TextureSize: {r: 1452, g: 250, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &5196516825259636075

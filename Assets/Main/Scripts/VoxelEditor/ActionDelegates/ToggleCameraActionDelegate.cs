@@ -9,9 +9,7 @@ public class ToggleCameraActionDelegate : ActionDelegate<EditorAction.OnToggleCa
 
     public override void ApplyAction(EditorState state, EditorAction.OnToggleCameraClicked action)
     {
-        if (state is not EditorState.Loaded loadedState) return;
-
-        var cameraType = loadedState.cameraType switch
+        var cameraType = state.cameraType switch
         {
             CameraType.Free => CameraType.Isometric,
             CameraType.Isometric => CameraType.Free,
