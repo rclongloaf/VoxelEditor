@@ -307,6 +307,7 @@ public class EditorView : MonoBehaviour,
                 OnDeleteLayerRequest(deleteLayerRequest.key);
                 break;
             case EditorEvent.OpenBrowserForExport openBrowserForExport:
+                ExportMesh();
                 break;
             case EditorEvent.OpenBrowserForImport openBrowserForImport:
                 ImportTexture();
@@ -641,6 +642,28 @@ public class EditorView : MonoBehaviour,
     {
         feature.ApplyAction(new EditorAction.Import.OnCanceled());
     }
+
+    private void ExportMesh()
+    {
+        FileBrowser.ShowSaveDialog(
+            onSuccess: OnExportMeshSuccess,
+            onCancel: OnExportMeshCancel,
+            pickMode: FileBrowser.PickMode.Files,
+            allowMultiSelection: false,
+            initialPath: Application.persistentDataPath,
+            title: "Export mesh"
+        );
+    }
+
+    private void OnExportMeshSuccess(string[] paths)
+    {
+        feature.ApplyAction(new EditorAction.Export.OnPathSelected(paths[0]));
+    }
+
+    private void OnExportMeshCancel()
+    {
+        feature.ApplyAction(new EditorAction.Export.OnCanceled());
+    }
     
     private void LoadVoxFile()
     {
@@ -669,7 +692,7 @@ public class EditorView : MonoBehaviour,
     {
         FileBrowser.ShowLoadDialog(
             onSuccess: OnLoadTextureSuccess,
-            onCancel: OnLoadVoxCancel,
+            onCancel: OnLoadTextureCancel,
             pickMode: FileBrowser.PickMode.Files,
             allowMultiSelection: false,
             initialPath: Application.persistentDataPath,
