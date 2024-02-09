@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.nox7atra.triangle.net": "https://github.com/Nox7atra/Triangle.Net-for-Unity.git?path=/Assets/TriangleNet",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.collab-proxy": "2.2.0",
     "com.unity.feature.development": "1.0.1",

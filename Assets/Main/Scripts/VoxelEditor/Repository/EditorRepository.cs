@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Main.Scripts.Helpers;
+using Main.Scripts.Helpers.Export;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
 using Newtonsoft.Json;
@@ -119,9 +121,38 @@ public class EditorRepository
         }
         jObject.Add(KEY_SPRITES, jSprites);
 
-        using var streamWriter = File.CreateText($"{path}_vox.json");
+        using var streamWriter = File.CreateText($"{path.Split('.')[0]}.json");
         using var jsonWriter = new JsonTextWriter(streamWriter);
         jObject.WriteTo(jsonWriter);
+    }
+
+    public void ExportMesh(
+        string path,
+        HashSet<Vector3Int> voxels,
+        int textureWidth,
+        int textureHeight,
+        TextureData textureData,
+        SpriteIndex spriteIndex,
+        Vector2 pivotPoint,
+        float pixelsPerUnit
+    )
+    {
+        var meshGenerator = new MeshFromVoxelsGenerator(
+            voxels,
+            textureWidth,
+            textureHeight,
+            textureData,
+            spriteIndex,
+            pivotPoint,
+            pixelsPerUnit
+        );
+
+        var mesh = meshGenerator.GenerateMesh();
+
+        if (mesh != null)
+        {
+            ExportHelper.ExportMeshAsObj(mesh, $"{path.Split('.')[0]}.obj");
+        }
     }
 
     public Texture2D? LoadTexture(string path)
