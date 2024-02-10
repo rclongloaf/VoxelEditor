@@ -234,12 +234,23 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         }
         else
         {
-            var addPosition = position + drawingState.normal + (drawingState.withProjection ? new Vector3Int(0, -drawingState.normal.z, 0) : Vector3Int.zero);
-            if (activeLayer.currentSpriteData.voxels.Contains(addPosition)) return;
+            var voxel = position + drawingState.normal + (drawingState.withProjection ? new Vector3Int(0, -drawingState.normal.z, 0) : Vector3Int.zero);
+            if (activeLayer.currentSpriteData.voxels.Contains(voxel)) return;
             
             var voxels = new List<Vector3Int>();
-            voxels.Add(addPosition);
-            reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
+            var textureData = activeLayer.voxData.textureData;
+            
+            if (voxel.x < textureData.spriteWidth
+                && voxel.x >= 0
+                && voxel.y + voxel.z < textureData.spriteHeight
+                && voxel.y + voxel.z >= 0
+                && voxel.z < textureData.spriteHeight * 0.5
+                && voxel.z >= -textureData.spriteHeight * 0.5)
+            {
+                voxels.Add(voxel);
+                reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
+            }
+            
         }
     }
 
@@ -270,7 +281,22 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                 withProjection: action.withProjection,
                 applyNormal: true
             );
-            reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
+
+            var voxelsInBounds = new List<Vector3Int>();
+            var textureData = activeLayer.voxData.textureData;
+            foreach (var voxel in voxels)
+            {
+                if (voxel.x < textureData.spriteWidth
+                    && voxel.x >= 0
+                    && voxel.y + voxel.z < textureData.spriteHeight
+                    && voxel.y + voxel.z >= 0
+                    && voxel.z < textureData.spriteHeight * 0.5
+                    && voxel.z >= -textureData.spriteHeight * 0.5)
+                {
+                    voxelsInBounds.Add(voxel);
+                }
+            }
+            reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxelsInBounds));
         }
     }
 

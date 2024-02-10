@@ -346,9 +346,9 @@ public class EditorView : MonoBehaviour,
         }
     }
 
-    void TextureImportUIHolder.Listener.OnApplyImportSettings(TextureData textureData)
+    void TextureImportUIHolder.Listener.OnApplyImportSettings(int rowsCount, int columnsCount)
     {
-        feature.ApplyAction(new EditorAction.TextureSettings.Selected(textureData));
+        feature.ApplyAction(new EditorAction.TextureSettings.Selected(rowsCount, columnsCount));
     }
 
     void TextureImportUIHolder.Listener.OnCancel()

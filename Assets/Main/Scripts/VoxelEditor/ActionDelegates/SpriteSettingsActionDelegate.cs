@@ -29,17 +29,23 @@ public class SpriteSettingsActionDelegate : ActionDelegate<EditorAction.TextureS
 
     private void ApplySpriteSelected(VoxLayerState.SpriteSelecting activeLayer, EditorAction.TextureSettings.Selected action)
     {
-        var textureData = action.textureData;
         var texture = activeLayer.texture;
         
-        var width = texture.width / textureData.columnsCount;
-        var height = texture.height / textureData.rowsCount;
+        var width = texture.width / action.columnsCount;
+        var height = texture.height / action.rowsCount;
 
         var sprites = new Dictionary<SpriteIndex, SpriteData>();
 
-        for (var columnIndex = 0; columnIndex < textureData.columnsCount; columnIndex++)
+        var textureData = new TextureData(
+            rowsCount: action.rowsCount,
+            columnsCount: action.columnsCount,
+            spriteWidth: texture.width / action.columnsCount,
+            spriteHeight: texture.height / action.rowsCount
+        );
+
+        for (var columnIndex = 0; columnIndex < action.columnsCount; columnIndex++)
         {
-            for (var rowIndex = 0; rowIndex < textureData.rowsCount; rowIndex++)
+            for (var rowIndex = 0; rowIndex < action.rowsCount; rowIndex++)
             {
                 var spriteIndex = new SpriteIndex(rowIndex, columnIndex);
                 var spriteData = GenerateSprite(

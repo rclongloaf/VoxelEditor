@@ -21,10 +21,10 @@ public class TextureImportUIHolder
 
         applyBtn.clicked += () =>
         {
-            listener.OnApplyImportSettings(new TextureData(
-                rowsCount: rowsCountInput.value,
-                columnsCount: columnsCountInput.value
-            ));
+            listener.OnApplyImportSettings(
+                rowsCountInput.value,
+                columnsCountInput.value
+            );
         };
         cancelBtn.clicked += listener.OnCancel;
     }
@@ -36,7 +36,7 @@ public class TextureImportUIHolder
     
     public interface Listener
     {
-        public void OnApplyImportSettings(TextureData textureData);
+        public void OnApplyImportSettings(int rowsCount, int columnsCount);
         public void OnCancel();
     }
 }
