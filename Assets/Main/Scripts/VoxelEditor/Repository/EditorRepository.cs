@@ -68,9 +68,9 @@ public class EditorRepository
 
             foreach (var jVoxel in jVoxels.Cast<JObject>())
             {
-                var x = (int)jVoxel.GetValue("x");
-                var y = (int)jVoxel.GetValue("y");
-                var z = (int)jVoxel.GetValue("z");
+                var x = (int)jVoxel.GetValue(KEY_X);
+                var y = (int)jVoxel.GetValue(KEY_Y);
+                var z = (int)jVoxel.GetValue(KEY_Z);
                 voxels.Add(new Vector3Int(x, y, z));
             }
             sprites.Add(spriteIndex, new SpriteData(pivot, voxels));
@@ -110,9 +110,9 @@ public class EditorRepository
             foreach (var voxelPosition in spriteData.voxels)
             {
                 var jPos = new JObject();
-                jPos.Add("x", voxelPosition.x);
-                jPos.Add("y", voxelPosition.y);
-                jPos.Add("z", voxelPosition.z);
+                jPos.Add(KEY_X, voxelPosition.x);
+                jPos.Add(KEY_Y, voxelPosition.y);
+                jPos.Add(KEY_Z, voxelPosition.z);
                 voxelsList.Add(jPos);
             }
             jSprite.Add(KEY_VOXELS, voxelsList);

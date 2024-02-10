@@ -12,7 +12,7 @@ public class SpriteSelectingActionDelegate : ActionDelegate<EditorAction.SpriteS
     {
         if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
         
-        var (_, voxData, _, curIndex, currentSpriteData, _, _) = activeLayer;
+        var (_, voxData, _, curIndex, currentSpriteData, _, _, _) = activeLayer;
 
         var textureData = voxData.textureData;
 

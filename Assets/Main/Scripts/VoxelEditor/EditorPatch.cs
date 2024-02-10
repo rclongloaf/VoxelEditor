@@ -64,8 +64,8 @@ public interface EditorPatch
 
     public interface VoxelsChanges : EditorPatch
     {
-        public record Add(List<Vector3Int> voxels) : VoxelsChanges;
-        public record Delete(List<Vector3Int> voxels) : VoxelsChanges;
+        public record Add(IEnumerable<Vector3Int> voxels) : VoxelsChanges;
+        public record Delete(IEnumerable<Vector3Int> voxels) : VoxelsChanges;
     }
     
     public interface ModelBuffer : EditorPatch
@@ -94,13 +94,40 @@ public interface EditorPatch
             public record Start : Drawing;
             public record Finish : Drawing;
         }
+        public interface Selection : Control
+        {
+            public record Start(
+                Vector3 mousePos
+            ) : Selection;
+
+            public record Finish : Selection;
+        }
+
+        public interface SelectionMoving : Control
+        {
+            public record Start(Vector3Int normal, Vector3 fromPosition) : SelectionMoving;
+
+            public record ChangeSelectionOffset(Vector3Int deltaOffset) : SelectionMoving;
+
+            public record Finish : SelectionMoving;
+        }
+        
         public interface Rotating : Control
         {
             public record Start : Drawing;
             public record Finish : Drawing;
         }
     }
+    
+    public interface Selection : EditorPatch
+    {
+        public record CancelSelection : Selection;
 
+        public record Select(
+            IEnumerable<Vector3Int> voxels,
+            Vector3Int offset
+        ) : Selection;
+    }
     public interface Camera : EditorPatch
     {
         public record NewPivotPoint(Vector3 position) : Camera;

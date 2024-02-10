@@ -5,7 +5,7 @@ namespace Main.Scripts.Utils
 {
 public static class Extensions
 {
-    public static HashSet<T> Plus<T>(this HashSet<T> set, List<T> values)
+    public static HashSet<T> Plus<T>(this HashSet<T> set, IEnumerable<T> values)
     {
         foreach (var value in values)
         {
@@ -14,7 +14,7 @@ public static class Extensions
         return set;
     }
     
-    public static HashSet<T> Minus<T>(this HashSet<T> set, List<T> values)
+    public static HashSet<T> Minus<T>(this HashSet<T> set, IEnumerable<T> values)
     {
         foreach (var value in values)
         {

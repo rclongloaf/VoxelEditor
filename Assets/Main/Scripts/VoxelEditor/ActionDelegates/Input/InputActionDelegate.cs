@@ -43,6 +43,9 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             case EditorAction.Input.OnWheelScroll onWheelScroll:
                 OnWheelScroll(state, onWheelScroll);
                 break;
+            case EditorAction.Input.UpdateMoveSelection updateMoveSelection:
+                MoveSelection(state);
+                break;
             case EditorAction.Input.OnToggleSpriteRef onToggleSpriteRefAction:
                 OnToggleSpriteRef(state, onToggleSpriteRefAction);
                 break;
@@ -61,8 +64,14 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             case EditorAction.Input.OnButtonDown.Rotate:
                 OnRotatingDown(state);
                 break;
+            case EditorAction.Input.OnButtonDown.Select select:
+                OnSelectDown(state);
+                break;
             case EditorAction.Input.OnButtonDown.MoveCamera:
                 OnMoveButtonDown(state);
+                break;
+            case EditorAction.Input.OnButtonDown.MoveSelection moveSelection:
+                OnMoveSelectionButtonDown(state);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action), action, null);
@@ -79,8 +88,14 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             case EditorAction.Input.OnButtonUp.Rotate:
                 OnRotatingUp(state);
                 break;
+            case EditorAction.Input.OnButtonUp.Select select:
+                OnSelectUp(state);
+                break;
             case EditorAction.Input.OnButtonUp.MoveCamera:
                 OnMoveButtonUp(state);
+                break;
+            case EditorAction.Input.OnButtonUp.MoveSelection moveSelection:
+                OnMoveSelectionButtonUp(state);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action), action, null);
@@ -95,11 +110,15 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                 break;
             case ControlState.Drawing:
                 break;
-            case ControlState.Moving:
-                MoveByMouseDelta(state, action.deltaX, action.deltaY);
+            case ControlState.CameraMoving:
+                MoveCameraByMouseDelta(state, action.deltaX, action.deltaY);
                 break;
             case ControlState.Rotating:
                 RotateByMouseDelta(state, action.deltaX, action.deltaY);
+                break;
+            case ControlState.Selection selection:
+                break;
+            case ControlState.SelectionMoving selectionMoving:
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -349,12 +368,12 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
 
     private void OnMoveButtonUp(EditorState state)
     {
-        if (state.controlState is not ControlState.Moving) return;
+        if (state.controlState is not ControlState.CameraMoving) return;
         
         reducer.ApplyPatch(new EditorPatch.Control.Moving.Finish());
     }
 
-    private void MoveByMouseDelta(EditorState state, float deltaX, float deltaY)
+    private void MoveCameraByMouseDelta(EditorState state, float deltaX, float deltaY)
     {
         var deltaPos = new Vector3(-deltaX, -deltaY, 0);
         var position = state.cameraType switch
@@ -369,6 +388,76 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             _ => throw new ArgumentOutOfRangeException()
         };
         reducer.ApplyPatch(new EditorPatch.Camera.NewPivotPoint(position));
+    }
+
+    private void OnMoveSelectionButtonDown(EditorState state)
+    {
+        var camera = Camera.main;
+        if (camera == null
+            || state.activeLayer is not VoxLayerState.Loaded
+            {
+                selectionState: SelectionState.Selected selectionState
+            } activeLayer) return;
+
+        var ray = camera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+
+        if (Physics.Raycast(ray, out var hit))
+        {
+            reducer.ApplyPatch(new EditorPatch.Control.SelectionMoving.Start(Vector3Int.RoundToInt(hit.normal), hit.point));
+        }
+        else
+        {
+            var voxels = new List<Vector3Int>();
+            foreach (var voxel in selectionState.voxels)
+            {
+                voxels.Add(voxel + selectionState.offset);
+            }
+
+            var overrideVoxels = new List<Vector3Int>();
+
+            foreach (var voxel in voxels)
+            {
+                if (activeLayer.currentSpriteData.voxels.Contains(voxel))
+                {
+                    overrideVoxels.Add(voxel);
+                }
+            }
+            
+            reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.CancelSelection(
+                selectionState.voxels,
+                selectionState.offset,
+                overrideVoxels
+            )));
+            reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
+            reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
+        }
+    }
+
+    private void OnMoveSelectionButtonUp(EditorState state)
+    {
+        if (state.controlState is not ControlState.SelectionMoving selectionMoving) return;
+        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.MoveSelection(selectionMoving.deltaOffset)));
+        reducer.ApplyPatch(new EditorPatch.Control.SelectionMoving.Finish());
+    }
+
+    private void MoveSelection(EditorState state)
+    {
+        var camera = Camera.main;
+        if (camera == null
+            || state.activeLayer is not VoxLayerState.Loaded activeLayer
+            || activeLayer.selectionState is not SelectionState.Selected selectionState
+            || state.controlState is not ControlState.SelectionMoving controlState) return;
+        
+        var plane = new Plane(controlState.normal, controlState.fromPosition);
+        var ray = camera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+
+        var point = plane.Raycast(ray, out var distance) ? ray.GetPoint(distance) : controlState.fromPosition;
+
+        var offset = Vector3Int.RoundToInt(point - controlState.fromPosition);
+
+        var deltaOffset = offset - controlState.deltaOffset;
+        
+        reducer.ApplyPatch(new EditorPatch.Control.SelectionMoving.ChangeSelectionOffset(deltaOffset));
     }
     
     private void OnRotatingDown(EditorState state)
@@ -408,6 +497,126 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         var newRotation = xQuaternion * yQuaternion;
 
         reducer.ApplyPatch(new EditorPatch.Camera.NewRotation(newRotation));
+    }
+
+    private void OnSelectDown(EditorState state)
+    {
+        reducer.ApplyPatch(new EditorPatch.Control.Selection.Start(UnityEngine.Input.mousePosition));
+    }
+
+    private void OnSelectUp(EditorState state)
+    {
+        if (state.activeLayer is not VoxLayerState.Loaded loadedLayer
+            || state.controlState is not ControlState.Selection selectionState) return;
+        
+        var mousePos = UnityEngine.Input.mousePosition;
+
+        var selectedVoxels = new HashSet<Vector3Int>();
+        foreach (var voxel in loadedLayer.currentSpriteData.voxels)
+        {
+            var pivot = loadedLayer.currentSpriteData.pivot;
+            var voxPos = new Vector3(voxel.x - pivot.x + 0.5f, voxel.y - pivot.y + 0.5f, voxel.z + 0.5f);
+            if (IsWithinPolygon(voxPos, selectionState.startMousePos, mousePos))
+            {
+                selectedVoxels.Add(voxel);
+            }
+        }
+        
+        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Select(selectedVoxels)));
+        reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(selectedVoxels));
+        reducer.ApplyPatch(new EditorPatch.Selection.Select(selectedVoxels, Vector3Int.zero));
+        reducer.ApplyPatch(new EditorPatch.Control.Selection.Finish());
+    }
+    
+    private bool IsWithinPolygon(Vector3 unitPos, Vector3 fromPos, Vector3 toPos)
+    {
+        var camera = Camera.main;
+        if (camera == null) return false;
+
+        var plane = new Plane(camera.transform.forward, unitPos);
+        var minX = Math.Min(fromPos.x, toPos.x);
+        var minY = Math.Min(fromPos.y, toPos.y);
+        var maxX = Math.Max(fromPos.x, toPos.x);
+        var maxY = Math.Max(fromPos.y, toPos.y);
+
+        var TLRay = camera.ScreenPointToRay(new Vector3(minX, maxY, 0));
+        var TRRay = camera.ScreenPointToRay(new Vector3(maxX, maxY, 0));
+        var BLRay = camera.ScreenPointToRay(new Vector3(minX, minY, 0));
+        var BRRay = camera.ScreenPointToRay(new Vector3(maxX, minY, 0));
+
+        Vector3 TL;
+        Vector3 TR;
+        Vector3 BL;
+        Vector3 BR;
+        
+        if (plane.Raycast(TLRay, out var TLDistance))
+        {
+            TL = TLRay.GetPoint(TLDistance);
+        }
+        else
+        {
+            return false;
+        }
+        
+        if (plane.Raycast(TRRay, out var TRDistance))
+        {
+            TR = TRRay.GetPoint(TRDistance);
+        }
+        else
+        {
+            return false;
+        }
+        
+        if (plane.Raycast(BLRay, out var BLDistance))
+        {
+            BL = BLRay.GetPoint(BLDistance);
+        }
+        else
+        {
+            return false;
+        }
+        
+        if (plane.Raycast(BRRay, out var BRDistance))
+        {
+            BR = BRRay.GetPoint(BRDistance);
+        }
+        else
+        {
+            return false;
+        }
+        
+        if (IsWithinTriangle(unitPos, TL, BL, TR))
+        {
+            return true;
+        }
+
+        //Triangle 2: TR - BL - BR
+        if (IsWithinTriangle(unitPos, TR, BL, BR))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool IsWithinTriangle(Vector3 p, Vector3 p1, Vector3 p2, Vector3 p3)
+    {
+        float d1, d2, d3;
+        bool has_neg, has_pos;
+
+        d1 = Sign(p, p1, p2);
+        d2 = Sign(p, p2, p3);
+        d3 = Sign(p, p3, p1);
+
+        has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+        has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+        return !(has_neg && has_pos);
+    }
+
+    private float Sign(Vector3 p1, Vector3 p2, Vector3 p3)
+    {
+        return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
     }
     
     private static float ClampAngle (float angle, float min, float max)

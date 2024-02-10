@@ -121,6 +121,7 @@ public class EditorView : MonoBehaviour,
         var withCtrl = Input.GetKey(KeyCode.LeftControl);
         var withShift = Input.GetKey(KeyCode.LeftShift);
         var withX = Input.GetKey(KeyCode.X);
+        var withSelection = Input.GetKey(KeyCode.A);
 
         var editorUIHolderListener = (EditorUIHolder.Listener)this;
 
@@ -146,6 +147,12 @@ public class EditorView : MonoBehaviour,
             {
                 switch (key)
                 {
+                    case KeyCode.Mouse0 when activeLayer?.selectionState is SelectionState.Selected:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.MoveSelection());
+                        break;
+                    case KeyCode.Mouse0 when activeLayer != null && withSelection:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Select());
+                        break;
                     case KeyCode.Mouse0 when activeLayer != null:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withCtrl, withShift, withX));
                         break;
@@ -249,6 +256,12 @@ public class EditorView : MonoBehaviour,
             {
                 switch (key)
                 {
+                    case KeyCode.Mouse0 when activeLayer?.selectionState is SelectionState.Selected:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.MoveSelection());
+                        break;
+                    case KeyCode.Mouse0 when activeLayer != null && currentState.controlState is ControlState.Selection:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.Select());
+                        break;
                     case KeyCode.Mouse0 when activeLayer != null:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.Draw());
                         break;
@@ -277,12 +290,17 @@ public class EditorView : MonoBehaviour,
                     feature.ApplyAction(new EditorAction.Input.OnButtonDraw());
                 }
                 break;
-            case ControlState.Moving:
+            case ControlState.CameraMoving:
             case ControlState.Rotating:
                 feature.ApplyAction(new EditorAction.Input.OnMouseDelta(
                     deltaX: Input.GetAxis("Mouse X"),
                     deltaY: Input.GetAxis("Mouse Y")
                 ));
+                break;
+            case ControlState.Selection:
+                break;
+            case ControlState.SelectionMoving:
+                feature.ApplyAction(new EditorAction.Input.UpdateMoveSelection());
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -587,6 +605,11 @@ public class EditorView : MonoBehaviour,
         if (curActiveLayer == null || curActiveLayer.currentSpriteIndex != activeLayer.currentSpriteIndex)
         {
             editorUIHolder.SetSpriteIndex(activeLayer.currentSpriteIndex);
+        }
+
+        if (curActiveLayer == null || curActiveLayer.selectionState != activeLayer.selectionState)
+        {
+            editModeControllers[activeLayerKey].ApplySelection(activeLayer.selectionState);
         }
         
         if (curActiveLayer == null || curActiveLayer.texture != activeLayer.texture)

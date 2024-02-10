@@ -109,18 +109,26 @@ public interface EditorAction
 
     public interface Input : EditorAction
     {
-        public record OnButtonDown : Input
+        public interface OnButtonDown : Input
         {
             public record Draw(bool withDelete, bool withSection, bool withProjection) : OnButtonDown;
+
+            public record Select : OnButtonDown;
+
+            public record MoveSelection : OnButtonDown;
 
             public record Rotate : OnButtonDown;
 
             public record MoveCamera : OnButtonDown;
         }
 
-        public record OnButtonUp : Input
+        public interface OnButtonUp : Input
         {
             public record Draw : OnButtonUp;
+
+            public record Select : OnButtonUp;
+
+            public record MoveSelection : OnButtonUp;
             
             public record Rotate : OnButtonUp;
 
@@ -132,6 +140,8 @@ public interface EditorAction
         public record OnToggleSpriteRef : Input;
         
         public record OnMenu : Input;
+
+        public record UpdateMoveSelection : Input;
 
         public record OnMouseDelta(float deltaX, float deltaY) : Input;
 
