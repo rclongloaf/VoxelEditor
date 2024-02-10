@@ -77,7 +77,7 @@ namespace Main.Scripts.VoxelEditor
             inputActionDelegate = new InputActionDelegate(this, reducer, selectionDelegate);
             spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
             spriteSelectingActionDelegate = new SpriteSelectingActionDelegate(this, reducer, selectionDelegate);
-            modelBufferActionDelegate = new ModelBufferActionDelegate(this, reducer);
+            modelBufferActionDelegate = new ModelBufferActionDelegate(this, reducer, selectionDelegate);
             toggleCameraActionDelegate = new ToggleCameraActionDelegate(this, reducer);
             shaderActionDelegate = new ShaderActionDelegate(this, reducer);
             actionsHistoryActionDelegate = new ActionsHistoryActionDelegate(this, reducer);

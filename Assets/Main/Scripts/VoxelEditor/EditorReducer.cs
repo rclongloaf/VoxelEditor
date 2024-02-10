@@ -203,18 +203,6 @@ public class EditorReducer
         {
             case EditorPatch.ModelBuffer.Copy copy:
                 return state with { bufferedSpriteData = copy.spriteData };
-            case EditorPatch.ModelBuffer.Paste paste:
-                var layers = new Dictionary<int, VoxLayerState>(state.layers);
-                layers[state.activeLayerKey] = activeLayer with
-                {
-                    currentSpriteData = paste.spriteData,
-                    actionsHistory = new Stack<EditAction>(),
-                    canceledActionsHistory = new Stack<EditAction>()
-                };
-                return state with
-                {
-                    layers = layers,
-                };
             default: throw new ArgumentOutOfRangeException(nameof(patch));
         }
     }

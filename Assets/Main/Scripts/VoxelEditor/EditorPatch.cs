@@ -71,8 +71,6 @@ public interface EditorPatch
     public interface ModelBuffer : EditorPatch
     {
         public record Copy(SpriteData spriteData) : ModelBuffer;
-
-        public record Paste(SpriteData spriteData) : ModelBuffer;
     }
 
     public interface Control : EditorPatch

@@ -96,6 +96,10 @@ public class EditModeController
                 }
 
                 selectedVoxels.Clear();
+                foreach (var (_, voxel) in currentVoxels)
+                {
+                    voxel.SetActive(true);
+                }
                 break;
             case SelectionState.Selected selected:
                 if (cachedSelectionState is SelectionState.None)
@@ -117,6 +121,10 @@ public class EditModeController
                     {
                         voxelObj.transform.position = position + selected.offset - (Vector3)pivotPoint;
                     }
+                }
+                foreach (var (position, voxel) in currentVoxels)
+                {
+                    voxel.SetActive(!selectedVoxels.ContainsKey(position - selected.offset));
                 }
                 break;
             default:

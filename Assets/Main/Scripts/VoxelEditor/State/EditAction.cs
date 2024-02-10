@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor.State
@@ -10,6 +11,8 @@ public interface EditAction
     public record Delete(IEnumerable<Vector3Int> voxels) : EditAction;
 
     public record Select(IEnumerable<Vector3Int> voxels) : EditAction;
+
+    public record Paste(IEnumerable<Vector3Int> voxels) : EditAction;
 
     public record CancelSelection(
         IEnumerable<Vector3Int> voxels,
