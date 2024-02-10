@@ -165,6 +165,14 @@ public class EditModeController
         {
             voxel.transform.position = pos - (Vector3)pivotPoint;
         }
+
+        if (cachedSelectionState is SelectionState.Selected selectionState)
+        {
+            foreach (var (pos, voxel) in selectedVoxels)
+            {
+                voxel.transform.position = pos + selectionState.offset - (Vector3)pivotPoint;
+            }
+        }
     }
 
     public void ApplyTexture(Texture2D? texture)

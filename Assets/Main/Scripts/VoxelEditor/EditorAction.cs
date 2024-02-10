@@ -16,7 +16,7 @@ public interface EditorAction
 
     public interface TextureSettings : EditorAction
     {
-        public record Selected(TextureData textureData) : TextureSettings;
+        public record Selected(int rowsCount, int columnsCount) : TextureSettings;
 
         public record Canceled : TextureSettings;
     }

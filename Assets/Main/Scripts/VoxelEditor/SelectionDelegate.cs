@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
@@ -50,9 +51,19 @@ public class SelectionDelegate
         
             
         var voxels = new List<Vector3Int>();
-        foreach (var voxel in selectionState.voxels)
+        var textureData = activeLayer.voxData.textureData;
+        foreach (var selectedVoxel in selectionState.voxels)
         {
-            voxels.Add(voxel + selectionState.offset);
+            var voxel = selectedVoxel + selectionState.offset;
+            if (voxel.x < textureData.spriteWidth
+                && voxel.x >= 0
+                && voxel.y + voxel.z < textureData.spriteHeight
+                && voxel.y + voxel.z >= 0
+                && voxel.z < textureData.spriteHeight * 0.5
+                && voxel.z >= -textureData.spriteHeight * 0.5)
+            {
+                voxels.Add(voxel);
+            }
         }
 
         var overrideVoxels = new List<Vector3Int>();
