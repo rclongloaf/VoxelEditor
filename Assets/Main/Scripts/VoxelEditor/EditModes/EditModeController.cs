@@ -188,6 +188,10 @@ public class EditModeController
         {
             voxel.GetComponentInChildren<Collider>().enabled = isActive;
         }
+        foreach (var (_, voxel) in selectedVoxels)
+        {
+            voxel.GetComponentInChildren<Collider>().enabled = isActive;
+        }
     }
 
     public void SetReferenceVisibility(bool visible)

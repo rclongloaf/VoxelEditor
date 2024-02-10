@@ -10,7 +10,16 @@ namespace Main.Scripts.VoxelEditor.ActionDelegates.Input
 {
 public class InputActionDelegate : ActionDelegate<EditorAction.Input>
 {
-    public InputActionDelegate(EditorFeature feature, EditorReducer reducer) : base(feature, reducer) { }
+    private SelectionDelegate selectionDelegate;
+    
+    public InputActionDelegate(
+        EditorFeature feature,
+        EditorReducer reducer,
+        SelectionDelegate selectionDelegate
+    ) : base(feature, reducer)
+    {
+        this.selectionDelegate = selectionDelegate;
+    }
     
     public override void ApplyAction(EditorState state, EditorAction.Input action)
     {
@@ -407,29 +416,7 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         }
         else
         {
-            var voxels = new List<Vector3Int>();
-            foreach (var voxel in selectionState.voxels)
-            {
-                voxels.Add(voxel + selectionState.offset);
-            }
-
-            var overrideVoxels = new List<Vector3Int>();
-
-            foreach (var voxel in voxels)
-            {
-                if (activeLayer.currentSpriteData.voxels.Contains(voxel))
-                {
-                    overrideVoxels.Add(voxel);
-                }
-            }
-            
-            reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.CancelSelection(
-                selectionState.voxels,
-                selectionState.offset,
-                overrideVoxels
-            )));
-            reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
-            reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
+            selectionDelegate.CancelSelection(state);
         }
     }
 

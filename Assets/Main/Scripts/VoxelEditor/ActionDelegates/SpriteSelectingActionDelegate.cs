@@ -6,7 +6,16 @@ namespace Main.Scripts.VoxelEditor.ActionDelegates
 {
 public class SpriteSelectingActionDelegate : ActionDelegate<EditorAction.SpriteSelecting>
 {
-    public SpriteSelectingActionDelegate(EditorFeature feature, EditorReducer reducer) : base(feature, reducer) { }
+    private SelectionDelegate selectionDelegate;
+    
+    public SpriteSelectingActionDelegate(
+        EditorFeature feature,
+        EditorReducer reducer,
+        SelectionDelegate selectionDelegate
+    ) : base(feature, reducer)
+    {
+        this.selectionDelegate = selectionDelegate;
+    }
 
     public override void ApplyAction(EditorState state, EditorAction.SpriteSelecting action)
     {
@@ -15,6 +24,8 @@ public class SpriteSelectingActionDelegate : ActionDelegate<EditorAction.SpriteS
         var (_, voxData, _, curIndex, currentSpriteData, _, _, _) = activeLayer;
 
         var textureData = voxData.textureData;
+        
+        selectionDelegate.CancelSelection(state);
 
         if (currentSpriteData != voxData.sprites[curIndex])
         {
