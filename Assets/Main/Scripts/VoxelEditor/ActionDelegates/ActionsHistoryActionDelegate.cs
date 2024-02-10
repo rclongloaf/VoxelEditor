@@ -51,6 +51,12 @@ public class ActionsHistoryActionDelegate : ActionDelegate<EditorAction.ActionsH
                 case EditAction.Delete delete:
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(delete.voxels));
                     break;
+                case EditAction.DeleteSelected deleteSelected:
+                    reducer.ApplyPatch(new EditorPatch.Selection.Select(
+                        deleteSelected.selectedState.voxels,
+                        deleteSelected.selectedState.offset
+                    ));
+                    break;
                 case EditAction.MoveSelection moveSelection:
                     reducer.ApplyPatch(new EditorPatch.Control.SelectionMoving.ChangeSelectionOffset(-moveSelection.deltaOffset));
                     break;
@@ -89,6 +95,9 @@ public class ActionsHistoryActionDelegate : ActionDelegate<EditorAction.ActionsH
                     break;
                 case EditAction.Delete delete:
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(delete.voxels));
+                    break;
+                case EditAction.DeleteSelected deleteSelected:
+                    reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
                     break;
                 case EditAction.MoveSelection moveSelection:
                     reducer.ApplyPatch(new EditorPatch.Control.SelectionMoving.ChangeSelectionOffset(moveSelection.deltaOffset));

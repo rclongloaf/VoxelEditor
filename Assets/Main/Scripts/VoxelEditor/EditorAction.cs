@@ -115,6 +115,8 @@ public interface EditorAction
 
             public record Select : OnButtonDown;
 
+            public record Delete : OnButtonDown;
+
             public record MoveSelection : OnButtonDown;
 
             public record Rotate : OnButtonDown;

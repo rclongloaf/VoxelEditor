@@ -73,5 +73,16 @@ public class SelectionDelegate
         reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
         reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
     }
+
+    public void DeleteSelected(EditorState state)
+    {
+        if (state.activeLayer is not VoxLayerState.Loaded
+            {
+                selectionState: SelectionState.Selected selectionState
+            }) return;
+        
+        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.DeleteSelected(selectionState)));
+        reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
+    }
 }
 }

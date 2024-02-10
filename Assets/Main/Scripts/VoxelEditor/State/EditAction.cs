@@ -20,6 +20,8 @@ public interface EditAction
         IEnumerable<Vector3Int> overrideVoxels
     ) : EditAction;
 
+    public record DeleteSelected(SelectionState.Selected selectedState) : EditAction;
+
     public record MoveSelection(
         Vector3Int deltaOffset
     ) : EditAction;

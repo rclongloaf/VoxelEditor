@@ -112,6 +112,7 @@ public class EditorView : MonoBehaviour,
         UpdateKeyPressedStatus(KeyCode.J);
         UpdateKeyPressedStatus(KeyCode.K);
         UpdateKeyPressedStatus(KeyCode.L);
+        UpdateKeyPressedStatus(KeyCode.Delete);
         UpdateKeyPressedStatus(KeyCode.Alpha1);
         UpdateKeyPressedStatus(KeyCode.Alpha2);
         UpdateKeyPressedStatus(KeyCode.Alpha3);
@@ -214,6 +215,9 @@ public class EditorView : MonoBehaviour,
                         break;
                     case KeyCode.L when activeLayer != null:
                         editorUIHolderListener.OnApplyPivotClicked(activeLayer.currentSpriteData.pivot + Vector2.left);
+                        break;
+                    case KeyCode.Delete:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Delete());
                         break;
                     case KeyCode.Alpha1:
                         layerActionKey = 1;

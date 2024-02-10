@@ -67,6 +67,9 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
     {
         switch (action)
         {
+            case EditorAction.Input.OnButtonDown.Delete delete:
+                OnDeleteButtonDown(state);
+                break;
             case EditorAction.Input.OnButtonDown.Draw drawAction:
                 OnDrawButtonDown(state, drawAction);
                 break;
@@ -147,6 +150,11 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
     private void OnToggleSpriteRef(EditorState state, EditorAction.Input.OnToggleSpriteRef action)
     {
         reducer.ApplyPatch(new EditorPatch.ChangeSpriteRefVisibility(!state.isSpriteRefVisible));
+    }
+
+    private void OnDeleteButtonDown(EditorState state)
+    {
+        selectionDelegate.DeleteSelected(state);
     }
 
     private void OnDrawButtonDown(EditorState state, EditorAction.Input.OnButtonDown.Draw action)
