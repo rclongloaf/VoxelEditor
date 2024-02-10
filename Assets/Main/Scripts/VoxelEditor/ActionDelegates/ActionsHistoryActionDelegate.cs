@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
+using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor.ActionDelegates
 {
@@ -35,8 +38,34 @@ public class ActionsHistoryActionDelegate : ActionDelegate<EditorAction.ActionsH
                 case EditAction.Add add:
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(add.voxels));
                     break;
+                case EditAction.CancelSelection cancelSelection:
+                    var deleteVoxels = cancelSelection.voxels
+                        .ToList()
+                        .ConvertAll(voxel =>
+                            voxel + cancelSelection.offset
+                        );
+                    reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(deleteVoxels));
+                    reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(cancelSelection.overrideVoxels));
+                    reducer.ApplyPatch(new EditorPatch.Selection.Select(cancelSelection.voxels, cancelSelection.offset));
+                    break;
                 case EditAction.Delete delete:
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(delete.voxels));
+                    break;
+                case EditAction.DeleteSelected deleteSelected:
+                    reducer.ApplyPatch(new EditorPatch.Selection.Select(
+                        deleteSelected.selectedState.voxels,
+                        deleteSelected.selectedState.offset
+                    ));
+                    break;
+                case EditAction.MoveSelection moveSelection:
+                    reducer.ApplyPatch(new EditorPatch.Control.SelectionMoving.ChangeSelectionOffset(-moveSelection.deltaOffset));
+                    break;
+                case EditAction.Paste paste:
+                    reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
+                    break;
+                case EditAction.Select select:
+                    reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(select.voxels));
+                    reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(lastAction));
@@ -54,8 +83,31 @@ public class ActionsHistoryActionDelegate : ActionDelegate<EditorAction.ActionsH
                 case EditAction.Add add:
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(add.voxels));
                     break;
+                case EditAction.CancelSelection cancelSelection:
+                    var voxels = new List<Vector3Int>();
+                    foreach (var voxel in cancelSelection.voxels)
+                    {
+                        voxels.Add(voxel + cancelSelection.offset);
+                    }
+                    
+                    reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
+                    reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
+                    break;
                 case EditAction.Delete delete:
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(delete.voxels));
+                    break;
+                case EditAction.DeleteSelected deleteSelected:
+                    reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
+                    break;
+                case EditAction.MoveSelection moveSelection:
+                    reducer.ApplyPatch(new EditorPatch.Control.SelectionMoving.ChangeSelectionOffset(moveSelection.deltaOffset));
+                    break;
+                case EditAction.Paste paste:
+                    reducer.ApplyPatch(new EditorPatch.Selection.Select(paste.voxels, Vector3Int.zero));
+                    break;
+                case EditAction.Select select:
+                    reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(select.voxels));
+                    reducer.ApplyPatch(new EditorPatch.Selection.Select(select.voxels, Vector3Int.zero));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(lastCanceledAction));

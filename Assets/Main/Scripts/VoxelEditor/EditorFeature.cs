@@ -62,19 +62,22 @@ namespace Main.Scripts.VoxelEditor
             
             var reducer = new EditorReducer(this);
             var repository = new EditorRepository();
+
+            var selectionDelegate = new SelectionDelegate(reducer);
+            
             loadVoxActionDelegate = new LoadVoxActionDelegate(this, reducer, repository, eventsConsumer);
             layersActionDelegate = new LayersActionDelegate(this, reducer, eventsConsumer);
             loadTextureActionDelegate = new LoadTextureActionDelegate(this, reducer, repository, eventsConsumer);
             applyChangesActionDelegate = new ApplyChangesActionDelegate(this, reducer);
-            saveVoxActionDelegate = new SaveVoxActionDelegate(this, reducer, repository, eventsConsumer);
+            saveVoxActionDelegate = new SaveVoxActionDelegate(this, reducer, repository, eventsConsumer, selectionDelegate);
             importActionDelegate = new ImportActionDelegate(this, reducer, repository, eventsConsumer);
-            exportActionDelegate = new ExportActionDelegate(this, reducer, repository, eventsConsumer);
+            exportActionDelegate = new ExportActionDelegate(this, reducer, repository, eventsConsumer, selectionDelegate);
             editModeActionDelegate = new EditModeActionDelegate(this, reducer);
             brushActionDelegate = new BrushActionDelegate(this, reducer);
-            inputActionDelegate = new InputActionDelegate(this, reducer);
+            inputActionDelegate = new InputActionDelegate(this, reducer, selectionDelegate);
             spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
-            spriteSelectingActionDelegate = new SpriteSelectingActionDelegate(this, reducer);
-            modelBufferActionDelegate = new ModelBufferActionDelegate(this, reducer);
+            spriteSelectingActionDelegate = new SpriteSelectingActionDelegate(this, reducer, selectionDelegate);
+            modelBufferActionDelegate = new ModelBufferActionDelegate(this, reducer, selectionDelegate);
             toggleCameraActionDelegate = new ToggleCameraActionDelegate(this, reducer);
             shaderActionDelegate = new ShaderActionDelegate(this, reducer);
             actionsHistoryActionDelegate = new ActionsHistoryActionDelegate(this, reducer);
