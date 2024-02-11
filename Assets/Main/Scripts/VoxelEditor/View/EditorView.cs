@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Main.Scripts.UI;
 using Main.Scripts.VoxelEditor.EditModes;
 using Main.Scripts.VoxelEditor.EditModes.Render;
 using Main.Scripts.VoxelEditor.Events;
@@ -33,6 +34,8 @@ public class EditorView : MonoBehaviour,
     private UIDocument applyDeleteLayerUIDocument = null!;
     [SerializeField]
     private UIDocument layersInfoUIDocument = null!;
+    [SerializeField]
+    private SelectionImage selectionImage = null!;
     [SerializeField]
     private GameObject editModeRoot = null!;
     [SerializeField]
@@ -278,6 +281,8 @@ public class EditorView : MonoBehaviour,
                 }
             }
         }
+        
+        selectionImage.SetVisible(false);
 
         switch (currentState.controlState)
         {
@@ -301,7 +306,16 @@ public class EditorView : MonoBehaviour,
                     deltaY: Input.GetAxis("Mouse Y")
                 ));
                 break;
-            case ControlState.Selection:
+            case ControlState.Selection selection:
+                selectionImage.SetVisible(true);
+                var from = selection.startMousePos;
+                var to = Input.mousePosition;
+
+
+                selectionImage.SetBounds(
+                    new Vector2(Math.Min(from.x, to.x) / Screen.width, Math.Min(from.y, to.y) / Screen.height),
+                    new Vector2(Math.Max(from.x, to.x) / Screen.width, Math.Max(from.y, to.y) / Screen.height)
+                );
                 break;
             case ControlState.SelectionMoving:
                 feature.ApplyAction(new EditorAction.Input.UpdateMoveSelection());
@@ -498,8 +512,8 @@ public class EditorView : MonoBehaviour,
         textureImportUIHolder.SetVisibility(state.uiState is UIState.TextureImport);
         applySpriteChangesUIHolder.SetVisibility(state.uiState is UIState.ApplySpriteChanges);
         applyDeleteLayerUIHolder.SetVisibility(state.uiState is UIState.ApplyLayerDelete);
-        layersInfoUIHolder.Bind(state);
-        
+        layersInfoUIHolder.Bind(state); 
+
         foreach (var (key, _) in state.layers)
         {
             if (currentState == null || !currentState.layers.ContainsKey(key))
