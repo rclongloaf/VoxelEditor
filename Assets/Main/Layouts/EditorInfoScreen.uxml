@@ -17,4 +17,6 @@
     <ui:Label tabindex="-1" text="Select/Create Layer: 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" />
     <ui:Label tabindex="-1" text="Show/Hide Layer: SHIFT + 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" />
     <ui:Label tabindex="-1" text="Delete Layer: CTRL + 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Select Voxels: Hold A" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Delete Selected: Delete" parse-escape-sequences="true" display-tooltip-when-elided="true" />
 </ui:UXML>

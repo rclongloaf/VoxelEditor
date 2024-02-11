@@ -27,7 +27,7 @@ public class RenderSceneController : MonoBehaviour
 
         directionLightXSlider.onValueChanged.AddListener(value =>
         {
-            directionLightXAngle = 180 * value;
+            directionLightXAngle = 90 * value;
             directionLightTransform.rotation = Quaternion.Euler(directionLightXAngle, directionLightYAngle, 0);
         });
 

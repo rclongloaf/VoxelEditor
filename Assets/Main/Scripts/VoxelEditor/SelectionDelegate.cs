@@ -17,6 +17,8 @@ public class SelectionDelegate
 
     public void Select(HashSet<Vector3Int> selectedVoxels)
     {
+        if (selectedVoxels.Count == 0) return;
+        
         reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(new EditAction.Select(selectedVoxels)));
         reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(selectedVoxels));
         reducer.ApplyPatch(new EditorPatch.Selection.Select(selectedVoxels, Vector3Int.zero));
