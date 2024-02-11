@@ -23,15 +23,12 @@ public class EditorUIHolder
         var loadTextureBtn = root.Q<Button>("LoadTextureBtn");
         var saveBtn = root.Q<Button>("SaveVoxBtn");
         var importBtn = root.Q<Button>("ImportBtn");
-        var exportBtn = root.Q<Button>("ExportBtn");
+        var exportSingleBtn = root.Q<Button>("ExportSingleBtn");
+        var exportAllBtn = root.Q<Button>("ExportAllBtn");
         var copyModelBtn = root.Q<Button>("CopyModelBtn");
         var pasteModelBtn = root.Q<Button>("PasteModelBtn");
         var editModeBtn = root.Q<Button>("EditModeBtn");
         var renderModeBtn = root.Q<Button>("RenderModeBtn");
-        var brushModeOneBtn = root.Q<Button>("BrushModeOneBtn");
-        var brushModeSectionBtn = root.Q<Button>("BrushModeSectionBtn");
-        var brushAddBtn = root.Q<Button>("BrushAddBtn");
-        var brushDeleteBtn = root.Q<Button>("BrushDeleteBtn");
         spriteIndexLabel = root.Q<Label>("SpriteIndexLabel");
         var spritePreviousBtn = root.Q<Button>("PreviousSpriteBtn");
         var spriteNextBtn = root.Q<Button>("NextSpriteBtn");
@@ -49,15 +46,12 @@ public class EditorUIHolder
         loadTextureBtn.clicked += listener.OnLoadTextureClicked;
         saveBtn.clicked += listener.OnSaveVoxClicked;
         importBtn.clicked += listener.OnImportClicked;
-        exportBtn.clicked += listener.OnExportClicked;
+        exportSingleBtn.clicked += listener.OnExportSingleClicked;
+        exportAllBtn.clicked += listener.OnExportAllClicked;
         editModeBtn.clicked += listener.OnEditModeClicked;
         copyModelBtn.clicked += listener.OnCopyModelClicked;
         pasteModelBtn.clicked += listener.OnPasteModelClicked;
         renderModeBtn.clicked += listener.OnRenderModeClicked;
-        brushModeOneBtn.clicked += listener.OnBrushModeOneClicked;
-        brushModeSectionBtn.clicked += listener.OnBrushModeSectionClicked;
-        brushAddBtn.clicked += listener.OnBrushAddClicked;
-        brushDeleteBtn.clicked += listener.OnBrushDeleteClicked;
         spritePreviousBtn.clicked += listener.OnPreviousSpriteClicked;
         spriteNextBtn.clicked += listener.OnNextSpriteClicked;
         toggleCameraBtn.clicked += listener.OnToggleCameraClicked;
@@ -75,7 +69,8 @@ public class EditorUIHolder
         {
             loadTextureBtn,
             saveBtn,
-            exportBtn,
+            exportSingleBtn,
+            exportAllBtn,
             root.Q<VisualElement>("LoadedStateLayout")
         };
     }
@@ -110,13 +105,10 @@ public class EditorUIHolder
         public void OnLoadTextureClicked();
         public void OnSaveVoxClicked();
         public void OnImportClicked();
-        public void OnExportClicked();
+        public void OnExportSingleClicked();
+        public void OnExportAllClicked();
         public void OnEditModeClicked();
         public void OnRenderModeClicked();
-        public void OnBrushModeOneClicked();
-        public void OnBrushModeSectionClicked();
-        public void OnBrushAddClicked();
-        public void OnBrushDeleteClicked();
 
         public void OnPreviousSpriteClicked();
 

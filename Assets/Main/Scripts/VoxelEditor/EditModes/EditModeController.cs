@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Main.Scripts.VoxelEditor.EditModes
 {
@@ -11,6 +13,7 @@ public class EditModeController
     private static readonly int TextureSize = Shader.PropertyToID("_TextureSize");
     private static readonly int SpriteRectPosition = Shader.PropertyToID("_SpriteRectPosition");
     private static readonly int PivotPoint = Shader.PropertyToID("_PivotPoint");
+    private static readonly int IsGridEnabled = Shader.PropertyToID("_IsGridEnabled");
     private static readonly int IsSelected = Shader.PropertyToID("_IsSelected");
     private static readonly int IsFillInvisible = Shader.PropertyToID("_IsFillInvisible");
 
@@ -25,8 +28,12 @@ public class EditModeController
     private Sprite? cachedSpriteRef;
     private bool isActive;
     private ShaderData shaderData;
+    private MaterialPropertyBlock materialPropertyBlock = new();
 
     private Dictionary<Vector3Int, GameObject> currentVoxels = new();
+
+    private SelectionState cachedSelectionState = new SelectionState.None();
+    private Dictionary<Vector3Int, GameObject> selectedVoxels = new();
 
     public EditModeController(
         GameObject root,
@@ -78,6 +85,55 @@ public class EditModeController
         }
     }
 
+    public void ApplySelection(SelectionState selectionState)
+    {
+        switch (selectionState)
+        {
+            case SelectionState.None none:
+                foreach (var (_, voxelObj) in selectedVoxels)
+                {
+                    Object.Destroy(voxelObj);
+                }
+
+                selectedVoxels.Clear();
+                foreach (var (_, voxel) in currentVoxels)
+                {
+                    voxel.SetActive(true);
+                }
+                break;
+            case SelectionState.Selected selected:
+                if (cachedSelectionState is SelectionState.None)
+                {
+                    foreach (var position in selected.voxels)
+                    {
+                        var voxel = CreateVoxel(position + selected.offset);
+                        var renderer = voxel.GetComponentInChildren<MeshRenderer>();
+                        renderer.GetPropertyBlock(materialPropertyBlock);
+                        materialPropertyBlock.SetFloat(IsSelected, 1);
+                        renderer.SetPropertyBlock(materialPropertyBlock);
+                        
+                        selectedVoxels[position] = voxel;
+                    }
+                }
+                else
+                {
+                    foreach (var (position, voxelObj) in selectedVoxels)
+                    {
+                        voxelObj.transform.position = position + selected.offset - (Vector3)pivotPoint;
+                    }
+                }
+                foreach (var (position, voxel) in currentVoxels)
+                {
+                    voxel.SetActive(!selectedVoxels.ContainsKey(position - selected.offset));
+                }
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(selectionState));
+        }
+
+        cachedSelectionState = selectionState;
+    }
+
     public void ApplySpriteRect(TextureData textureData, SpriteIndex spriteIndex)
     {
         this.textureData = textureData;
@@ -109,6 +165,14 @@ public class EditModeController
         {
             voxel.transform.position = pos - (Vector3)pivotPoint;
         }
+
+        if (cachedSelectionState is SelectionState.Selected selectionState)
+        {
+            foreach (var (pos, voxel) in selectedVoxels)
+            {
+                voxel.transform.position = pos + selectionState.offset - (Vector3)pivotPoint;
+            }
+        }
     }
 
     public void ApplyTexture(Texture2D? texture)
@@ -128,7 +192,7 @@ public class EditModeController
     public void ApplyShaderData(ShaderData shaderData)
     {
         this.shaderData = shaderData;
-        material.SetFloat(IsSelected, shaderData.isGridEnabled && isActive ? 1 : 0);
+        material.SetFloat(IsGridEnabled, shaderData.isGridEnabled && isActive ? 1 : 0);
         material.SetFloat(IsFillInvisible, shaderData.isTransparentEnabled ? 0 : 1);
     }
 
@@ -137,6 +201,10 @@ public class EditModeController
         this.isActive = isActive;
         ApplyShaderData(shaderData);
         foreach (var (_, voxel) in currentVoxels)
+        {
+            voxel.GetComponentInChildren<Collider>().enabled = isActive;
+        }
+        foreach (var (_, voxel) in selectedVoxels)
         {
             voxel.GetComponentInChildren<Collider>().enabled = isActive;
         }
@@ -163,14 +231,22 @@ public class EditModeController
         {
             return;
         }
+
+        var voxel = CreateVoxel(position);
         
+        currentVoxels.Add(position, voxel);
+    }
+
+    private GameObject CreateVoxel(Vector3Int position)
+    {
         var voxel = Object.Instantiate(voxelPrefab, root.transform);
 
-        currentVoxels.Add(position, voxel);
         var meshRenderer = voxel.GetComponentInChildren<MeshRenderer>();
         meshRenderer.sharedMaterial = material;
 
         voxel.transform.position = position - (Vector3)pivotPoint;
+
+        return voxel;
     }
 
     private void RemoveVoxel(Vector3Int position)

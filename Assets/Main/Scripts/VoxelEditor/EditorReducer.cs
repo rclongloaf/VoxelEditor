@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Main.Scripts.Utils;
 using Main.Scripts.VoxelEditor.State;
-using Main.Scripts.VoxelEditor.State.Brush;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
@@ -37,9 +36,9 @@ public class EditorReducer
             EditorPatch.Control controlPatch => ApplyControlPatch(controlPatch),
             EditorPatch.VoxelsChanges voxelsChanges => ApplyVoxelsChangesPatch(voxelsChanges),
             EditorPatch.EditMode editModePatch => ApplyEditModePatch(editModePatch),
-            EditorPatch.Brush brushPatch => ApplyBrushPatch(brushPatch),
             EditorPatch.NewPivotPoint newPivotPointPatch => ApplyNewPivotPointPatch(newPivotPointPatch),
             EditorPatch.Camera cameraPatch => ApplyCameraPatch(cameraPatch),
+            EditorPatch.Selection selection => ApplySelectionPatch(selection),
             EditorPatch.ChangeSpriteIndex changeSpriteIndexPatch => ApplyChangeSpriteIndex(changeSpriteIndexPatch),
             EditorPatch.ChangeSpriteRefVisibility changeSpriteRefVisibilityPatch => ApplyChangeSpriteRefVisibilityPatch(changeSpriteRefVisibilityPatch),
             _ => throw new ArgumentOutOfRangeException(nameof(patch), patch, null)
@@ -73,13 +72,13 @@ public class EditorReducer
                 return state with
                 {
                     layers = layers,
-                    uiState = UIState.None
+                    uiState = new UIState.None()
                 };
             }
             case EditorPatch.SpriteChanges.ApplyRequest applyRequest:
-                return state with { uiState = UIState.ApplySpriteChanges };
+                return state with { uiState = new UIState.ApplySpriteChanges(applyRequest.actionOnApply) };
             case EditorPatch.SpriteChanges.Cancel cancel:
-                return state with { uiState = UIState.None };
+                return state with { uiState = new UIState.None() };
             case EditorPatch.SpriteChanges.Discard discard:
             {
                 var layers = new Dictionary<int, VoxLayerState>(state.layers);
@@ -92,7 +91,7 @@ public class EditorReducer
                 return state with
                 {
                     layers = layers,
-                    uiState = UIState.None
+                    uiState = new UIState.None()
                 };
             }
             default:
@@ -104,7 +103,7 @@ public class EditorReducer
     {
         return state with
         {
-            uiState = patch is EditorPatch.FileBrowser.Opened ? UIState.FileBrowser : UIState.None
+            uiState = patch is EditorPatch.FileBrowser.Opened ? new UIState.FileBrowser() : new UIState.None()
         };
     }
 
@@ -148,7 +147,7 @@ public class EditorReducer
                     layers = layers,
                     activeLayerKey = create.key,
                     isSpriteRefVisible = false,
-                    uiState = UIState.Menu
+                    uiState = new UIState.Menu()
                 };
                 break;
             case EditorPatch.Layers.Delete.Apply apply:
@@ -157,19 +156,19 @@ public class EditorReducer
                 {
                     layers = layers,
                     isSpriteRefVisible = false,
-                    uiState = UIState.None
+                    uiState = new UIState.None()
                 };
                 break;
             case EditorPatch.Layers.Delete.Cancel cancel:
                 return state with
                 {
-                    uiState = UIState.None
+                    uiState = new UIState.None()
                 };
                 break;
             case EditorPatch.Layers.Delete.Request request:
                 return state with
                 {
-                    uiState = UIState.ApplyLayerDelete
+                    uiState = new UIState.ApplyLayerDelete()
                 };
                 break;
             case EditorPatch.Layers.Select select:
@@ -190,7 +189,7 @@ public class EditorReducer
 
         return state with
         {
-            uiState = patch.visible ? UIState.Menu : UIState.None
+            uiState = patch.visible ? new UIState.Menu() : new UIState.None()
         };
     }
 
@@ -202,18 +201,6 @@ public class EditorReducer
         {
             case EditorPatch.ModelBuffer.Copy copy:
                 return state with { bufferedSpriteData = copy.spriteData };
-            case EditorPatch.ModelBuffer.Paste paste:
-                var layers = new Dictionary<int, VoxLayerState>(state.layers);
-                layers[state.activeLayerKey] = activeLayer with
-                {
-                    currentSpriteData = paste.spriteData,
-                    actionsHistory = new Stack<EditAction>(),
-                    canceledActionsHistory = new Stack<EditAction>()
-                };
-                return state with
-                {
-                    layers = layers,
-                };
             default: throw new ArgumentOutOfRangeException(nameof(patch));
         }
     }
@@ -267,6 +254,7 @@ public class EditorReducer
             texture: texture,
             currentSpriteIndex: spriteIndex,
             currentSpriteData: patch.voxData.sprites[spriteIndex],
+            selectionState: new SelectionState.None(),
             actionsHistory: new Stack<EditAction>(),
             canceledActionsHistory: new Stack<EditAction>()
         );
@@ -274,7 +262,7 @@ public class EditorReducer
         return state with
         {
             layers = layers,
-            uiState = UIState.None
+            uiState = new UIState.None()
         };
     }
 
@@ -293,27 +281,87 @@ public class EditorReducer
 
     private EditorState ApplyControlPatch(EditorPatch.Control patch)
     {
-        return patch switch
+        switch (patch)
         {
-            EditorPatch.Control.Drawing.Start drawingStartAction => state with
+            case EditorPatch.Control.Drawing.Start drawingStartAction:
+                return state with
+                {
+                    controlState = new ControlState.Drawing(
+                        drawnVoxels: new List<Vector3Int>(),
+                        position: drawingStartAction.position,
+                        normal: drawingStartAction.normal,
+                        deleting: drawingStartAction.deleting,
+                        bySection: drawingStartAction.bySection,
+                        withProjection: drawingStartAction.withProjection
+                    )
+                };
+                case EditorPatch.Control.Drawing.Finish:
+                return state with { controlState = new ControlState.None() };
+            case EditorPatch.Control.Moving.Start:
+                return state with { controlState = new ControlState.CameraMoving() };
+            case EditorPatch.Control.Moving.Finish:
+                return state with { controlState = new ControlState.None() };
+            case EditorPatch.Control.Rotating.Start:
+                return state with { controlState = new ControlState.Rotating() };
+            case EditorPatch.Control.Rotating.Finish:
+                return state with { controlState = new ControlState.None() };
+            case EditorPatch.Control.Selection.Start start:
+                return state with
+                {
+                    controlState = new ControlState.Selection(start.mousePos)
+                };
+            case EditorPatch.Control.SelectionMoving.ChangeSelectionOffset changeSelectionOffset:
             {
-                controlState = new ControlState.Drawing(
-                    drawnVoxels: new List<Vector3Int>(),
-                    position: drawingStartAction.position,
-                    normal: drawingStartAction.normal,
-                    deleting: drawingStartAction.deleting,
-                    bySection: drawingStartAction.bySection,
-                    withProjection: drawingStartAction.withProjection
-                )
-            },
-            EditorPatch.Control.Drawing.Finish => state with { controlState = new ControlState.None() },
-            EditorPatch.Control.Moving.Start => state with { controlState = new ControlState.Moving() },
-            EditorPatch.Control.Moving.Finish => state with { controlState = new ControlState.None() },
-            EditorPatch.Control.Rotating.Start => state with { controlState = new ControlState.Rotating() },
-            EditorPatch.Control.Rotating.Finish => state with { controlState = new ControlState.None() },
+                if (state.activeLayer is not VoxLayerState.Loaded
+                    {
+                        selectionState: SelectionState.Selected selectionState
+                    } activeLayer)
+                {
+                    return state;
+                }
+                var layers = new Dictionary<int, VoxLayerState>(state.layers);
+                
+                layers[state.activeLayerKey] = activeLayer with
+                {
+                    selectionState = selectionState with
+                    {
+                        offset = selectionState.offset + changeSelectionOffset.deltaOffset
+                    }
+                };
 
-            _ => throw new ArgumentOutOfRangeException(nameof(patch), patch, null)
-        };
+                var controlState = (state.controlState is not ControlState.SelectionMoving selectionMoving)
+                    ? state.controlState
+                    : selectionMoving with
+                    {
+                        deltaOffset = selectionMoving.deltaOffset + changeSelectionOffset.deltaOffset
+                    };
+                
+                return state with
+                {
+                    layers = layers,
+                    controlState = controlState
+                };
+            }
+            case EditorPatch.Control.SelectionMoving.Finish:
+                return state with { controlState = new ControlState.None() };
+            case EditorPatch.Control.SelectionMoving.Start selectionMoving:
+                return state with
+                {
+                    controlState = new ControlState.SelectionMoving(
+                        selectionMoving.normal,
+                        selectionMoving.fromPosition,
+                        Vector3Int.zero
+                    )
+                };
+            case EditorPatch.Control.Selection.Finish finish:
+            {
+                return state with
+                {
+                    controlState = new ControlState.None()
+                };
+            }
+            default: throw new ArgumentOutOfRangeException(nameof(patch), patch, null);
+        }
     }
 
     private EditorState ApplyVoxelsChangesPatch(EditorPatch.VoxelsChanges patch)
@@ -322,7 +370,7 @@ public class EditorReducer
         
         var layers = new Dictionary<int, VoxLayerState>(state.layers);
         
-        List<Vector3Int> voxels;
+        IEnumerable<Vector3Int> voxels;
         switch (patch)
         {
             case EditorPatch.VoxelsChanges.Add addPatch:
@@ -459,28 +507,6 @@ public class EditorReducer
         }
     }
 
-    private EditorState ApplyBrushPatch(EditorPatch.Brush patch)
-    {
-        return patch switch
-        {
-            EditorPatch.Brush.ChangeMode changeMode => state with
-            {
-                brushData = state.brushData with
-                {
-                    mode = changeMode.brushMode
-                }
-            },
-            EditorPatch.Brush.ChangeType changeType => state with
-            {
-                brushData = state.brushData with
-                {
-                    type = changeType.brushType
-                }
-            },
-            _ => throw new ArgumentOutOfRangeException(nameof(patch))
-        };
-    }
-
     private EditorState ApplyNewPivotPointPatch(EditorPatch.NewPivotPoint patch)
     {
         if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return state;
@@ -550,6 +576,44 @@ public class EditorReducer
                     cameraType = changeType.cameraType
                 };
                 break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(patch));
+        }
+    }
+
+    private EditorState ApplySelectionPatch(EditorPatch.Selection patch)
+    {
+        if (state.activeLayer is not VoxLayerState.Loaded activeLayer) 
+        {
+            return state;
+        }
+        
+        var layers = new Dictionary<int, VoxLayerState>(state.layers);
+
+        switch (patch)
+        {
+            case EditorPatch.Selection.CancelSelection cancelSelection:
+                layers[state.activeLayerKey] = activeLayer with
+                {
+                    selectionState = new SelectionState.None()
+                };
+
+                return state with
+                {
+                    layers = layers
+                };
+            case EditorPatch.Selection.Select select:
+                layers[state.activeLayerKey] = activeLayer with
+                {
+                    selectionState = new SelectionState.Selected(
+                        voxels: select.voxels,
+                        offset: select.offset
+                    )
+                };
+                return state with
+                {
+                    layers = layers
+                };
             default:
                 throw new ArgumentOutOfRangeException(nameof(patch));
         }

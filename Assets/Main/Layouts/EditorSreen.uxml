@@ -2,7 +2,8 @@
     <ui:VisualElement style="align-items: center; align-self: center; margin-top: auto; margin-right: auto; margin-bottom: auto; margin-left: auto; background-color: rgb(219, 219, 219); padding-top: 16px; padding-right: 16px; padding-bottom: 16px; padding-left: 16px;">
         <ui:VisualElement name="TabsLayout" style="flex-grow: 0; flex-direction: row; align-items: center; align-self: flex-start;">
             <ui:Button text="Import From Texture" name="ImportBtn" />
-            <ui:Button text="Export Mesh" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ExportBtn" />
+            <ui:Button text="Export Single Mesh" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ExportSingleBtn" />
+            <ui:Button text="Export All Meshes" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ExportAllBtn" />
         </ui:VisualElement>
         <ui:VisualElement style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
             <ui:Button text="Load Vox" parse-escape-sequences="true" display-tooltip-when-elided="true" name="LoadVoxBtn" />
@@ -29,16 +30,6 @@
                 <ui:Label tabindex="-1" text="Model Buffer" parse-escape-sequences="true" display-tooltip-when-elided="true" />
                 <ui:Button text="Copy" parse-escape-sequences="true" display-tooltip-when-elided="true" name="CopyModelBtn" />
                 <ui:Button text="Paste" parse-escape-sequences="true" display-tooltip-when-elided="true" name="PasteModelBtn" />
-            </ui:VisualElement>
-            <ui:VisualElement name="BrushModeLayput" style="flex-grow: 0; align-items: flex-start; align-self: flex-start; flex-direction: row;">
-                <ui:Label tabindex="-1" text="Brush Mode" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-                <ui:Button text="One" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BrushModeOneBtn" />
-                <ui:Button text="Section" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BrushModeSectionBtn" />
-            </ui:VisualElement>
-            <ui:VisualElement name="BrushTypeLayput" style="flex-grow: 0; align-items: flex-start; align-self: flex-start; flex-direction: row;">
-                <ui:Label tabindex="-1" text="Brush" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-                <ui:Button text="Add" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BrushAddBtn" />
-                <ui:Button text="Delete" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BrushDeleteBtn" />
             </ui:VisualElement>
             <ui:VisualElement name="ShaderSettingsLayout" style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
                 <ui:Button text="Toggle Grid" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ToggleGridBtn" />

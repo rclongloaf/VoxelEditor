@@ -2,6 +2,8 @@
 {
 public record TextureData(
     int rowsCount,
-    int columnsCount    
+    int columnsCount,
+    int spriteWidth,
+    int spriteHeight
 );
 }

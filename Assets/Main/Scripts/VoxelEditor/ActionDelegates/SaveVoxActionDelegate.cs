@@ -10,16 +10,19 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
 {
     private EditorRepository repository;
     private EditorEventsConsumer eventsConsumer;
+    private SelectionDelegate selectionDelegate;
 
     public SaveVoxActionDelegate(
         EditorFeature feature,
         EditorReducer reducer,
         EditorRepository repository,
-        EditorEventsConsumer eventsConsumer
+        EditorEventsConsumer eventsConsumer,
+        SelectionDelegate selectionDelegate
     ) : base(feature, reducer)
     {
         this.repository = repository;
         this.eventsConsumer = eventsConsumer;
+        this.selectionDelegate = selectionDelegate;
     }
     
     public override void ApplyAction(EditorState state, EditorAction.SaveVox action)
@@ -29,7 +32,7 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
         switch (action)
         {
             case EditorAction.SaveVox.OnSaveClicked onSaveClicked:
-                OnSaveClicked(activeLayer, onSaveClicked);
+                OnSaveClicked(state, activeLayer, onSaveClicked);
                 break;
             case EditorAction.SaveVox.OnPathSelected onPathSelected:
                 repository.SaveVoxFile(onPathSelected.path, activeLayer.voxData);
@@ -43,8 +46,10 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
         }
     }
 
-    private void OnSaveClicked(VoxLayerState.Loaded activeLayer, EditorAction.SaveVox.OnSaveClicked action)
+    private void OnSaveClicked(EditorState state, VoxLayerState.Loaded activeLayer, EditorAction.SaveVox.OnSaveClicked action)
     {
+        selectionDelegate.CancelSelection(state);
+        
         if (activeLayer.currentSpriteData == activeLayer.voxData.sprites[activeLayer.currentSpriteIndex])
         {
             eventsConsumer.Consume(new EditorEvent.OpenBrowserForSaveVox());
@@ -52,7 +57,7 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
         }
         else
         {
-            reducer.ApplyPatch(new EditorPatch.SpriteChanges.ApplyRequest());
+            reducer.ApplyPatch(new EditorPatch.SpriteChanges.ApplyRequest(action));
         }
     }
 }

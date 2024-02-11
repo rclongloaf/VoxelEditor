@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Main.Scripts.UI;
 using Main.Scripts.VoxelEditor.EditModes;
 using Main.Scripts.VoxelEditor.EditModes.Render;
 using Main.Scripts.VoxelEditor.Events;
@@ -33,6 +34,8 @@ public class EditorView : MonoBehaviour,
     private UIDocument applyDeleteLayerUIDocument = null!;
     [SerializeField]
     private UIDocument layersInfoUIDocument = null!;
+    [SerializeField]
+    private SelectionImage selectionImage = null!;
     [SerializeField]
     private GameObject editModeRoot = null!;
     [SerializeField]
@@ -112,6 +115,7 @@ public class EditorView : MonoBehaviour,
         UpdateKeyPressedStatus(KeyCode.J);
         UpdateKeyPressedStatus(KeyCode.K);
         UpdateKeyPressedStatus(KeyCode.L);
+        UpdateKeyPressedStatus(KeyCode.Delete);
         UpdateKeyPressedStatus(KeyCode.Alpha1);
         UpdateKeyPressedStatus(KeyCode.Alpha2);
         UpdateKeyPressedStatus(KeyCode.Alpha3);
@@ -121,6 +125,7 @@ public class EditorView : MonoBehaviour,
         var withCtrl = Input.GetKey(KeyCode.LeftControl);
         var withShift = Input.GetKey(KeyCode.LeftShift);
         var withX = Input.GetKey(KeyCode.X);
+        var withSelection = Input.GetKey(KeyCode.A);
 
         var editorUIHolderListener = (EditorUIHolder.Listener)this;
 
@@ -146,6 +151,12 @@ public class EditorView : MonoBehaviour,
             {
                 switch (key)
                 {
+                    case KeyCode.Mouse0 when activeLayer?.selectionState is SelectionState.Selected:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.MoveSelection());
+                        break;
+                    case KeyCode.Mouse0 when activeLayer != null && withSelection:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Select());
+                        break;
                     case KeyCode.Mouse0 when activeLayer != null:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withCtrl, withShift, withX));
                         break;
@@ -208,6 +219,9 @@ public class EditorView : MonoBehaviour,
                     case KeyCode.L when activeLayer != null:
                         editorUIHolderListener.OnApplyPivotClicked(activeLayer.currentSpriteData.pivot + Vector2.left);
                         break;
+                    case KeyCode.Delete:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Delete());
+                        break;
                     case KeyCode.Alpha1:
                         layerActionKey = 1;
                         break;
@@ -249,6 +263,12 @@ public class EditorView : MonoBehaviour,
             {
                 switch (key)
                 {
+                    case KeyCode.Mouse0 when activeLayer?.selectionState is SelectionState.Selected:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.MoveSelection());
+                        break;
+                    case KeyCode.Mouse0 when activeLayer != null && currentState.controlState is ControlState.Selection:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.Select());
+                        break;
                     case KeyCode.Mouse0 when activeLayer != null:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.Draw());
                         break;
@@ -261,6 +281,8 @@ public class EditorView : MonoBehaviour,
                 }
             }
         }
+        
+        selectionImage.SetVisible(false);
 
         switch (currentState.controlState)
         {
@@ -277,12 +299,26 @@ public class EditorView : MonoBehaviour,
                     feature.ApplyAction(new EditorAction.Input.OnButtonDraw());
                 }
                 break;
-            case ControlState.Moving:
+            case ControlState.CameraMoving:
             case ControlState.Rotating:
                 feature.ApplyAction(new EditorAction.Input.OnMouseDelta(
                     deltaX: Input.GetAxis("Mouse X"),
                     deltaY: Input.GetAxis("Mouse Y")
                 ));
+                break;
+            case ControlState.Selection selection:
+                selectionImage.SetVisible(true);
+                var from = selection.startMousePos;
+                var to = Input.mousePosition;
+
+
+                selectionImage.SetBounds(
+                    new Vector2(Math.Min(from.x, to.x) / Screen.width, Math.Min(from.y, to.y) / Screen.height),
+                    new Vector2(Math.Max(from.x, to.x) / Screen.width, Math.Max(from.y, to.y) / Screen.height)
+                );
+                break;
+            case ControlState.SelectionMoving:
+                feature.ApplyAction(new EditorAction.Input.UpdateMoveSelection());
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -306,7 +342,11 @@ public class EditorView : MonoBehaviour,
             case EditorEvent.DeleteLayerRequest deleteLayerRequest:
                 OnDeleteLayerRequest(deleteLayerRequest.key);
                 break;
-            case EditorEvent.OpenBrowserForExport openBrowserForExport:
+            case EditorEvent.OpenBrowserForExportSingle openBrowserForExportSingle:
+                ExportSingleMesh();
+                break;
+            case EditorEvent.OpenBrowserForExportAll openBrowserForExportAll:
+                ExportAllMeshes();
                 break;
             case EditorEvent.OpenBrowserForImport openBrowserForImport:
                 ImportTexture();
@@ -323,9 +363,9 @@ public class EditorView : MonoBehaviour,
         }
     }
 
-    void TextureImportUIHolder.Listener.OnApplyImportSettings(TextureData textureData)
+    void TextureImportUIHolder.Listener.OnApplyImportSettings(int rowsCount, int columnsCount)
     {
-        feature.ApplyAction(new EditorAction.TextureSettings.Selected(textureData));
+        feature.ApplyAction(new EditorAction.TextureSettings.Selected(rowsCount, columnsCount));
     }
 
     void TextureImportUIHolder.Listener.OnCancel()
@@ -378,9 +418,14 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.Import.OnImportClicked());
     }
 
-    void EditorUIHolder.Listener.OnExportClicked()
+    void EditorUIHolder.Listener.OnExportSingleClicked()
     {
-        feature.ApplyAction(new EditorAction.Export.OnExportClicked());
+        feature.ApplyAction(new EditorAction.Export.Single.OnClicked());
+    }
+
+    void EditorUIHolder.Listener.OnExportAllClicked()
+    {
+        feature.ApplyAction(new EditorAction.Export.All.OnClicked());
     }
 
     void EditorUIHolder.Listener.OnEditModeClicked()
@@ -391,16 +436,6 @@ public class EditorView : MonoBehaviour,
     void EditorUIHolder.Listener.OnRenderModeClicked()
     {
         feature.ApplyAction(new EditorAction.EditMode.OnRenderModeClicked());
-    }
-
-    void EditorUIHolder.Listener.OnBrushAddClicked()
-    {
-        feature.ApplyAction(new EditorAction.Brush.OnBrushAddClicked());
-    }
-
-    void EditorUIHolder.Listener.OnBrushDeleteClicked()
-    {
-        feature.ApplyAction(new EditorAction.Brush.OnBrushDeleteClicked());
     }
 
     void EditorUIHolder.Listener.OnPreviousSpriteClicked()
@@ -453,16 +488,6 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.OnApplyPivotClicked(pivotPoint));
     }
 
-    void EditorUIHolder.Listener.OnBrushModeOneClicked()
-    {
-        feature.ApplyAction(new EditorAction.Brush.OnBrushModeOneClicked());
-    }
-
-    void EditorUIHolder.Listener.OnBrushModeSectionClicked()
-    {
-        feature.ApplyAction(new EditorAction.Brush.OnBrushModeSectionClicked());
-    }
-
     public void OnToggleSpriteRefClicked()
     {
         feature.ApplyAction(new EditorAction.Input.OnToggleSpriteRef());
@@ -475,8 +500,8 @@ public class EditorView : MonoBehaviour,
         textureImportUIHolder.SetVisibility(state.uiState is UIState.TextureImport);
         applySpriteChangesUIHolder.SetVisibility(state.uiState is UIState.ApplySpriteChanges);
         applyDeleteLayerUIHolder.SetVisibility(state.uiState is UIState.ApplyLayerDelete);
-        layersInfoUIHolder.Bind(state);
-        
+        layersInfoUIHolder.Bind(state); 
+
         foreach (var (key, _) in state.layers)
         {
             if (currentState == null || !currentState.layers.ContainsKey(key))
@@ -587,6 +612,11 @@ public class EditorView : MonoBehaviour,
         {
             editorUIHolder.SetSpriteIndex(activeLayer.currentSpriteIndex);
         }
+
+        if (curActiveLayer == null || curActiveLayer.selectionState != activeLayer.selectionState)
+        {
+            editModeControllers[activeLayerKey].ApplySelection(activeLayer.selectionState);
+        }
         
         if (curActiveLayer == null || curActiveLayer.texture != activeLayer.texture)
         {
@@ -641,6 +671,50 @@ public class EditorView : MonoBehaviour,
     {
         feature.ApplyAction(new EditorAction.Import.OnCanceled());
     }
+
+    private void ExportSingleMesh()
+    {
+        FileBrowser.ShowSaveDialog(
+            onSuccess: OnExportSingleMeshSuccess,
+            onCancel: OnExportSingleMeshCancel,
+            pickMode: FileBrowser.PickMode.Files,
+            allowMultiSelection: false,
+            initialPath: Application.persistentDataPath,
+            title: "Export single mesh"
+        );
+    }
+
+    private void ExportAllMeshes()
+    {
+        FileBrowser.ShowSaveDialog(
+            onSuccess: OnExportAllMeshesSuccess,
+            onCancel: OnExportAllMeshesCancel,
+            pickMode: FileBrowser.PickMode.Files,
+            allowMultiSelection: false,
+            initialPath: Application.persistentDataPath,
+            title: "Export all meshes"
+        );
+    }
+
+    private void OnExportSingleMeshSuccess(string[] paths)
+    {
+        feature.ApplyAction(new EditorAction.Export.Single.OnPathSelected(paths[0]));
+    }
+
+    private void OnExportSingleMeshCancel()
+    {
+        feature.ApplyAction(new EditorAction.Export.Single.OnCanceled());
+    }
+
+    private void OnExportAllMeshesSuccess(string[] paths)
+    {
+        feature.ApplyAction(new EditorAction.Export.All.OnPathSelected(paths[0]));
+    }
+
+    private void OnExportAllMeshesCancel()
+    {
+        feature.ApplyAction(new EditorAction.Export.All.OnCanceled());
+    }
     
     private void LoadVoxFile()
     {
@@ -669,7 +743,7 @@ public class EditorView : MonoBehaviour,
     {
         FileBrowser.ShowLoadDialog(
             onSuccess: OnLoadTextureSuccess,
-            onCancel: OnLoadVoxCancel,
+            onCancel: OnLoadTextureCancel,
             pickMode: FileBrowser.PickMode.Files,
             allowMultiSelection: false,
             initialPath: Application.persistentDataPath,

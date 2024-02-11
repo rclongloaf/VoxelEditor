@@ -16,7 +16,15 @@ public interface ControlState
         bool withProjection
     ) : ControlState;
 
-    public record Moving : ControlState;
+    public record Selection(Vector3 startMousePos) : ControlState;
+
+    public record SelectionMoving(
+        Vector3Int normal,
+        Vector3 fromPosition,
+        Vector3Int deltaOffset
+    ) : ControlState;
+
+    public record CameraMoving : ControlState;
 
     public record Rotating : ControlState;
 }

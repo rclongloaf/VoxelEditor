@@ -16,14 +16,14 @@ public interface EditorAction
 
     public interface TextureSettings : EditorAction
     {
-        public record Selected(TextureData textureData) : TextureSettings;
+        public record Selected(int rowsCount, int columnsCount) : TextureSettings;
 
         public record Canceled : TextureSettings;
     }
 
     public interface ApplyChanges : EditorAction
     {
-        public record Apply : ApplyChanges;
+        public record Apply() : ApplyChanges;
 
         public record Discard : ApplyChanges;
 
@@ -32,11 +32,23 @@ public interface EditorAction
 
     public interface Export : EditorAction
     {
-        public record OnExportClicked : Export;
+        public interface Single : Export
+        {
+            public record OnClicked : Single;
 
-        public record OnPathSelected(string path) : Export;
+            public record OnPathSelected(string path) : Single;
 
-        public record OnCanceled : Export;
+            public record OnCanceled : Single;
+        }
+        
+        public interface All : Export
+        {
+            public record OnClicked : All;
+
+            public record OnPathSelected(string path) : All;
+
+            public record OnCanceled : All;
+        }
     }
 
     public interface LoadVox : EditorAction
@@ -87,17 +99,6 @@ public interface EditorAction
         public record OnRenderModeClicked : EditMode;
     }
 
-    public interface Brush : EditorAction
-    {
-        public record OnBrushModeOneClicked : Brush;
-
-        public record OnBrushModeSectionClicked : Brush;
-        
-        public record OnBrushAddClicked : Brush;
-
-        public record OnBrushDeleteClicked : Brush;
-    }
-
     public interface Shader : EditorAction
     {
         public record OnToggleGridClicked : Shader;
@@ -109,18 +110,28 @@ public interface EditorAction
 
     public interface Input : EditorAction
     {
-        public record OnButtonDown : Input
+        public interface OnButtonDown : Input
         {
             public record Draw(bool withDelete, bool withSection, bool withProjection) : OnButtonDown;
+
+            public record Select : OnButtonDown;
+
+            public record Delete : OnButtonDown;
+
+            public record MoveSelection : OnButtonDown;
 
             public record Rotate : OnButtonDown;
 
             public record MoveCamera : OnButtonDown;
         }
 
-        public record OnButtonUp : Input
+        public interface OnButtonUp : Input
         {
             public record Draw : OnButtonUp;
+
+            public record Select : OnButtonUp;
+
+            public record MoveSelection : OnButtonUp;
             
             public record Rotate : OnButtonUp;
 
@@ -132,6 +143,8 @@ public interface EditorAction
         public record OnToggleSpriteRef : Input;
         
         public record OnMenu : Input;
+
+        public record UpdateMoveSelection : Input;
 
         public record OnMouseDelta(float deltaX, float deltaY) : Input;
 

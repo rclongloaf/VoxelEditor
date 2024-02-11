@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Main.Scripts.Helpers;
+using Main.Scripts.Helpers.Export;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
 using Newtonsoft.Json;
@@ -15,6 +17,8 @@ public class EditorRepository
     private const string KEY_TEXTURE = "texture";
     private const string KEY_COLUMNS_COUNT = "columns_count";
     private const string KEY_ROWS_COUNT = "rows_count";
+    private const string KEY_SPRITE_WIDTH = "sprite_width";
+    private const string KEY_SPRITE_HEIGHT = "sprite_height";
     private const string KEY_SPRITES = "sprites";
     private const string KEY_ROW_INDEX = "row_index";
     private const string KEY_COLUMN_INDEX = "column_index";
@@ -43,7 +47,9 @@ public class EditorRepository
         var jTexture = (JObject)jObject.GetValue(KEY_TEXTURE);
         var textureData = new TextureData(
             rowsCount: (int)jTexture.GetValue(KEY_ROWS_COUNT),
-            columnsCount: (int)jTexture.GetValue(KEY_COLUMNS_COUNT)
+            columnsCount: (int)jTexture.GetValue(KEY_COLUMNS_COUNT),
+            spriteWidth: (int)jTexture.GetValue(KEY_SPRITE_WIDTH),
+            spriteHeight: (int)jTexture.GetValue(KEY_SPRITE_HEIGHT)
         );
 
         var jSprites = (JArray)jObject.GetValue(KEY_SPRITES);
@@ -66,9 +72,9 @@ public class EditorRepository
 
             foreach (var jVoxel in jVoxels.Cast<JObject>())
             {
-                var x = (int)jVoxel.GetValue("x");
-                var y = (int)jVoxel.GetValue("y");
-                var z = (int)jVoxel.GetValue("z");
+                var x = (int)jVoxel.GetValue(KEY_X);
+                var y = (int)jVoxel.GetValue(KEY_Y);
+                var z = (int)jVoxel.GetValue(KEY_Z);
                 voxels.Add(new Vector3Int(x, y, z));
             }
             sprites.Add(spriteIndex, new SpriteData(pivot, voxels));
@@ -89,6 +95,8 @@ public class EditorRepository
         var jTexture = new JObject();
         jTexture.Add(KEY_ROWS_COUNT, voxData.textureData.rowsCount);
         jTexture.Add(KEY_COLUMNS_COUNT, voxData.textureData.columnsCount);
+        jTexture.Add(KEY_SPRITE_WIDTH, voxData.textureData.spriteWidth);
+        jTexture.Add(KEY_SPRITE_HEIGHT, voxData.textureData.spriteHeight);
         jObject.Add(KEY_TEXTURE, jTexture);
 
         var jSprites = new JArray();
@@ -108,9 +116,9 @@ public class EditorRepository
             foreach (var voxelPosition in spriteData.voxels)
             {
                 var jPos = new JObject();
-                jPos.Add("x", voxelPosition.x);
-                jPos.Add("y", voxelPosition.y);
-                jPos.Add("z", voxelPosition.z);
+                jPos.Add(KEY_X, voxelPosition.x);
+                jPos.Add(KEY_Y, voxelPosition.y);
+                jPos.Add(KEY_Z, voxelPosition.z);
                 voxelsList.Add(jPos);
             }
             jSprite.Add(KEY_VOXELS, voxelsList);
@@ -119,9 +127,38 @@ public class EditorRepository
         }
         jObject.Add(KEY_SPRITES, jSprites);
 
-        using var streamWriter = File.CreateText($"{path}_vox.json");
+        using var streamWriter = File.CreateText($"{path.Split('.')[0]}.json");
         using var jsonWriter = new JsonTextWriter(streamWriter);
         jObject.WriteTo(jsonWriter);
+    }
+
+    public void ExportMesh(
+        string fileName,
+        HashSet<Vector3Int> voxels,
+        int textureWidth,
+        int textureHeight,
+        TextureData textureData,
+        SpriteIndex spriteIndex,
+        Vector2 pivotPoint,
+        float pixelsPerUnit
+    )
+    {
+        var meshGenerator = new MeshFromVoxelsGenerator(
+            voxels,
+            textureWidth,
+            textureHeight,
+            textureData,
+            spriteIndex,
+            pivotPoint,
+            pixelsPerUnit
+        );
+
+        var mesh = meshGenerator.GenerateMesh();
+
+        if (mesh != null)
+        {
+            ExportHelper.ExportMeshAsObj(mesh, $"{fileName}.obj");
+        }
     }
 
     public Texture2D? LoadTexture(string path)

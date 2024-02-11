@@ -17,6 +17,7 @@ public interface VoxLayerState
         Texture2D? texture,
         SpriteIndex currentSpriteIndex,
         SpriteData currentSpriteData,
+        SelectionState selectionState,
         Stack<EditAction> actionsHistory,
         Stack<EditAction> canceledActionsHistory
     ) : VoxLayerState;
