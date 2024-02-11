@@ -47,7 +47,7 @@ public interface EditorPatch
     
     public interface SpriteChanges : EditorPatch
     {
-        public record ApplyRequest : SpriteChanges;
+        public record ApplyRequest(EditorAction actionOnApply) : SpriteChanges;
         
         public record Apply : SpriteChanges;
 

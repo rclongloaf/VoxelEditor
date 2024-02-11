@@ -29,7 +29,7 @@ public class SpriteSelectingActionDelegate : ActionDelegate<EditorAction.SpriteS
 
         if (currentSpriteData != voxData.sprites[curIndex])
         {
-            reducer.ApplyPatch(new EditorPatch.SpriteChanges.ApplyRequest());
+            reducer.ApplyPatch(new EditorPatch.SpriteChanges.ApplyRequest(action));
             return;
         }
 
