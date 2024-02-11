@@ -133,7 +133,7 @@ public class EditorRepository
     }
 
     public void ExportMesh(
-        string path,
+        string fileName,
         HashSet<Vector3Int> voxels,
         int textureWidth,
         int textureHeight,
@@ -157,7 +157,7 @@ public class EditorRepository
 
         if (mesh != null)
         {
-            ExportHelper.ExportMeshAsObj(mesh, $"{path.Split('.')[0]}.obj");
+            ExportHelper.ExportMeshAsObj(mesh, $"{fileName}.obj");
         }
     }
 

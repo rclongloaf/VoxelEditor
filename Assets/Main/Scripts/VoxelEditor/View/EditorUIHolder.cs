@@ -23,7 +23,8 @@ public class EditorUIHolder
         var loadTextureBtn = root.Q<Button>("LoadTextureBtn");
         var saveBtn = root.Q<Button>("SaveVoxBtn");
         var importBtn = root.Q<Button>("ImportBtn");
-        var exportBtn = root.Q<Button>("ExportBtn");
+        var exportSingleBtn = root.Q<Button>("ExportSingleBtn");
+        var exportAllBtn = root.Q<Button>("ExportAllBtn");
         var copyModelBtn = root.Q<Button>("CopyModelBtn");
         var pasteModelBtn = root.Q<Button>("PasteModelBtn");
         var editModeBtn = root.Q<Button>("EditModeBtn");
@@ -49,7 +50,8 @@ public class EditorUIHolder
         loadTextureBtn.clicked += listener.OnLoadTextureClicked;
         saveBtn.clicked += listener.OnSaveVoxClicked;
         importBtn.clicked += listener.OnImportClicked;
-        exportBtn.clicked += listener.OnExportClicked;
+        exportSingleBtn.clicked += listener.OnExportSingleClicked;
+        exportAllBtn.clicked += listener.OnExportAllClicked;
         editModeBtn.clicked += listener.OnEditModeClicked;
         copyModelBtn.clicked += listener.OnCopyModelClicked;
         pasteModelBtn.clicked += listener.OnPasteModelClicked;
@@ -75,7 +77,8 @@ public class EditorUIHolder
         {
             loadTextureBtn,
             saveBtn,
-            exportBtn,
+            exportSingleBtn,
+            exportAllBtn,
             root.Q<VisualElement>("LoadedStateLayout")
         };
     }
@@ -110,7 +113,8 @@ public class EditorUIHolder
         public void OnLoadTextureClicked();
         public void OnSaveVoxClicked();
         public void OnImportClicked();
-        public void OnExportClicked();
+        public void OnExportSingleClicked();
+        public void OnExportAllClicked();
         public void OnEditModeClicked();
         public void OnRenderModeClicked();
         public void OnBrushModeOneClicked();

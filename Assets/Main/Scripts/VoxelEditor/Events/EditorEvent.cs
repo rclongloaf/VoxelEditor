@@ -10,7 +10,9 @@ public interface EditorEvent
 
     public record OpenBrowserForImport : EditorEvent;
 
-    public record OpenBrowserForExport : EditorEvent;
+    public record OpenBrowserForExportSingle : EditorEvent;
+
+    public record OpenBrowserForExportAll : EditorEvent;
 
     public record DeleteLayerRequest(int key) : EditorEvent;
 }

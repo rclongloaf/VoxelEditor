@@ -32,11 +32,23 @@ public interface EditorAction
 
     public interface Export : EditorAction
     {
-        public record OnExportClicked : Export;
+        public interface Single : Export
+        {
+            public record OnClicked : Single;
 
-        public record OnPathSelected(string path) : Export;
+            public record OnPathSelected(string path) : Single;
 
-        public record OnCanceled : Export;
+            public record OnCanceled : Single;
+        }
+        
+        public interface All : Export
+        {
+            public record OnClicked : All;
+
+            public record OnPathSelected(string path) : All;
+
+            public record OnCanceled : All;
+        }
     }
 
     public interface LoadVox : EditorAction

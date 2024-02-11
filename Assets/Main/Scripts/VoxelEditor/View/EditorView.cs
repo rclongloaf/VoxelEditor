@@ -342,8 +342,11 @@ public class EditorView : MonoBehaviour,
             case EditorEvent.DeleteLayerRequest deleteLayerRequest:
                 OnDeleteLayerRequest(deleteLayerRequest.key);
                 break;
-            case EditorEvent.OpenBrowserForExport openBrowserForExport:
-                ExportMesh();
+            case EditorEvent.OpenBrowserForExportSingle openBrowserForExportSingle:
+                ExportSingleMesh();
+                break;
+            case EditorEvent.OpenBrowserForExportAll openBrowserForExportAll:
+                ExportAllMeshes();
                 break;
             case EditorEvent.OpenBrowserForImport openBrowserForImport:
                 ImportTexture();
@@ -415,9 +418,14 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.Import.OnImportClicked());
     }
 
-    void EditorUIHolder.Listener.OnExportClicked()
+    void EditorUIHolder.Listener.OnExportSingleClicked()
     {
-        feature.ApplyAction(new EditorAction.Export.OnExportClicked());
+        feature.ApplyAction(new EditorAction.Export.Single.OnClicked());
+    }
+
+    void EditorUIHolder.Listener.OnExportAllClicked()
+    {
+        feature.ApplyAction(new EditorAction.Export.All.OnClicked());
     }
 
     void EditorUIHolder.Listener.OnEditModeClicked()
@@ -684,26 +692,48 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.Import.OnCanceled());
     }
 
-    private void ExportMesh()
+    private void ExportSingleMesh()
     {
         FileBrowser.ShowSaveDialog(
-            onSuccess: OnExportMeshSuccess,
-            onCancel: OnExportMeshCancel,
+            onSuccess: OnExportSingleMeshSuccess,
+            onCancel: OnExportSingleMeshCancel,
             pickMode: FileBrowser.PickMode.Files,
             allowMultiSelection: false,
             initialPath: Application.persistentDataPath,
-            title: "Export mesh"
+            title: "Export single mesh"
         );
     }
 
-    private void OnExportMeshSuccess(string[] paths)
+    private void ExportAllMeshes()
     {
-        feature.ApplyAction(new EditorAction.Export.OnPathSelected(paths[0]));
+        FileBrowser.ShowSaveDialog(
+            onSuccess: OnExportAllMeshesSuccess,
+            onCancel: OnExportAllMeshesCancel,
+            pickMode: FileBrowser.PickMode.Files,
+            allowMultiSelection: false,
+            initialPath: Application.persistentDataPath,
+            title: "Export all meshes"
+        );
     }
 
-    private void OnExportMeshCancel()
+    private void OnExportSingleMeshSuccess(string[] paths)
     {
-        feature.ApplyAction(new EditorAction.Export.OnCanceled());
+        feature.ApplyAction(new EditorAction.Export.Single.OnPathSelected(paths[0]));
+    }
+
+    private void OnExportSingleMeshCancel()
+    {
+        feature.ApplyAction(new EditorAction.Export.Single.OnCanceled());
+    }
+
+    private void OnExportAllMeshesSuccess(string[] paths)
+    {
+        feature.ApplyAction(new EditorAction.Export.All.OnPathSelected(paths[0]));
+    }
+
+    private void OnExportAllMeshesCancel()
+    {
+        feature.ApplyAction(new EditorAction.Export.All.OnCanceled());
     }
     
     private void LoadVoxFile()
