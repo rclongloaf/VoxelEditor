@@ -438,16 +438,6 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.EditMode.OnRenderModeClicked());
     }
 
-    void EditorUIHolder.Listener.OnBrushAddClicked()
-    {
-        feature.ApplyAction(new EditorAction.Brush.OnBrushAddClicked());
-    }
-
-    void EditorUIHolder.Listener.OnBrushDeleteClicked()
-    {
-        feature.ApplyAction(new EditorAction.Brush.OnBrushDeleteClicked());
-    }
-
     void EditorUIHolder.Listener.OnPreviousSpriteClicked()
     {
         feature.ApplyAction(new EditorAction.SpriteSelecting.OnPreviousClicked());
@@ -496,16 +486,6 @@ public class EditorView : MonoBehaviour,
     void EditorUIHolder.Listener.OnApplyPivotClicked(Vector2 pivotPoint)
     {
         feature.ApplyAction(new EditorAction.OnApplyPivotClicked(pivotPoint));
-    }
-
-    void EditorUIHolder.Listener.OnBrushModeOneClicked()
-    {
-        feature.ApplyAction(new EditorAction.Brush.OnBrushModeOneClicked());
-    }
-
-    void EditorUIHolder.Listener.OnBrushModeSectionClicked()
-    {
-        feature.ApplyAction(new EditorAction.Brush.OnBrushModeSectionClicked());
     }
 
     public void OnToggleSpriteRefClicked()

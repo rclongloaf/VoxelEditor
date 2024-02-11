@@ -44,7 +44,8 @@ public class LayersInfoUIHolder
                 holder.Bind(
                     isActive: key == state.activeLayerKey,
                     isVisible: loaded.isVisible,
-                    needSave: loaded.voxData.sprites[loaded.currentSpriteIndex] != loaded.currentSpriteData
+                    needSave: loaded.voxData.sprites[loaded.currentSpriteIndex] != loaded.currentSpriteData,
+                    spriteIndex: loaded.currentSpriteIndex
                 );
             }
             else
@@ -52,7 +53,8 @@ public class LayersInfoUIHolder
                 holder.Bind(
                     isActive: key == state.activeLayerKey,
                     isVisible: false,
-                    needSave: false
+                    needSave: false,
+                    spriteIndex: null
                 );
             }
             

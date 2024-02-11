@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Main.Scripts.Utils;
 using Main.Scripts.VoxelEditor.State;
-using Main.Scripts.VoxelEditor.State.Brush;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
@@ -37,7 +36,6 @@ public class EditorReducer
             EditorPatch.Control controlPatch => ApplyControlPatch(controlPatch),
             EditorPatch.VoxelsChanges voxelsChanges => ApplyVoxelsChangesPatch(voxelsChanges),
             EditorPatch.EditMode editModePatch => ApplyEditModePatch(editModePatch),
-            EditorPatch.Brush brushPatch => ApplyBrushPatch(brushPatch),
             EditorPatch.NewPivotPoint newPivotPointPatch => ApplyNewPivotPointPatch(newPivotPointPatch),
             EditorPatch.Camera cameraPatch => ApplyCameraPatch(cameraPatch),
             EditorPatch.Selection selection => ApplySelectionPatch(selection),
@@ -507,28 +505,6 @@ public class EditorReducer
             default:
                 throw new ArgumentOutOfRangeException(nameof(patch));
         }
-    }
-
-    private EditorState ApplyBrushPatch(EditorPatch.Brush patch)
-    {
-        return patch switch
-        {
-            EditorPatch.Brush.ChangeMode changeMode => state with
-            {
-                brushData = state.brushData with
-                {
-                    mode = changeMode.brushMode
-                }
-            },
-            EditorPatch.Brush.ChangeType changeType => state with
-            {
-                brushData = state.brushData with
-                {
-                    type = changeType.brushType
-                }
-            },
-            _ => throw new ArgumentOutOfRangeException(nameof(patch))
-        };
     }
 
     private EditorState ApplyNewPivotPointPatch(EditorPatch.NewPivotPoint patch)
