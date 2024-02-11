@@ -3,5 +3,6 @@
         <ui:RadioButton name="ActiveRB" style="scale: 0.7 0.7; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
         <ui:Toggle focusable="false" picking-mode="Ignore" name="VisibilityToggle" style="scale: 0.7 0.7; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
         <ui:Label text="Layer 1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Title" style="color: rgb(255, 255, 255);" />
+        <ui:Label text="1-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="SpriteIndexLabel" style="color: rgb(255, 255, 255);" />
     </ui:VisualElement>
 </ui:UXML>

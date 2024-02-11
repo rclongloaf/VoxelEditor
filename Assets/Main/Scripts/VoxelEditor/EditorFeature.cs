@@ -5,7 +5,6 @@ using Main.Scripts.VoxelEditor.ActionDelegates.Input;
 using Main.Scripts.VoxelEditor.Events;
 using Main.Scripts.VoxelEditor.Repository;
 using Main.Scripts.VoxelEditor.State;
-using Main.Scripts.VoxelEditor.State.Brush;
 using Main.Scripts.VoxelEditor.State.Vox;
 using Main.Scripts.VoxelEditor.View;
 using UnityEngine;
@@ -26,7 +25,6 @@ namespace Main.Scripts.VoxelEditor
         private ImportActionDelegate importActionDelegate;
         private ExportActionDelegate exportActionDelegate;
         private EditModeActionDelegate editModeActionDelegate;
-        private BrushActionDelegate brushActionDelegate;
         private InputActionDelegate inputActionDelegate;
         private SpriteSettingsActionDelegate spriteSettingsActionDelegate;
         private SpriteSelectingActionDelegate spriteSelectingActionDelegate;
@@ -44,7 +42,6 @@ namespace Main.Scripts.VoxelEditor
                 layers: layers,
                 activeLayerKey: 1,
                 bufferedSpriteData: null,
-                brushData: new BrushData(BrushMode.One, BrushType.Add),
                 shaderData: new ShaderData(true, false),
                 isSpriteRefVisible: false,
                 freeCameraData: new FreeCameraData(
@@ -73,7 +70,6 @@ namespace Main.Scripts.VoxelEditor
             importActionDelegate = new ImportActionDelegate(this, reducer, repository, eventsConsumer);
             exportActionDelegate = new ExportActionDelegate(this, reducer, repository, eventsConsumer, selectionDelegate);
             editModeActionDelegate = new EditModeActionDelegate(this, reducer);
-            brushActionDelegate = new BrushActionDelegate(this, reducer);
             inputActionDelegate = new InputActionDelegate(this, reducer, selectionDelegate);
             spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
             spriteSelectingActionDelegate = new SpriteSelectingActionDelegate(this, reducer, selectionDelegate);
@@ -126,9 +122,6 @@ namespace Main.Scripts.VoxelEditor
                     break;
                 case EditorAction.EditMode editModeAction:
                     editModeActionDelegate.ApplyAction(state, editModeAction);
-                    break;
-                case EditorAction.Brush brushAction:
-                    brushActionDelegate.ApplyAction(state, brushAction);
                     break;
                 case EditorAction.Input inputAction:
                     inputActionDelegate.ApplyAction(state, inputAction);

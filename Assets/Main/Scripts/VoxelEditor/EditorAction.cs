@@ -99,17 +99,6 @@ public interface EditorAction
         public record OnRenderModeClicked : EditMode;
     }
 
-    public interface Brush : EditorAction
-    {
-        public record OnBrushModeOneClicked : Brush;
-
-        public record OnBrushModeSectionClicked : Brush;
-        
-        public record OnBrushAddClicked : Brush;
-
-        public record OnBrushDeleteClicked : Brush;
-    }
-
     public interface Shader : EditorAction
     {
         public record OnToggleGridClicked : Shader;

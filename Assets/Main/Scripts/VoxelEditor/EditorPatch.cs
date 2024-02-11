@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Main.Scripts.VoxelEditor.State;
-using Main.Scripts.VoxelEditor.State.Brush;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 using CameraType = Main.Scripts.VoxelEditor.State.CameraType;
@@ -135,13 +134,6 @@ public interface EditorPatch
         public record NewRotation(Quaternion rotation) : Camera;
         
         public record ChangeType(CameraType cameraType) : Camera;
-    }
-
-    public interface Brush : EditorPatch
-    {
-        public record ChangeType(BrushType brushType) : Brush;
-
-        public record ChangeMode(BrushMode brushMode) : Brush;
     }
 
     public record ChangeSpriteIndex(SpriteIndex spriteIndex) : EditorPatch;

@@ -31,16 +31,6 @@
                 <ui:Button text="Copy" parse-escape-sequences="true" display-tooltip-when-elided="true" name="CopyModelBtn" />
                 <ui:Button text="Paste" parse-escape-sequences="true" display-tooltip-when-elided="true" name="PasteModelBtn" />
             </ui:VisualElement>
-            <ui:VisualElement name="BrushModeLayput" style="flex-grow: 0; align-items: flex-start; align-self: flex-start; flex-direction: row;">
-                <ui:Label tabindex="-1" text="Brush Mode" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-                <ui:Button text="One" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BrushModeOneBtn" />
-                <ui:Button text="Section" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BrushModeSectionBtn" />
-            </ui:VisualElement>
-            <ui:VisualElement name="BrushTypeLayput" style="flex-grow: 0; align-items: flex-start; align-self: flex-start; flex-direction: row;">
-                <ui:Label tabindex="-1" text="Brush" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-                <ui:Button text="Add" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BrushAddBtn" />
-                <ui:Button text="Delete" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BrushDeleteBtn" />
-            </ui:VisualElement>
             <ui:VisualElement name="ShaderSettingsLayout" style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
                 <ui:Button text="Toggle Grid" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ToggleGridBtn" />
                 <ui:Button text="Toggle Transparent" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ToggleTransparentBtn" />

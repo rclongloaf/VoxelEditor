@@ -1,4 +1,5 @@
 ﻿using Main.Scripts.Utils;
+using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,6 +11,7 @@ public class LayerLayoutHolder
     private RadioButton activeRB;
     private Toggle visibilityToggle;
     private Label title;
+    private Label spriteIndexLabel;
     
     public LayerLayoutHolder(VisualElement root)
     {
@@ -17,12 +19,14 @@ public class LayerLayoutHolder
         activeRB = root.Q<RadioButton>("ActiveRB");
         visibilityToggle = root.Q<Toggle>("VisibilityToggle");
         title = root.Q<Label>("Title");
+        spriteIndexLabel = root.Q<Label>("SpriteIndexLabel");
     }
 
     public void Bind(
         bool isActive,
         bool isVisible,
-        bool needSave
+        bool needSave,
+        SpriteIndex? spriteIndex
     )
     {
         activeRB.value = isActive;
@@ -31,6 +35,8 @@ public class LayerLayoutHolder
         visibilityToggle.value = isVisible;
 
         title.style.color = new StyleColor(needSave ? new Color(1f, 0.4f, 0.4f) : Color.white);
+
+        spriteIndexLabel.text = spriteIndex != null ? $"{spriteIndex.rowIndex + 1}-{spriteIndex.columnIndex + 1}" : "";
     }
 
     public void SetVisibility(bool visible)

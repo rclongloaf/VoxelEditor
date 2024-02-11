@@ -29,10 +29,6 @@ public class EditorUIHolder
         var pasteModelBtn = root.Q<Button>("PasteModelBtn");
         var editModeBtn = root.Q<Button>("EditModeBtn");
         var renderModeBtn = root.Q<Button>("RenderModeBtn");
-        var brushModeOneBtn = root.Q<Button>("BrushModeOneBtn");
-        var brushModeSectionBtn = root.Q<Button>("BrushModeSectionBtn");
-        var brushAddBtn = root.Q<Button>("BrushAddBtn");
-        var brushDeleteBtn = root.Q<Button>("BrushDeleteBtn");
         spriteIndexLabel = root.Q<Label>("SpriteIndexLabel");
         var spritePreviousBtn = root.Q<Button>("PreviousSpriteBtn");
         var spriteNextBtn = root.Q<Button>("NextSpriteBtn");
@@ -56,10 +52,6 @@ public class EditorUIHolder
         copyModelBtn.clicked += listener.OnCopyModelClicked;
         pasteModelBtn.clicked += listener.OnPasteModelClicked;
         renderModeBtn.clicked += listener.OnRenderModeClicked;
-        brushModeOneBtn.clicked += listener.OnBrushModeOneClicked;
-        brushModeSectionBtn.clicked += listener.OnBrushModeSectionClicked;
-        brushAddBtn.clicked += listener.OnBrushAddClicked;
-        brushDeleteBtn.clicked += listener.OnBrushDeleteClicked;
         spritePreviousBtn.clicked += listener.OnPreviousSpriteClicked;
         spriteNextBtn.clicked += listener.OnNextSpriteClicked;
         toggleCameraBtn.clicked += listener.OnToggleCameraClicked;
@@ -117,10 +109,6 @@ public class EditorUIHolder
         public void OnExportAllClicked();
         public void OnEditModeClicked();
         public void OnRenderModeClicked();
-        public void OnBrushModeOneClicked();
-        public void OnBrushModeSectionClicked();
-        public void OnBrushAddClicked();
-        public void OnBrushDeleteClicked();
 
         public void OnPreviousSpriteClicked();
 

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Main.Scripts.VoxelEditor.State.Brush;
 using Main.Scripts.VoxelEditor.State.Vox;
 
 namespace Main.Scripts.VoxelEditor.State
@@ -8,7 +7,6 @@ namespace Main.Scripts.VoxelEditor.State
         Dictionary<int, VoxLayerState> layers,
         int activeLayerKey,
         SpriteData? bufferedSpriteData,
-        BrushData brushData,
         ShaderData shaderData,
         bool isSpriteRefVisible,
         FreeCameraData freeCameraData,
