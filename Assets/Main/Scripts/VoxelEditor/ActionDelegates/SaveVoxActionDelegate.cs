@@ -57,7 +57,7 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
         }
         else
         {
-            reducer.ApplyPatch(new EditorPatch.SpriteChanges.ApplyRequest());
+            reducer.ApplyPatch(new EditorPatch.SpriteChanges.ApplyRequest(new EditorAction.SaveVox.OnSaveClicked()));
         }
     }
 }

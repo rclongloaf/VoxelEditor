@@ -74,13 +74,13 @@ public class EditorReducer
                 return state with
                 {
                     layers = layers,
-                    uiState = UIState.None
+                    uiState = new UIState.None()
                 };
             }
             case EditorPatch.SpriteChanges.ApplyRequest applyRequest:
-                return state with { uiState = UIState.ApplySpriteChanges };
+                return state with { uiState = new UIState.ApplySpriteChanges(applyRequest.actionOnApply) };
             case EditorPatch.SpriteChanges.Cancel cancel:
-                return state with { uiState = UIState.None };
+                return state with { uiState = new UIState.None() };
             case EditorPatch.SpriteChanges.Discard discard:
             {
                 var layers = new Dictionary<int, VoxLayerState>(state.layers);
@@ -93,7 +93,7 @@ public class EditorReducer
                 return state with
                 {
                     layers = layers,
-                    uiState = UIState.None
+                    uiState = new UIState.None()
                 };
             }
             default:
@@ -105,7 +105,7 @@ public class EditorReducer
     {
         return state with
         {
-            uiState = patch is EditorPatch.FileBrowser.Opened ? UIState.FileBrowser : UIState.None
+            uiState = patch is EditorPatch.FileBrowser.Opened ? new UIState.FileBrowser() : new UIState.None()
         };
     }
 
@@ -149,7 +149,7 @@ public class EditorReducer
                     layers = layers,
                     activeLayerKey = create.key,
                     isSpriteRefVisible = false,
-                    uiState = UIState.Menu
+                    uiState = new UIState.Menu()
                 };
                 break;
             case EditorPatch.Layers.Delete.Apply apply:
@@ -158,19 +158,19 @@ public class EditorReducer
                 {
                     layers = layers,
                     isSpriteRefVisible = false,
-                    uiState = UIState.None
+                    uiState = new UIState.None()
                 };
                 break;
             case EditorPatch.Layers.Delete.Cancel cancel:
                 return state with
                 {
-                    uiState = UIState.None
+                    uiState = new UIState.None()
                 };
                 break;
             case EditorPatch.Layers.Delete.Request request:
                 return state with
                 {
-                    uiState = UIState.ApplyLayerDelete
+                    uiState = new UIState.ApplyLayerDelete()
                 };
                 break;
             case EditorPatch.Layers.Select select:
@@ -191,7 +191,7 @@ public class EditorReducer
 
         return state with
         {
-            uiState = patch.visible ? UIState.Menu : UIState.None
+            uiState = patch.visible ? new UIState.Menu() : new UIState.None()
         };
     }
 
@@ -264,7 +264,7 @@ public class EditorReducer
         return state with
         {
             layers = layers,
-            uiState = UIState.None
+            uiState = new UIState.None()
         };
     }
 

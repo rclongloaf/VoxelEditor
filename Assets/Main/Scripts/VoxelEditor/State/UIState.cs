@@ -1,12 +1,17 @@
 ﻿namespace Main.Scripts.VoxelEditor.State
 {
-public enum UIState
+public interface UIState
 {
-    None,
-    Menu,
-    ApplySpriteChanges,
-    ApplyLayerDelete,
-    TextureImport,
-    FileBrowser
+    public record None : UIState;
+
+    public record Menu : UIState;
+
+    public record ApplySpriteChanges(EditorAction actionOnApply) : UIState;
+
+    public record ApplyLayerDelete : UIState;
+
+    public record TextureImport : UIState;
+
+    public record FileBrowser : UIState;
 }
 }

@@ -9,12 +9,13 @@ public class ApplyChangesActionDelegate : ActionDelegate<EditorAction.ApplyChang
     
     public override void ApplyAction(EditorState state, EditorAction.ApplyChanges action)
     {
-        if (state.uiState is not UIState.ApplySpriteChanges) return;
+        if (state.uiState is not UIState.ApplySpriteChanges applySpriteChanges) return;
 
         switch (action)
         {
             case EditorAction.ApplyChanges.Apply apply:
                 reducer.ApplyPatch(new EditorPatch.SpriteChanges.Apply());
+                feature.ApplyAction(applySpriteChanges.actionOnApply);
                 break;
             case EditorAction.ApplyChanges.Discard discard:
                 reducer.ApplyPatch(new EditorPatch.SpriteChanges.Discard());

@@ -23,7 +23,7 @@ public interface EditorAction
 
     public interface ApplyChanges : EditorAction
     {
-        public record Apply : ApplyChanges;
+        public record Apply() : ApplyChanges;
 
         public record Discard : ApplyChanges;
 
