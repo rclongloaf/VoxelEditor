@@ -173,7 +173,12 @@ public interface EditorAction
 
         public record OnRestoreClicked : ActionsHistory;
     }
-
-    public record OnApplyPivotClicked(Vector2 pivotPoint) : EditorAction;
+    
+    public interface PivotPoint : EditorAction
+    {
+        public record OnApplyPivotClicked(Vector2 pivotPoint) : PivotPoint;
+       
+        public record OnApplyPivotPointForAllSpritesClicked : PivotPoint;
+    }
 }
 }

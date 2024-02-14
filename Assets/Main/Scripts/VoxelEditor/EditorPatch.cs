@@ -153,8 +153,13 @@ public interface EditorPatch
 
         public record NewAction(EditAction action) : ActionsHistory;
     }
+    
+    public interface PivotPoint : EditorPatch
+    {
+        public record NewPivotPoint(Vector2 pivotPoint) : PivotPoint;
 
-    public record NewPivotPoint(Vector2 pivotPoint) : EditorPatch;
+        public record ApplyPivotPointForAll : PivotPoint;
+    }
 
     public record ChangeSpriteRefVisibility(bool visible) : EditorPatch;
 }
