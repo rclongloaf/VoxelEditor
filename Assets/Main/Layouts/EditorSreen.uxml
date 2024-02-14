@@ -44,6 +44,7 @@
                 <ui:IntegerField value="0" name="PivotXField" style="align-items: stretch; align-self: auto;" />
                 <ui:IntegerField value="0" name="PivotYField" />
                 <ui:Button text="Apply" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ApplyPivotBtn" />
+                <ui:Button text="Apply Current For All Sprites" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ApplyForAllPivotBtn" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

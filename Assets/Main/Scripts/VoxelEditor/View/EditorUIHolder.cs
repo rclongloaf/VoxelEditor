@@ -41,6 +41,7 @@ public class EditorUIHolder
         pivotXField = root.Q<IntegerField>("PivotXField");
         pivotYField = root.Q<IntegerField>("PivotYField");
         var applyPivotBtn = root.Q<Button>("ApplyPivotBtn");
+        var applyForAllSpritesPivotBtn = root.Q<Button>("ApplyForAllPivotBtn");
 
         loadBtn.clicked += listener.OnLoadVoxClicked;
         loadTextureBtn.clicked += listener.OnLoadTextureClicked;
@@ -64,6 +65,7 @@ public class EditorUIHolder
         {
             listener.OnApplyPivotClicked(new Vector2(pivotXField.value, pivotYField.value));
         };
+        applyForAllSpritesPivotBtn.clicked += listener.OnApplyPivotForAllSpritesClicked;
 
         loadedStateElements = new VisualElement[]
         {
@@ -124,6 +126,7 @@ public class EditorUIHolder
         public void OnRestoreActionClicked();
 
         public void OnApplyPivotClicked(Vector2 pivotPoint);
+        public void OnApplyPivotForAllSpritesClicked();
     }
 }
 }
