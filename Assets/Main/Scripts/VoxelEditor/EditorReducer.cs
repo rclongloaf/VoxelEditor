@@ -36,7 +36,7 @@ public class EditorReducer
             EditorPatch.Control controlPatch => ApplyControlPatch(controlPatch),
             EditorPatch.VoxelsChanges voxelsChanges => ApplyVoxelsChangesPatch(voxelsChanges),
             EditorPatch.EditMode editModePatch => ApplyEditModePatch(editModePatch),
-            EditorPatch.NewPivotPoint newPivotPointPatch => ApplyNewPivotPointPatch(newPivotPointPatch),
+            EditorPatch.PivotPoint pivotPointPatch => ApplyPivotPointPatch(pivotPointPatch),
             EditorPatch.Camera cameraPatch => ApplyCameraPatch(cameraPatch),
             EditorPatch.Selection selection => ApplySelectionPatch(selection),
             EditorPatch.ChangeSpriteIndex changeSpriteIndexPatch => ApplyChangeSpriteIndex(changeSpriteIndexPatch),
@@ -507,23 +507,57 @@ public class EditorReducer
         }
     }
 
-    private EditorState ApplyNewPivotPointPatch(EditorPatch.NewPivotPoint patch)
+    private EditorState ApplyPivotPointPatch(EditorPatch.PivotPoint patch)
     {
         if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return state;
-        
-        var layers = new Dictionary<int, VoxLayerState>(state.layers);
-        layers[state.activeLayerKey] = activeLayer with
-        {
-            currentSpriteData = activeLayer.currentSpriteData with
-            {
-                pivot = patch.pivotPoint
-            }
-        };
 
-        return state with
+        var layers = new Dictionary<int, VoxLayerState>(state.layers);
+        
+        switch (patch)
         {
-            layers = layers
-        };
+            case EditorPatch.PivotPoint.ApplyPivotPointForAll applyPivotPointForAll:
+                var currentPivot = activeLayer.currentSpriteData.pivot;
+
+                var sprites = new Dictionary<SpriteIndex, SpriteData>();
+
+                foreach (var (index, sprite) in activeLayer.voxData.sprites)
+                {
+                    sprites[index] = sprite with
+                    {
+                        pivot = currentPivot
+                    };
+                }
+
+                var voxData = activeLayer.voxData with
+                {
+                    sprites = sprites
+                };
+                
+                layers[state.activeLayerKey] = activeLayer with
+                {
+                    voxData = voxData
+                };
+                
+                return state with
+                {
+                    layers = layers
+                };
+            case EditorPatch.PivotPoint.NewPivotPoint newPivotPoint:
+                layers[state.activeLayerKey] = activeLayer with
+                {
+                    currentSpriteData = activeLayer.currentSpriteData with
+                    {
+                        pivot = newPivotPoint.pivotPoint
+                    }
+                };
+
+                return state with
+                {
+                    layers = layers
+                };
+            default:
+                throw new ArgumentOutOfRangeException(nameof(patch));
+        }
     }
 
     private EditorState ApplyCameraPatch(EditorPatch.Camera patch)

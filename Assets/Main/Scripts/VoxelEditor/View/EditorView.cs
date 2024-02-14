@@ -18,7 +18,8 @@ public class EditorView : MonoBehaviour,
     EditorUIHolder.Listener,
     TextureImportUIHolder.Listener,
     ApplySpriteChangesUIHolder.Listener,
-    ApplyDeleteLayerUIHolder.Listener
+    ApplyDeleteLayerUIHolder.Listener,
+    ApplyPivotPointForAllUIHolder.Listener
 {
     [SerializeField]
     private Transform freeCameraTransform = null!;
@@ -32,6 +33,8 @@ public class EditorView : MonoBehaviour,
     private UIDocument applyChangesUIDocument = null!;
     [SerializeField]
     private UIDocument applyDeleteLayerUIDocument = null!;
+    [SerializeField]
+    private UIDocument applyPivotPointForAllSprites = null!;
     [SerializeField]
     private UIDocument layersInfoUIDocument = null!;
     [SerializeField]
@@ -61,6 +64,7 @@ public class EditorView : MonoBehaviour,
     private TextureImportUIHolder textureImportUIHolder = null!;
     private ApplySpriteChangesUIHolder applySpriteChangesUIHolder = null!;
     private ApplyDeleteLayerUIHolder applyDeleteLayerUIHolder = null!;
+    private ApplyPivotPointForAllUIHolder applyPivotPointForAllUIHolder = null!;
     private LayersInfoUIHolder layersInfoUIHolder = null!;
     
     private HashSet<KeyCode> pressedKeys = new();
@@ -77,6 +81,8 @@ public class EditorView : MonoBehaviour,
         applySpriteChangesUIHolder.SetVisibility(false);
         applyDeleteLayerUIHolder = new ApplyDeleteLayerUIHolder(applyDeleteLayerUIDocument, this);
         applyDeleteLayerUIHolder.SetVisibility(false);
+        applyPivotPointForAllUIHolder = new ApplyPivotPointForAllUIHolder(applyPivotPointForAllSprites, this);
+        applyPivotPointForAllUIHolder.SetVisibility(false);
         layersInfoUIHolder = new LayersInfoUIHolder(layersInfoUIDocument);
         renderModeController = new RenderModeController(
             renderModeRoot, 
@@ -136,7 +142,7 @@ public class EditorView : MonoBehaviour,
             return;
         }
 
-        if (currentState is not { uiState: UIState.None })
+        if (currentState is not { uiState: UIState.None } || applyPivotPointForAllUIHolder.IsVisible())
         {
             (pressedKeys, newPressedKeys) = (newPressedKeys, pressedKeys);
             return;
@@ -383,6 +389,17 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.Layers.Delete.OnCancel());
     }
 
+    void ApplyPivotPointForAllUIHolder.Listener.OnApplyClicked()
+    {
+        applyPivotPointForAllUIHolder.SetVisibility(false);
+        feature.ApplyAction(new EditorAction.PivotPoint.OnApplyPivotPointForAllSpritesClicked());
+    }
+
+    void ApplyPivotPointForAllUIHolder.Listener.OnCancelClicked()
+    {
+        applyPivotPointForAllUIHolder.SetVisibility(false);
+    }
+
     void ApplySpriteChangesUIHolder.Listener.OnApplyClicked()
     {
         feature.ApplyAction(new EditorAction.ApplyChanges.Apply());
@@ -485,7 +502,12 @@ public class EditorView : MonoBehaviour,
 
     void EditorUIHolder.Listener.OnApplyPivotClicked(Vector2 pivotPoint)
     {
-        feature.ApplyAction(new EditorAction.OnApplyPivotClicked(pivotPoint));
+        feature.ApplyAction(new EditorAction.PivotPoint.OnApplyPivotClicked(pivotPoint));
+    }
+
+    void EditorUIHolder.Listener.OnApplyPivotForAllSpritesClicked()
+    {
+        applyPivotPointForAllUIHolder.SetVisibility(true);
     }
 
     public void OnToggleSpriteRefClicked()
