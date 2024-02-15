@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Main.Scripts.Helpers;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
 
@@ -41,16 +42,21 @@ public class RenderModeController
                     || renderDataMap[key].spriteData != loadedLayer.currentSpriteData
                     || renderDataMap[key].texture != loadedLayer.texture)
                 {
+                    var meshGenerator = new MeshFromVoxelsGenerator(
+                        loadedLayer.currentSpriteData.voxels,
+                        loadedLayer.voxData.textureData.TextureWidth,
+                        loadedLayer.voxData.textureData.TextureHeight,
+                        loadedLayer.voxData.textureData,
+                        loadedLayer.currentSpriteIndex,
+                        loadedLayer.currentSpriteData.pivot,
+                        1
+                    );
+
+                    var mesh = meshGenerator.GenerateMesh();
+
                     renderDataMap[key] = new RenderData(
                         spriteData: loadedLayer.currentSpriteData,
-                        mesh: MeshGenerationHelper.GenerateMesh(
-                            spriteData: loadedLayer.currentSpriteData,
-                            pixelsPerUnit: 1,
-                            textureData: loadedLayer.voxData.textureData,
-                            spriteIndex: loadedLayer.currentSpriteIndex,
-                            textureWidth: loadedLayer.texture?.width ?? 1,
-                            textureHeight: loadedLayer.texture?.height ?? 1
-                        ),
+                        mesh: mesh,
                         texture: loadedLayer.texture
                     );
                     
