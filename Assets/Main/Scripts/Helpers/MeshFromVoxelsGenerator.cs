@@ -98,7 +98,7 @@ public class MeshFromVoxelsGenerator
             mesh.triangles = newTriangles.ToArray();
             mesh.uv = sortedVerticesList.ConvertAll(vert => new Vector2(
                 (vert.x + spriteWidth * spriteIndex.columnIndex) / (float)textureWidth,
-                (vert.y + spriteHeight * (textureData.rowsCount - spriteIndex.rowIndex - 1)) / (float)textureHeight
+                (vert.y + vert.z + spriteHeight * (textureData.rowsCount - spriteIndex.rowIndex - 1)) / (float)textureHeight
             )).ToArray();
             mesh.normals = sortedVerticesList.ConvertAll(_ => Vector3.back).ToArray();
             mesh.bounds = new Bounds(
