@@ -502,50 +502,11 @@ public class MeshFromVoxelsGenerator
             {
                 if (pointsPath.Count == 0) continue;
                 polygon.Add(pointsPath);
-
-                // var stA = pointsPath[0];
-                // var b = pointsPath[1];
-                // var stC = pointsPath[2];
-                //
-                // var deltaA = (stA - b).normalized;
-                // var a = b + deltaA;
-                //
-                // var deltaC = (stC - b).normalized;
-                // var c = b + deltaC;
-                //
-                // var pos = b + (deltaA + deltaC) / 2;
-                //
-                // var voxPos = Vector3Int.RoundToInt(new Vector3(
-                //     Math.Min(Math.Min(a.x, b.x), c.x),
-                //     Math.Min(Math.Min(a.y, b.y), c.y),
-                //     z
-                // ));
-                //
-                // if (!shiftedVoxels.Contains(voxPos))
-                // {
-                //     polygon.Holes.Add(new Point(pos.x, pos.y));
-                // }
-                // if (!shiftedVoxels.Contains(voxPos + Vector3Int.up))
-                // {
-                //     polygon.Holes.Add(new Point(pos.x, pos.y + 1));
-                // }
-                // if (!shiftedVoxels.Contains(voxPos + Vector3Int.down))
-                // {
-                //     polygon.Holes.Add(new Point(pos.x, pos.y - 1));
-                // }
-                // if (!shiftedVoxels.Contains(voxPos + Vector3Int.left))
-                // {
-                //     polygon.Holes.Add(new Point(pos.x - 1, pos.y));
-                // }
-                // if (!shiftedVoxels.Contains(voxPos + Vector3Int.right))
-                // {
-                //     polygon.Holes.Add(new Point(pos.x + 1, pos.y));
-                // }
             }
 
-            for (var x = 0; x < sizeX; x++)
+            for (var x = -1; x <= sizeX; x++)
             {
-                for (var y = 0; y < sizeY; y++)
+                for (var y = -1; y <= sizeY; y++)
                 {
                     if (!shiftedVoxels.Contains(new Vector3Int(x, y, z)))
                     {
