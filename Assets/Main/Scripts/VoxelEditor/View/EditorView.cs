@@ -130,7 +130,7 @@ public class EditorView : MonoBehaviour,
 
         var withCtrl = Input.GetKey(KeyCode.LeftControl);
         var withShift = Input.GetKey(KeyCode.LeftShift);
-        var withX = Input.GetKey(KeyCode.X);
+        var withD = Input.GetKey(KeyCode.D);
         var withSelection = Input.GetKey(KeyCode.A);
 
         var editorUIHolderListener = (EditorUIHolder.Listener)this;
@@ -164,7 +164,7 @@ public class EditorView : MonoBehaviour,
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.Select());
                         break;
                     case KeyCode.Mouse0 when activeLayer != null:
-                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withCtrl, withShift, withX));
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withD, withShift, withCtrl));
                         break;
                     case KeyCode.Mouse1:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.Rotate());

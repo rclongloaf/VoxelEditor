@@ -69,7 +69,7 @@ namespace Main.Scripts.VoxelEditor
             saveVoxActionDelegate = new SaveVoxActionDelegate(this, reducer, repository, eventsConsumer, selectionDelegate);
             importActionDelegate = new ImportActionDelegate(this, reducer, repository, eventsConsumer);
             exportActionDelegate = new ExportActionDelegate(this, reducer, repository, eventsConsumer, selectionDelegate);
-            editModeActionDelegate = new EditModeActionDelegate(this, reducer);
+            editModeActionDelegate = new EditModeActionDelegate(this, reducer, selectionDelegate);
             inputActionDelegate = new InputActionDelegate(this, reducer, selectionDelegate);
             spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
             spriteSelectingActionDelegate = new SpriteSelectingActionDelegate(this, reducer, selectionDelegate);
