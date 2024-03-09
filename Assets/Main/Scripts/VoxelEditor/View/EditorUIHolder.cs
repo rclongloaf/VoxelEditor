@@ -42,6 +42,8 @@ public class EditorUIHolder
         pivotYField = root.Q<IntegerField>("PivotYField");
         var applyPivotBtn = root.Q<Button>("ApplyPivotBtn");
         var applyForAllSpritesPivotBtn = root.Q<Button>("ApplyForAllPivotBtn");
+        var autoSmoothBtn = root.Q<Button>("AutoSmoothBtn");
+        var clearSmoothBtn = root.Q<Button>("ClearSmoothBtn");
 
         loadBtn.clicked += listener.OnLoadVoxClicked;
         loadTextureBtn.clicked += listener.OnLoadTextureClicked;
@@ -66,6 +68,15 @@ public class EditorUIHolder
             listener.OnApplyPivotClicked(new Vector2(pivotXField.value, pivotYField.value));
         };
         applyForAllSpritesPivotBtn.clicked += listener.OnApplyPivotForAllSpritesClicked;
+        autoSmoothBtn.clicked += () =>
+        {
+            listener.OnSmoothAllClicked(true);
+        };
+        clearSmoothBtn.clicked += () =>
+        {
+            listener.OnSmoothAllClicked(false);
+        };
+        
 
         loadedStateElements = new VisualElement[]
         {
@@ -127,6 +138,7 @@ public class EditorUIHolder
 
         public void OnApplyPivotClicked(Vector2 pivotPoint);
         public void OnApplyPivotForAllSpritesClicked();
+        public void OnSmoothAllClicked(bool enableSmooth);
     }
 }
 }

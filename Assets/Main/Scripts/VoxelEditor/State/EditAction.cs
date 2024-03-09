@@ -6,18 +6,20 @@ namespace Main.Scripts.VoxelEditor.State
 {
 public interface EditAction
 {
-    public record Add(IEnumerable<Vector3Int> voxels) : EditAction;
+    public record Add(Dictionary<Vector3Int, VoxelData> voxels) : EditAction;
     
-    public record Delete(IEnumerable<Vector3Int> voxels) : EditAction;
+    public record Delete(Dictionary<Vector3Int, VoxelData> voxels) : EditAction;
 
-    public record Select(IEnumerable<Vector3Int> voxels) : EditAction;
+    public record ChangeSmooth(Dictionary<Vector3Int, bool> voxelsSmoothMap) : EditAction;
 
-    public record Paste(IEnumerable<Vector3Int> voxels) : EditAction;
+    public record Select(Dictionary<Vector3Int, VoxelData> voxels) : EditAction;
+
+    public record Paste(Dictionary<Vector3Int, VoxelData> voxels) : EditAction;
 
     public record CancelSelection(
-        IEnumerable<Vector3Int> voxels,
+        Dictionary<Vector3Int, VoxelData> voxels,
         Vector3Int offset,
-        IEnumerable<Vector3Int> overrideVoxels
+        Dictionary<Vector3Int, VoxelData> overrideVoxels
     ) : EditAction;
 
     public record DeleteSelected(SelectionState.Selected selectedState) : EditAction;

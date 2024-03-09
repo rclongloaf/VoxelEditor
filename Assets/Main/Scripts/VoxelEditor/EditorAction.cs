@@ -113,6 +113,8 @@ public interface EditorAction
         public interface OnButtonDown : Input
         {
             public record Draw(bool withDelete, bool withSection, bool withProjection) : OnButtonDown;
+            
+            public record Smooth(bool enableSmooth) : OnButtonDown;
 
             public record Select : OnButtonDown;
 
@@ -129,6 +131,8 @@ public interface EditorAction
         {
             public record Draw : OnButtonUp;
 
+            public record Smooth : OnButtonUp;
+
             public record Select : OnButtonUp;
 
             public record MoveSelection : OnButtonUp;
@@ -139,6 +143,8 @@ public interface EditorAction
         }
 
         public record OnButtonDraw : Input;
+        
+        public record OnButtonSmooth : Input;
 
         public record OnToggleSpriteRef : Input;
         
@@ -179,6 +185,13 @@ public interface EditorAction
         public record OnApplyPivotClicked(Vector2 pivotPoint) : PivotPoint;
        
         public record OnApplyPivotPointForAllSpritesClicked : PivotPoint;
+    }
+
+    public interface Smooth : EditorAction
+    {
+        public record Auto : Smooth;
+
+        public record Clear : Smooth;
     }
 }
 }

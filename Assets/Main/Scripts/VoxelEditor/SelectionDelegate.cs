@@ -15,7 +15,7 @@ public class SelectionDelegate
         this.reducer = reducer;
     }
 
-    public void Select(HashSet<Vector3Int> selectedVoxels)
+    public void Select(Dictionary<Vector3Int, VoxelData> selectedVoxels)
     {
         if (selectedVoxels.Count == 0) return;
         
@@ -28,15 +28,15 @@ public class SelectionDelegate
     {
         if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
         
-        var voxels = new HashSet<Vector3Int>();
+        var voxels = new Dictionary<Vector3Int, VoxelData>();
 
         var deltaPivot = activeLayer.currentSpriteData.pivot - spriteData.pivot;
 
         var offset = Vector3Int.RoundToInt(new Vector3(deltaPivot.x, deltaPivot.y, 0));
 
-        foreach (var voxel in spriteData.voxels)
+        foreach (var (pos, voxelData) in spriteData.voxels)
         {
-            voxels.Add(voxel + offset);
+            voxels[pos + offset] = voxelData;
         }
             
         
@@ -52,11 +52,11 @@ public class SelectionDelegate
             } activeLayer) return;
         
             
-        var voxels = new List<Vector3Int>();
+        var voxels = new Dictionary<Vector3Int, VoxelData>();
         var textureData = activeLayer.voxData.textureData;
-        foreach (var selectedVoxel in selectionState.voxels)
+        foreach (var (pos, selectedVoxelData) in selectionState.voxels)
         {
-            var voxel = selectedVoxel + selectionState.offset;
+            var voxel = pos + selectionState.offset;
             if (voxel.x < textureData.spriteWidth
                 && voxel.x >= 0
                 && voxel.y + voxel.z < textureData.spriteHeight
@@ -64,17 +64,17 @@ public class SelectionDelegate
                 && voxel.z < textureData.spriteHeight * 0.5
                 && voxel.z >= -textureData.spriteHeight * 0.5)
             {
-                voxels.Add(voxel);
+                voxels[voxel] = selectedVoxelData;
             }
         }
 
-        var overrideVoxels = new List<Vector3Int>();
+        var overrideVoxels = new Dictionary<Vector3Int, VoxelData>();
 
-        foreach (var voxel in voxels)
+        foreach (var (pos, voxelData) in voxels)
         {
-            if (activeLayer.currentSpriteData.voxels.Contains(voxel))
+            if (activeLayer.currentSpriteData.voxels.ContainsKey(pos))
             {
-                overrideVoxels.Add(voxel);
+                overrideVoxels[pos] = voxelData;
             }
         }
             

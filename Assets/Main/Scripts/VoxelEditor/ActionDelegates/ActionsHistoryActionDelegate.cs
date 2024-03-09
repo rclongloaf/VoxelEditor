@@ -39,14 +39,23 @@ public class ActionsHistoryActionDelegate : ActionDelegate<EditorAction.ActionsH
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(add.voxels));
                     break;
                 case EditAction.CancelSelection cancelSelection:
-                    var deleteVoxels = cancelSelection.voxels
-                        .ToList()
-                        .ConvertAll(voxel =>
-                            voxel + cancelSelection.offset
-                        );
+                    var deleteVoxels = new Dictionary<Vector3Int, VoxelData>();
+                    foreach (var (pos, voxelData) in cancelSelection.voxels)
+                    {
+                        deleteVoxels[pos + cancelSelection.offset] = voxelData;
+                    }
+                    
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(deleteVoxels));
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(cancelSelection.overrideVoxels));
                     reducer.ApplyPatch(new EditorPatch.Selection.Select(cancelSelection.voxels, cancelSelection.offset));
+                    break;
+                case EditAction.ChangeSmooth changeSmooth:
+                    var smoothMap = new Dictionary<Vector3Int, bool>();
+                    foreach (var (pos, isSmooth) in changeSmooth.voxelsSmoothMap)
+                    {
+                        smoothMap[pos] = !isSmooth;
+                    }
+                    reducer.ApplyPatch(new EditorPatch.VoxelsChanges.ChangeSmoothState(smoothMap));
                     break;
                 case EditAction.Delete delete:
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(delete.voxels));
@@ -84,14 +93,17 @@ public class ActionsHistoryActionDelegate : ActionDelegate<EditorAction.ActionsH
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(add.voxels));
                     break;
                 case EditAction.CancelSelection cancelSelection:
-                    var voxels = new List<Vector3Int>();
-                    foreach (var voxel in cancelSelection.voxels)
+                    var voxels = new Dictionary<Vector3Int, VoxelData>();
+                    foreach (var (pos, voxelData) in cancelSelection.voxels)
                     {
-                        voxels.Add(voxel + cancelSelection.offset);
+                        voxels[pos + cancelSelection.offset] = voxelData;
                     }
                     
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
                     reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
+                    break;
+                case EditAction.ChangeSmooth changeSmooth:
+                    reducer.ApplyPatch(new EditorPatch.VoxelsChanges.ChangeSmoothState(changeSmooth.voxelsSmoothMap));
                     break;
                 case EditAction.Delete delete:
                     reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(delete.voxels));

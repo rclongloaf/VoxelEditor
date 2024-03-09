@@ -76,7 +76,7 @@ public class SpriteSettingsActionDelegate : ActionDelegate<EditorAction.TextureS
         var offsetX = width * spriteIndex.columnIndex;
         var offsetY = height * (textureData.rowsCount - spriteIndex.rowIndex - 1);
 
-        var voxels = new HashSet<Vector3Int>();
+        var voxels = new Dictionary<Vector3Int, VoxelData>();
 
         for (var x = 0; x < width; x++)
         {
@@ -85,7 +85,8 @@ public class SpriteSettingsActionDelegate : ActionDelegate<EditorAction.TextureS
                 var pixel = texture.GetPixel(offsetX + x, offsetY + y);
                 if (pixel.a > 0.5f)
                 {
-                    voxels.Add(new Vector3Int(x, y, 0));
+                    var pos = new Vector3Int(x, y, 0);
+                    voxels[pos] = new VoxelData(false);
                 }
             }
         }

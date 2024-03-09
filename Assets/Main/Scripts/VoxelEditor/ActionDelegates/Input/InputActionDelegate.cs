@@ -36,6 +36,9 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             case EditorAction.Input.OnButtonDraw onButtonDrawAction:
                 OnButtonDraw(state, onButtonDrawAction);
                 break;
+            case EditorAction.Input.OnButtonSmooth onButtonSmooth:
+                OnButtonSmooth(state, onButtonSmooth);
+                break;
             case EditorAction.Input.OnMenu onMenu:
                 if (state.uiState is UIState.None)
                 {
@@ -76,6 +79,9 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             case EditorAction.Input.OnButtonDown.Rotate:
                 OnRotatingDown(state);
                 break;
+            case EditorAction.Input.OnButtonDown.Smooth smoothAction:
+                OnSmoothDown(state, smoothAction);
+                break;
             case EditorAction.Input.OnButtonDown.Select select:
                 OnSelectDown(state);
                 break;
@@ -99,6 +105,9 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                 break;
             case EditorAction.Input.OnButtonUp.Rotate:
                 OnRotatingUp(state);
+                break;
+            case EditorAction.Input.OnButtonUp.Smooth smooth:
+                OnSmoothUp(state);
                 break;
             case EditorAction.Input.OnButtonUp.Select select:
                 OnSelectUp(state);
@@ -226,18 +235,18 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
     {
         if (drawingState.deleting)
         {
-            if (!activeLayer.currentSpriteData.voxels.Contains(position)) return;
+            if (!activeLayer.currentSpriteData.voxels.ContainsKey(position)) return;
             
-            var voxels = new List<Vector3Int>();
-            voxels.Add(position);
+            var voxels = new Dictionary<Vector3Int, VoxelData>();
+            voxels[position] = activeLayer.currentSpriteData.voxels[position];
             reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Delete(voxels));
         }
         else
         {
             var voxel = position + drawingState.normal + (drawingState.withProjection ? new Vector3Int(0, -drawingState.normal.z, 0) : Vector3Int.zero);
-            if (activeLayer.currentSpriteData.voxels.Contains(voxel)) return;
+            if (activeLayer.currentSpriteData.voxels.ContainsKey(voxel)) return;
             
-            var voxels = new List<Vector3Int>();
+            var voxels = new Dictionary<Vector3Int, VoxelData>();
             var textureData = activeLayer.voxData.textureData;
             
             if (voxel.x < textureData.spriteWidth
@@ -247,10 +256,10 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                 && voxel.z < textureData.spriteHeight * 0.5
                 && voxel.z >= -textureData.spriteHeight * 0.5)
             {
-                voxels.Add(voxel);
+                //todo draw with smooth flag
+                voxels[voxel] = new VoxelData(false);
                 reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxels));
             }
-            
         }
     }
 
@@ -282,9 +291,9 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                 applyNormal: true
             );
 
-            var voxelsInBounds = new List<Vector3Int>();
+            var voxelsInBounds = new Dictionary<Vector3Int, VoxelData>();
             var textureData = activeLayer.voxData.textureData;
-            foreach (var voxel in voxels)
+            foreach (var (voxel, data) in voxels)
             {
                 if (voxel.x < textureData.spriteWidth
                     && voxel.x >= 0
@@ -293,40 +302,40 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
                     && voxel.z < textureData.spriteHeight * 0.5
                     && voxel.z >= -textureData.spriteHeight * 0.5)
                 {
-                    voxelsInBounds.Add(voxel);
+                    voxelsInBounds[voxel] = data;
                 }
             }
             reducer.ApplyPatch(new EditorPatch.VoxelsChanges.Add(voxelsInBounds));
         }
     }
 
-    private List<Vector3Int> GetVoxelsSection(
-        HashSet<Vector3Int> model,
+    private Dictionary<Vector3Int, VoxelData> GetVoxelsSection(
+        Dictionary<Vector3Int, VoxelData> model,
         Vector3Int position,
         Vector3Int normal,
         bool withProjection,
         bool applyNormal
     )
     {
-        var voxels = new HashSet<Vector3Int>();
+        var voxels = new Dictionary<Vector3Int, VoxelData>();
 
         var queue = new Queue<Vector3Int>();
         queue.Enqueue(position);
         while (queue.Count > 0)
         {
             var voxel = queue.Dequeue();
-            if (voxels.Contains(voxel))
+            if (voxels.ContainsKey(voxel))
             {
                 continue;
             }
 
-            if (!model.Contains(voxel)
-                || model.Contains(voxel + normal))
+            if (!model.ContainsKey(voxel)
+                || model.ContainsKey(voxel + normal))
             {
                 continue;
             }
 
-            voxels.Add(voxel);
+            voxels[voxel] = model[voxel];
             
             if (normal.z != 0)
             {
@@ -352,10 +361,15 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
 
         if (applyNormal)
         {
-            return voxels.ToList().ConvertAll(pos => pos + normal + (withProjection ? new Vector3Int(0, -normal.z, 0) : Vector3Int.zero));
+            var voxelsWithAppliedNormal = new Dictionary<Vector3Int, VoxelData>();
+            foreach (var (pos, voxelData) in voxels)
+            {
+                voxelsWithAppliedNormal[pos + normal + (withProjection ? new Vector3Int(0, -normal.z, 0) : Vector3Int.zero)] = voxelData;
+            }
+            return voxelsWithAppliedNormal;
         }
 
-        return voxels.ToList();
+        return voxels;
     }
     
     private bool GetVoxelUnderCursor(out Vector3Int position, out Vector3 normal)
@@ -519,9 +533,66 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
 
         reducer.ApplyPatch(new EditorPatch.Camera.NewRotation(newRotation));
     }
+    
+    private void OnSmoothDown(EditorState state, EditorAction.Input.OnButtonDown.Smooth action)
+    {
+        if (state.activeLayer is not VoxLayerState.Loaded
+            || state.controlState is not ControlState.None) return;
+        
+        reducer.ApplyPatch(new EditorPatch.Control.Smoothing.Start(action.enableSmooth));
+    }
+        
+    private void OnButtonSmooth(EditorState state, EditorAction.Input.OnButtonSmooth action)
+    {
+        if (state.controlState is not ControlState.Smoothing smoothingState
+            || state.cameraType is not CameraType.Free
+            || state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
+
+        var camera = Camera.main;
+        if (camera == null)
+        {
+            return;
+        }
+
+        if (!Physics.Raycast(camera.ScreenPointToRay(UnityEngine.Input.mousePosition), out var hitInfo)) return;
+        
+        var position = Vector3Int.RoundToInt(hitInfo.transform.parent.position) + Vector3Int.RoundToInt(activeLayer.currentSpriteData.pivot);
+
+        if (smoothingState.smoothVoxels.Contains(position)
+            || !activeLayer.currentSpriteData.voxels.TryGetValue(position, out var voxelData)
+            || voxelData.isSmooth == smoothingState.enableSmooth)
+        {
+            return;
+        }
+        
+        reducer.ApplyPatch(new EditorPatch.Control.Smoothing.AddSmoothVoxel(position));
+
+        var smoothVoxels = new Dictionary<Vector3Int, bool>();
+        smoothVoxels[position] = smoothingState.enableSmooth;
+        reducer.ApplyPatch(new EditorPatch.VoxelsChanges.ChangeSmoothState(smoothVoxels));
+    }
+    
+    private void OnSmoothUp(EditorState state)
+    {
+        if (state.activeLayer is not VoxLayerState.Loaded loadedLayer
+            || state.controlState is not ControlState.Smoothing smoothingState) return;
+
+        var smoothVoxelsMap = new Dictionary<Vector3Int, bool>();
+        foreach (var pos in smoothingState.smoothVoxels)
+        {
+            smoothVoxelsMap[pos] = smoothingState.enableSmooth;
+        }
+
+        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(
+            new EditAction.ChangeSmooth(smoothVoxelsMap)
+        ));
+        reducer.ApplyPatch(new EditorPatch.Control.Smoothing.Finish());
+    }
 
     private void OnSelectDown(EditorState state)
     {
+        if (state.controlState is not ControlState.None) return;
+        
         reducer.ApplyPatch(new EditorPatch.Control.Selection.Start(UnityEngine.Input.mousePosition));
     }
 
@@ -532,14 +603,14 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         
         var mousePos = UnityEngine.Input.mousePosition;
 
-        var selectedVoxels = new HashSet<Vector3Int>();
-        foreach (var voxel in loadedLayer.currentSpriteData.voxels)
+        var selectedVoxels = new Dictionary<Vector3Int, VoxelData>();
+        foreach (var (voxel, voxelData) in loadedLayer.currentSpriteData.voxels)
         {
             var pivot = loadedLayer.currentSpriteData.pivot;
             var voxPos = new Vector3(voxel.x - pivot.x + 0.5f, voxel.y - pivot.y + 0.5f, voxel.z + 0.5f);
             if (IsWithinPolygon(voxPos, selectionState.startMousePos, mousePos))
             {
-                selectedVoxels.Add(voxel);
+                selectedVoxels[voxel] = loadedLayer.currentSpriteData.voxels[voxel];
             }
         }
         
