@@ -129,27 +129,25 @@ public static class VoxelMeshGenerationHelper
     {
         var vertices = new List<Vector3>();
         var triangles = new List<int>();
-        var vertStartIndex = vertices.Count;
+        var uv = new List<Vector2>();
+        var normals = new List<Vector3>();
 
         var halfSize = size / 2;
 
-        vertices.Add(new Vector3(-halfSize, -halfSize, -halfSize));
-        vertices.Add(new Vector3(-halfSize, halfSize, -halfSize));
-        vertices.Add(new Vector3(-halfSize, -halfSize, halfSize));
-        vertices.Add(new Vector3(-halfSize, halfSize, halfSize));
-        vertices.Add(new Vector3(halfSize, -halfSize, -halfSize));
-        vertices.Add(new Vector3(halfSize, halfSize, -halfSize));
-        vertices.Add(new Vector3(halfSize, -halfSize, halfSize));
-        vertices.Add(new Vector3(halfSize, halfSize, halfSize));
+        var LBB = new Vector3(-halfSize, -halfSize, -halfSize);
+        var LTB = new Vector3(-halfSize, halfSize, -halfSize);
+        var LBF = new Vector3(-halfSize, -halfSize, halfSize);
+        var LTF = new Vector3(-halfSize, halfSize, halfSize);
+        var RBB = new Vector3(halfSize, -halfSize, -halfSize);
+        var RTB = new Vector3(halfSize, halfSize, -halfSize);
+        var RBF = new Vector3(halfSize, -halfSize, halfSize);
+        var RTF = new Vector3(halfSize, halfSize, halfSize);
+        
+        var normalX = normal.HasFlag(Normal.Right) ? 1 : (normal.HasFlag(Normal.Left) ? -1 : 0);
+        var normalY = normal.HasFlag(Normal.Up) ? 1 : (normal.HasFlag(Normal.Down) ? -1 : 0);
+        var normalZ = normal.HasFlag(Normal.Forward) ? 1 : (normal.HasFlag(Normal.Back) ? -1 : 0);
 
-        var LBB = vertStartIndex + 0;
-        var LTB = vertStartIndex + 1;
-        var LBF = vertStartIndex + 2;
-        var LTF = vertStartIndex + 3;
-        var RBB = vertStartIndex + 4;
-        var RTB = vertStartIndex + 5;
-        var RBF = vertStartIndex + 6;
-        var RTF = vertStartIndex + 7;
+        var normalVec = new Vector3(normalX, normalY, normalZ);
 
         //back
         if (!normal.HasFlag(Normal.Back))
@@ -164,7 +162,11 @@ public static class VoxelMeshGenerationHelper
                 RTB,
                 LBB,
                 RBB,
-                triangles
+                Vector3.back,
+                vertices,
+                triangles,
+                uv,
+                normals
             );
         }
 
@@ -181,7 +183,11 @@ public static class VoxelMeshGenerationHelper
                 LTF,
                 RBF,
                 LBF,
-                triangles
+                Vector3.forward,
+                vertices,
+                triangles,
+                uv,
+                normals
             );
         }
 
@@ -198,7 +204,11 @@ public static class VoxelMeshGenerationHelper
                 LTB,
                 LBF,
                 LBB,
-                triangles
+                Vector3.left,
+                vertices,
+                triangles,
+                uv,
+                normals
             );
         }
 
@@ -215,7 +225,11 @@ public static class VoxelMeshGenerationHelper
                 RTF,
                 RBB,
                 RBF,
-                triangles
+                Vector3.right,
+                vertices,
+                triangles,
+                uv,
+                normals
             );
         }
 
@@ -232,7 +246,11 @@ public static class VoxelMeshGenerationHelper
                 RTF,
                 LTB,
                 RTB,
-                triangles
+                Vector3.up,
+                vertices,
+                triangles,
+                uv,
+                normals
             );
         }
 
@@ -249,57 +267,114 @@ public static class VoxelMeshGenerationHelper
                 RBB,
                 LBF,
                 RBF,
-                triangles
+                Vector3.down,
+                vertices,
+                triangles,
+                uv,
+                normals
             );
         }
 
         if (normal.IsCorner())
         {
-            var normalX = normal.HasFlag(Normal.Right) ? 1 : (normal.HasFlag(Normal.Left) ? -1 : 0);
-            var normalY = normal.HasFlag(Normal.Up) ? 1 : (normal.HasFlag(Normal.Down) ? -1 : 0);
-            var normalZ = normal.HasFlag(Normal.Forward) ? 1 : (normal.HasFlag(Normal.Back) ? -1 : 0);
             
             switch (normalX, normalY, normalZ)
             {
                 case (1, 1, 1):
-                    triangles.Add(LTB);
-                    triangles.Add(LBF);
-                    triangles.Add(RBB);
+                    FillTriangle(
+                        LTB,
+                        LBF,
+                        RBB,
+                        normalVec,
+                        vertices,
+                        triangles,
+                        uv,
+                        normals
+                    );
                     break;
                 case (-1, 1, 1):
-                    triangles.Add(RTB);
-                    triangles.Add(LBB);
-                    triangles.Add(RBF);
+                    FillTriangle(
+                        RTB,
+                        LBB,
+                        RBF,
+                        normalVec,
+                        vertices,
+                        triangles,
+                        uv,
+                        normals
+                    );
                     break;
                 case (1, -1, 1):
-                    triangles.Add(LBB);
-                    triangles.Add(RTB);
-                    triangles.Add(LTF);
+                    FillTriangle(
+                        LBB,
+                        RTB,
+                        LTF,
+                        normalVec,
+                        vertices,
+                        triangles,
+                        uv,
+                        normals
+                    );
                     break;
                 case (-1, -1, 1):
-                    triangles.Add(LTB);
-                    triangles.Add(RBB);
-                    triangles.Add(RTF);
+                    FillTriangle(
+                        LTB,
+                        RBB,
+                        RTF,
+                        normalVec,
+                        vertices,
+                        triangles,
+                        uv,
+                        normals
+                    );
                     break;
                 case (1, 1, -1):
-                    triangles.Add(LBB);
-                    triangles.Add(LTF);
-                    triangles.Add(RBF);
+                    FillTriangle(
+                        LBB,
+                        LTF,
+                        RBF,
+                        normalVec,
+                        vertices,
+                        triangles,
+                        uv,
+                        normals
+                    );
                     break;
                 case (-1, 1, -1):
-                    triangles.Add(LBF);
-                    triangles.Add(RTF);
-                    triangles.Add(RBB);
+                    FillTriangle(
+                        LBF,
+                        RTF,
+                        RBB,
+                        normalVec,
+                        vertices,
+                        triangles,
+                        uv,
+                        normals
+                    );
                     break;
                 case (1, -1, -1):
-                    triangles.Add(LBF);
-                    triangles.Add(LTB);
-                    triangles.Add(RTF);
+                    FillTriangle(
+                        LBF,
+                        LTB,
+                        RTF,
+                        normalVec,
+                        vertices,
+                        triangles,
+                        uv,
+                        normals
+                    );
                     break;
                 case (-1, -1, -1):
-                    triangles.Add(RBF);
-                    triangles.Add(LTF);
-                    triangles.Add(RTB);
+                    FillTriangle(
+                        RBF,
+                        LTF,
+                        RTB,
+                        normalVec,
+                        vertices,
+                        triangles,
+                        uv,
+                        normals
+                    );
                     break;
             }
         }
@@ -307,51 +382,51 @@ public static class VoxelMeshGenerationHelper
         {
             if (normal.HasFlag(Normal.Left) && normal.HasFlag(Normal.Up))
             {
-                FillSquare(RTF, RTB, LBF, LBB, triangles);
+                FillSquare(normalVec,RTF, RTB, LBF, LBB, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Right) && normal.HasFlag(Normal.Up))
             {
-                FillSquare(LTB, LTF, RBB, RBF, triangles);
+                FillSquare(normalVec,LTB, LTF, RBB, RBF, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Left) && normal.HasFlag(Normal.Down))
             {
-                FillSquare(LTF, LTB, RBF, RBB, triangles);
+                FillSquare(normalVec,LTF, LTB, RBF, RBB, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Right) && normal.HasFlag(Normal.Down))
             {
-                FillSquare(RTB, RTF, LBB, LBF, triangles);
+                FillSquare(normalVec,RTB, RTF, LBB, LBF, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Back) && normal.HasFlag(Normal.Up))
             {
-                FillSquare(LTF, RTF, LBB, RBB, triangles);
+                FillSquare(normalVec,LTF, RTF, LBB, RBB, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Forward) && normal.HasFlag(Normal.Up))
             {
-                FillSquare(RTB, LTB, RBF, LBF, triangles);
+                FillSquare(normalVec,RTB, LTB, RBF, LBF, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Back) && normal.HasFlag(Normal.Down))
             {
-                FillSquare(LTB, RTB, LBF, RBF, triangles);
+                FillSquare(normalVec,LTB, RTB, LBF, RBF, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Forward) && normal.HasFlag(Normal.Down))
             {
-                FillSquare(RTF, LTF, RBB, LBB, triangles);
+                FillSquare(normalVec,RTF, LTF, RBB, LBB, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Back) && normal.HasFlag(Normal.Right))
             {
-                FillSquare(LBB, LTB, RBF, RTF, triangles);
+                FillSquare(normalVec,LBB, LTB, RBF, RTF, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Forward) && normal.HasFlag(Normal.Right))
             {
-                FillSquare(RBB, RTB, LBF, LTF, triangles);
+                FillSquare(normalVec,RBB, RTB, LBF, LTF, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Back) && normal.HasFlag(Normal.Left))
             {
-                FillSquare(RTB, RBB, LTF, LBF, triangles);
+                FillSquare(normalVec,RTB, RBB, LTF, LBF, vertices, triangles, uv, normals);
             }
             if (normal.HasFlag(Normal.Forward) && normal.HasFlag(Normal.Left))
             {
-                FillSquare(RBF, RTF, LBB, LTB, triangles);
+                FillSquare(normalVec,RBF, RTF, LBB, LTB, vertices, triangles, uv, normals);
             }
         }
         
@@ -359,7 +434,41 @@ public static class VoxelMeshGenerationHelper
         var mesh = new Mesh();
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
+        mesh.uv = uv.ToArray();
+        mesh.normals = normals.ToArray();
+        mesh.bounds = new Bounds(
+            Vector3.zero,
+            Vector3.zero * size
+        );
         return mesh;
+    }
+
+    private static void FillTriangle(
+        Vector3 v1,
+        Vector3 v2,
+        Vector3 v3,
+        Vector3 normal,
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector2> uv,
+        List<Vector3> normals
+    )
+    {
+        triangles.Add(vertices.Count + 0);
+        triangles.Add(vertices.Count + 1);
+        triangles.Add(vertices.Count + 2);
+        
+        vertices.Add(v1);
+        vertices.Add(v2);
+        vertices.Add(v3);
+        
+        uv.Add(Vector2.zero);
+        uv.Add(Vector2.zero);
+        uv.Add(Vector2.zero);
+        
+        normals.Add(normal);
+        normals.Add(normal);
+        normals.Add(normal);
     }
 
     private static void FillSide(
@@ -368,91 +477,113 @@ public static class VoxelMeshGenerationHelper
         Normal right,
         Normal up,
         Normal down,
-        int LT,
-        int RT,
-        int LB,
-        int RB,
-        List<int> triangles
+        Vector3 LT,
+        Vector3 RT,
+        Vector3 LB,
+        Vector3 RB,
+        Vector3 normalVec,
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector2> uv,
+        List<Vector3> normals
     )
     {
         if (!IsXYCorner(normal, left, right, up, down))
         {
-            FillSquare(LT, RT, LB, RB, triangles);
+            FillSquare(normalVec, LT, RT, LB, RB, vertices, triangles, uv, normals);
             return;
         }
         if (normal.HasFlag(left) && normal.HasFlag(up))
         {
-            triangles.Add(RB);
-            triangles.Add(LB);
-            triangles.Add(RT);
+            FillTriangle(
+                RB,
+                LB,
+                RT,
+                normalVec,
+                vertices,
+                triangles,
+                uv,
+                normals
+            );
             return;
         }
         if (normal.HasFlag(right) && normal.HasFlag(up))
         {
-            triangles.Add(LT);
-            triangles.Add(RB);
-            triangles.Add(LB);
+            FillTriangle(
+                LT,
+                RB,
+                LB,
+                normalVec,
+                vertices,
+                triangles,
+                uv,
+                normals
+            );
             return;
         }
         if (normal.HasFlag(left) && normal.HasFlag(down))
         {
-            triangles.Add(LT);
-            triangles.Add(RT);
-            triangles.Add(RB);
+            FillTriangle(
+                LT,
+                RT,
+                RB,
+                normalVec,
+                vertices,
+                triangles,
+                uv,
+                normals
+            );
             return;
         }
         if (normal.HasFlag(right) && normal.HasFlag(down))
         {
-            triangles.Add(LT);
-            triangles.Add(RT);
-            triangles.Add(LB);
+            FillTriangle(
+                LT,
+                RT,
+                LB,
+                normalVec,
+                vertices,
+                triangles,
+                uv,
+                normals
+            );
             return;
         }
     }
 
-    private static void MaybeFillCorner(
-        Normal normal,
-        Normal normalX,
-        Normal normalY,
-        Normal normalZ,
-        int R,
-        int F,
-        int T,
-        bool inv,
-        List<int> triangles
-    )
-    {
-        if (normal.HasFlag(normalX) && normal.HasFlag(normalY) && normal.HasFlag(normalZ))
-        {
-            if (inv)
-            {
-                triangles.Add(R);
-                triangles.Add(F);
-                triangles.Add(T);
-            }
-            else
-            {
-                triangles.Add(R);
-                triangles.Add(T);
-                triangles.Add(F);
-            }
-        }
-    }
-
     private static void FillSquare(
-        int LT,
-        int RT,
-        int LB,
-        int RB,
-        List<int> triangles
+        Vector3 normal,
+        Vector3 LT,
+        Vector3 RT,
+        Vector3 LB,
+        Vector3 RB,
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector2> uv,
+        List<Vector3> normals
     )
     {
-        triangles.Add(LT);
-        triangles.Add(RT);
-        triangles.Add(RB);
-        triangles.Add(LT);
-        triangles.Add(RB);
-        triangles.Add(LB);
+        triangles.Add(vertices.Count + 2);
+        triangles.Add(vertices.Count + 3);
+        triangles.Add(vertices.Count + 1);
+        triangles.Add(vertices.Count + 2);
+        triangles.Add(vertices.Count + 1);
+        triangles.Add(vertices.Count + 0);
+        
+        vertices.Add(LB);
+        vertices.Add(RB);
+        vertices.Add(LT);
+        vertices.Add(RT);
+        
+        uv.Add(new Vector2(0, 0));
+        uv.Add(new Vector2(0, 1));
+        uv.Add(new Vector2(0, 1));
+        uv.Add(new Vector2(1, 1));
+        
+        normals.Add(normal);
+        normals.Add(normal);
+        normals.Add(normal);
+        normals.Add(normal);
     }
     
     private static bool IsXYCorner(Normal normal, Normal left, Normal right, Normal up, Normal down)
