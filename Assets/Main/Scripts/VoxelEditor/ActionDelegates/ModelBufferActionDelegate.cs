@@ -40,11 +40,11 @@ public class ModelBufferActionDelegate : ActionDelegate<EditorAction.ModelBuffer
     {
         if (activeLayer.selectionState is SelectionState.Selected selectionState)
         {
-            var selectedVoxels = new HashSet<Vector3Int>();
+            var selectedVoxels = new Dictionary<Vector3Int, VoxelData>();
 
-            foreach (var voxel in selectionState.voxels)
+            foreach (var (pos, voxelData) in selectionState.voxels)
             {
-                selectedVoxels.Add(voxel + selectionState.offset);
+                selectedVoxels[pos + selectionState.offset] = voxelData;
             }
             
             var selectedSpriteData = activeLayer.currentSpriteData with

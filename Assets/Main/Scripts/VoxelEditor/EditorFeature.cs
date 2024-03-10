@@ -33,6 +33,7 @@ namespace Main.Scripts.VoxelEditor
         private ShaderActionDelegate shaderActionDelegate;
         private ActionsHistoryActionDelegate actionsHistoryActionDelegate;
         private PivotPointActionDelegate pivotPointActionDelegate;
+        private SmoothActionDelegate smoothActionDelegate;
 
         public EditorFeature(EditorView view, EditorEventsConsumer eventsConsumer)
         {
@@ -78,6 +79,7 @@ namespace Main.Scripts.VoxelEditor
             shaderActionDelegate = new ShaderActionDelegate(this, reducer);
             actionsHistoryActionDelegate = new ActionsHistoryActionDelegate(this, reducer);
             pivotPointActionDelegate = new PivotPointActionDelegate(this, reducer);
+            smoothActionDelegate = new SmoothActionDelegate(this, reducer);
         }
 
         public void ApplyAction(EditorAction action)
@@ -101,6 +103,9 @@ namespace Main.Scripts.VoxelEditor
                     break;
                 case EditorAction.Shader shaderAction:
                     shaderActionDelegate.ApplyAction(state, shaderAction);
+                    break;
+                case EditorAction.Smooth smoothAction:
+                    smoothActionDelegate.ApplyAction(state, smoothAction);
                     break;
                 case EditorAction.SpriteSelecting spriteSelecting:
                     spriteSelectingActionDelegate.ApplyAction(state, spriteSelecting);

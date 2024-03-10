@@ -31,6 +31,7 @@ public class EditorReducer
             EditorPatch.MenuVisibility menuVisibilityPatch => ApplyMenuVisibilityPatch(menuVisibilityPatch),
             EditorPatch.ModelBuffer modelBufferPatch => ApplyModelBufferPatch(modelBufferPatch),
             EditorPatch.Shader shaderPatch => ApplyShaderPatch(shaderPatch),
+            EditorPatch.Smooth smoothPatch => ApplySmoothPatch(smoothPatch),
             EditorPatch.VoxLoaded voxLoadedPatch => ApplyVoxLoadedPatch(voxLoadedPatch),
             EditorPatch.TextureLoaded textureLoadedPatch => ApplyTextureLoadedPatch(textureLoadedPatch),
             EditorPatch.Control controlPatch => ApplyControlPatch(controlPatch),
@@ -227,6 +228,49 @@ public class EditorReducer
         };
     }
 
+    private EditorState ApplySmoothPatch(EditorPatch.Smooth patch)
+    {
+        if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return state;
+        
+        var layers = new Dictionary<int, VoxLayerState>(state.layers);
+
+        var voxels = new Dictionary<Vector3Int, VoxelData>(activeLayer.currentSpriteData.voxels);
+        
+        switch (patch)
+        {
+            case EditorPatch.Smooth.ChangeMultiple changeMultiple:
+                foreach (var (pos, enableSmooth) in changeMultiple.enableSmoothMap)
+                {
+                    voxels[pos] = voxels[pos] with
+                    {
+                        isSmooth = enableSmooth
+                    };
+                }
+                break;
+            case EditorPatch.Smooth.ChangeSingle changeSingle:
+                voxels[changeSingle.voxel] = voxels[changeSingle.voxel] with
+                {
+                    isSmooth = changeSingle.enable
+                };
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(patch));
+        }
+        
+        layers[state.activeLayerKey] = activeLayer with
+        {
+            currentSpriteData = activeLayer.currentSpriteData with
+            {
+                voxels = voxels
+            }
+        };
+
+        return state with
+        {
+            layers = layers
+        };
+    }
+
     private EditorState ApplyChangeSpriteRefVisibilityPatch(EditorPatch.ChangeSpriteRefVisibility patch)
     {
         return state with
@@ -287,7 +331,7 @@ public class EditorReducer
                 return state with
                 {
                     controlState = new ControlState.Drawing(
-                        drawnVoxels: new List<Vector3Int>(),
+                        drawnVoxels: new Dictionary<Vector3Int, VoxelData>(),
                         position: drawingStartAction.position,
                         normal: drawingStartAction.normal,
                         deleting: drawingStartAction.deleting,
@@ -353,6 +397,34 @@ public class EditorReducer
                         Vector3Int.zero
                     )
                 };
+            case EditorPatch.Control.Smoothing.Start smoothingStart:
+                return state with
+                {
+                    controlState = new ControlState.Smoothing(
+                        smoothVoxels: new HashSet<Vector3Int>(),
+                        enableSmooth: smoothingStart.enableSmooth
+                    )
+                };
+            case EditorPatch.Control.Smoothing.AddSmoothVoxel smoothingAddVoxels:
+            {
+                if (state.controlState is not ControlState.Smoothing smoothingState) return state;
+
+                var smoothingStateVoxels = new HashSet<Vector3Int>(smoothingState.smoothVoxels);
+                smoothingStateVoxels.Add(smoothingAddVoxels.voxel);
+
+                return state with
+                {
+                    controlState = smoothingState with
+                    {
+                        smoothVoxels = smoothingStateVoxels
+                    }
+                };
+            }
+            case EditorPatch.Control.Smoothing.Finish smoothingFinish:
+                return state with
+                {
+                    controlState = new ControlState.None()
+                };
             case EditorPatch.Control.Selection.Finish finish:
             {
                 return state with
@@ -370,26 +442,48 @@ public class EditorReducer
         
         var layers = new Dictionary<int, VoxLayerState>(state.layers);
         
-        IEnumerable<Vector3Int> voxels;
+        Dictionary<Vector3Int, VoxelData> newDrawnVoxels = new Dictionary<Vector3Int, VoxelData>();
         switch (patch)
         {
             case EditorPatch.VoxelsChanges.Add addPatch:
-                voxels = addPatch.voxels;
+                newDrawnVoxels = addPatch.voxels;
                 layers[state.activeLayerKey] = activeLayer with
                 {
                     currentSpriteData = activeLayer.currentSpriteData with
                     {
-                        voxels = new HashSet<Vector3Int>(activeLayer.currentSpriteData.voxels).Plus(addPatch.voxels)
+                        voxels = new Dictionary<Vector3Int, VoxelData>(activeLayer.currentSpriteData.voxels).Plus(addPatch.voxels)
                     }
                 };
                 break;
-            case EditorPatch.VoxelsChanges.Delete deletePatch:
-                voxels = deletePatch.voxels;
+            case EditorPatch.VoxelsChanges.ChangeSmoothState changeSmoothState:
+            {
+                var smoothVoxelsMap = changeSmoothState.smoothVoxelsMap;
+                var voxels = new Dictionary<Vector3Int, VoxelData>(activeLayer.currentSpriteData.voxels);
+
+                foreach (var (pos, isSmooth) in smoothVoxelsMap)
+                {
+                    voxels[pos] = voxels[pos] with
+                    {
+                        isSmooth = isSmooth
+                    };
+                }
+
                 layers[state.activeLayerKey] = activeLayer with
                 {
                     currentSpriteData = activeLayer.currentSpriteData with
                     {
-                        voxels = new HashSet<Vector3Int>(activeLayer.currentSpriteData.voxels).Minus(deletePatch.voxels)
+                        voxels = voxels
+                    }
+                };
+                break;
+            }
+            case EditorPatch.VoxelsChanges.Delete deletePatch:
+                newDrawnVoxels = deletePatch.voxels;
+                layers[state.activeLayerKey] = activeLayer with
+                {
+                    currentSpriteData = activeLayer.currentSpriteData with
+                    {
+                        voxels = new Dictionary<Vector3Int, VoxelData>(activeLayer.currentSpriteData.voxels).Minus(deletePatch.voxels)
                     }
                 };
                 break;
@@ -400,8 +494,8 @@ public class EditorReducer
         var controlState = state.controlState;
         if (controlState is ControlState.Drawing drawingState)
         {
-            var drawnVoxels = new List<Vector3Int>(drawingState.drawnVoxels);
-            drawnVoxels.AddRange(voxels);
+            var drawnVoxels = new Dictionary<Vector3Int, VoxelData>(drawingState.drawnVoxels);
+            drawnVoxels.Plus(newDrawnVoxels);
             controlState = drawingState with
             {
                 drawnVoxels = drawnVoxels

@@ -63,8 +63,9 @@ public interface EditorPatch
 
     public interface VoxelsChanges : EditorPatch
     {
-        public record Add(IEnumerable<Vector3Int> voxels) : VoxelsChanges;
-        public record Delete(IEnumerable<Vector3Int> voxels) : VoxelsChanges;
+        public record Add(Dictionary<Vector3Int, VoxelData> voxels) : VoxelsChanges;
+        public record Delete(Dictionary<Vector3Int, VoxelData> voxels) : VoxelsChanges;
+        public record ChangeSmoothState(Dictionary<Vector3Int, bool> smoothVoxelsMap) : VoxelsChanges;
     }
     
     public interface ModelBuffer : EditorPatch
@@ -91,6 +92,16 @@ public interface EditorPatch
             public record Start : Drawing;
             public record Finish : Drawing;
         }
+        
+        public interface Smoothing : Control
+        {
+            public record Start(bool enableSmooth) : Smoothing;
+            
+            public record AddSmoothVoxel(Vector3Int voxel) : Smoothing;
+
+            public record Finish : Smoothing;
+        }
+        
         public interface Selection : Control
         {
             public record Start(
@@ -121,7 +132,7 @@ public interface EditorPatch
         public record CancelSelection : Selection;
 
         public record Select(
-            IEnumerable<Vector3Int> voxels,
+            Dictionary<Vector3Int, VoxelData> voxels,
             Vector3Int offset
         ) : Selection;
     }
@@ -162,5 +173,12 @@ public interface EditorPatch
     }
 
     public record ChangeSpriteRefVisibility(bool visible) : EditorPatch;
+
+    public interface Smooth : EditorPatch
+    {
+        public record ChangeMultiple(Dictionary<Vector3Int, bool> enableSmoothMap) : Smooth;
+
+        public record ChangeSingle(Vector3Int voxel, bool enable) : Smooth;
+    }
 }
 }

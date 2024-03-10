@@ -46,6 +46,10 @@
                 <ui:Button text="Apply" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ApplyPivotBtn" />
                 <ui:Button text="Apply Current For All Sprites" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ApplyForAllPivotBtn" />
             </ui:VisualElement>
+            <ui:VisualElement name="SmoothLayout" style="flex-grow: 1; flex-direction: row; align-self: flex-start;">
+                <ui:Button text="Auto Smooth" name="AutoSmoothBtn" />
+                <ui:Button text="Clear Smooth" name="ClearSmoothBtn" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

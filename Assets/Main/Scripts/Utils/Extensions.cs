@@ -23,6 +23,24 @@ public static class Extensions
         return set;
     }
     
+    public static Dictionary<K, V> Plus<K, V>(this Dictionary<K, V> map, Dictionary<K, V> values)
+    {
+        foreach (var (key, value) in values)
+        {
+            map.TryAdd(key, value);
+        }
+        return map;
+    }
+    
+    public static Dictionary<K, V> Minus<K, V>(this Dictionary<K, V> map, Dictionary<K, V> values)
+    {
+        foreach (var (key, value) in values)
+        {
+            map.Remove(key);
+        }
+        return map;
+    }
+    
     public static void SetVisibility(this VisualElement view, bool isVisible)
     {
         view.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;

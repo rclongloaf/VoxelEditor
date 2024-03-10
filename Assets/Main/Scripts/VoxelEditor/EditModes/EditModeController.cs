@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Main.Scripts.Helpers.MeshGeneration;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
@@ -30,10 +31,12 @@ public class EditModeController
     private ShaderData shaderData;
     private MaterialPropertyBlock materialPropertyBlock = new();
 
-    private Dictionary<Vector3Int, GameObject> currentVoxels = new();
+    private Dictionary<Vector3Int, GameObject> currentVoxelsObjects = new();
+    private Dictionary<Vector3Int, VoxelData> currentVoxelsData = new();
 
     private SelectionState cachedSelectionState = new SelectionState.None();
     private Dictionary<Vector3Int, GameObject> selectedVoxels = new();
+    private Dictionary<Normal, Mesh> meshByNormal;
 
     public EditModeController(
         GameObject root,
@@ -47,6 +50,7 @@ public class EditModeController
         this.voxelPrefab = voxelPrefab;
         material = new Material(voxelMaterial);
         shaderData = new ShaderData(false, false);
+        meshByNormal = VoxelsSmoothHelper.GenerateMeshesPerNormals();
     }
     
     public void Release()
@@ -59,23 +63,23 @@ public class EditModeController
         root.SetActive(isVisible);
     }
 
-    public void ApplyVoxels(HashSet<Vector3Int> voxels)
+    public void ApplyVoxels(Dictionary<Vector3Int, VoxelData> voxels)
     {
-        foreach (var voxel in voxels)
+        foreach (var (pos, data) in voxels)
         {
-            if (!currentVoxels.ContainsKey(voxel))
+            if (!currentVoxelsObjects.ContainsKey(pos))
             {
-                AddVoxel(voxel);
+                AddVoxel(pos, data);
             }
         }
 
         var voxelsToRemove = new List<Vector3Int>();
 
-        foreach (var (voxel, _) in currentVoxels)
+        foreach (var (pos, _) in currentVoxelsObjects)
         {
-            if (!voxels.Contains(voxel))
+            if (!voxels.ContainsKey(pos))
             {
-                voxelsToRemove.Add(voxel);
+                voxelsToRemove.Add(pos);
             }
         }
 
@@ -83,6 +87,9 @@ public class EditModeController
         {
             RemoveVoxel(voxel);
         }
+
+        currentVoxelsData = voxels;
+        UpdateSmoothState();
     }
 
     public void ApplySelection(SelectionState selectionState)
@@ -96,7 +103,7 @@ public class EditModeController
                 }
 
                 selectedVoxels.Clear();
-                foreach (var (_, voxel) in currentVoxels)
+                foreach (var (_, voxel) in currentVoxelsObjects)
                 {
                     voxel.SetActive(true);
                 }
@@ -104,7 +111,7 @@ public class EditModeController
             case SelectionState.Selected selected:
                 if (cachedSelectionState is SelectionState.None)
                 {
-                    foreach (var position in selected.voxels)
+                    foreach (var (position, voxelData) in selected.voxels)
                     {
                         var voxel = CreateVoxel(position + selected.offset);
                         var renderer = voxel.GetComponentInChildren<MeshRenderer>();
@@ -122,7 +129,7 @@ public class EditModeController
                         voxelObj.transform.position = position + selected.offset - (Vector3)pivotPoint;
                     }
                 }
-                foreach (var (position, voxel) in currentVoxels)
+                foreach (var (position, voxel) in currentVoxelsObjects)
                 {
                     voxel.SetActive(!selectedVoxels.ContainsKey(position - selected.offset));
                 }
@@ -161,7 +168,7 @@ public class EditModeController
         material.SetVector(PivotPoint, pivotPoint);
         
         spriteReference.transform.position = new Vector3(0, 20, -20) - (Vector3)pivotPoint;
-        foreach (var (pos, voxel) in currentVoxels)
+        foreach (var (pos, voxel) in currentVoxelsObjects)
         {
             voxel.transform.position = pos - (Vector3)pivotPoint;
         }
@@ -200,7 +207,7 @@ public class EditModeController
     {
         this.isActive = isActive;
         ApplyShaderData(shaderData);
-        foreach (var (_, voxel) in currentVoxels)
+        foreach (var (_, voxel) in currentVoxelsObjects)
         {
             voxel.GetComponentInChildren<Collider>().enabled = isActive;
         }
@@ -225,16 +232,16 @@ public class EditModeController
         spriteReference.gameObject.SetActive(visible);
     }
 
-    private void AddVoxel(Vector3Int position)
+    private void AddVoxel(Vector3Int position, VoxelData data)
     {
-        if (currentVoxels.ContainsKey(position))
+        if (currentVoxelsObjects.ContainsKey(position))
         {
             return;
         }
 
         var voxel = CreateVoxel(position);
         
-        currentVoxels.Add(position, voxel);
+        currentVoxelsObjects.Add(position, voxel);
     }
 
     private GameObject CreateVoxel(Vector3Int position)
@@ -251,10 +258,21 @@ public class EditModeController
 
     private void RemoveVoxel(Vector3Int position)
     {
-        if (currentVoxels.TryGetValue(position, out var voxel))
+        if (currentVoxelsObjects.TryGetValue(position, out var voxel))
         {
-            currentVoxels.Remove(position);
+            currentVoxelsObjects.Remove(position);
             Object.Destroy(voxel);
+        }
+    }
+
+    private void UpdateSmoothState()
+    {
+        var smoothNormalMap = VoxelsSmoothHelper.GetSmoothNormalMap(currentVoxelsData);
+        foreach (var (pos, normal) in smoothNormalMap)
+        {
+            var obj = currentVoxelsObjects[pos];
+            var meshFilter = obj.GetComponentInChildren<MeshFilter>();
+            meshFilter.sharedMesh = meshByNormal[normal];
         }
     }
 }
