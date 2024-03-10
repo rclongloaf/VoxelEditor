@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Main.Scripts.Helpers;
 using Main.Scripts.Helpers.Export;
+using Main.Scripts.Helpers.MeshGeneration;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
 using Newtonsoft.Json;
@@ -27,8 +27,9 @@ public class EditorRepository
     private const string KEY_X = "x";
     private const string KEY_Y = "y";
     private const string KEY_Z = "z";
+    private const string KEY_IS_SMOOTH = "is_smooth";
     
-    private const int VERSION = 1;
+    private const int VERSION = 2;
     
     public VoxData? LoadVoxFile(string path)
     {
@@ -36,13 +37,19 @@ public class EditorRepository
         {
             return null;
         }
-
-        var sprites = new Dictionary<SpriteIndex, SpriteData>();
         
         using var streamReader = File.OpenText(path);
         using var jsonReader = new JsonTextReader(streamReader);
 
         var jObject = (JObject)JToken.ReadFrom(jsonReader);
+        var version = (int)jObject.GetValue(KEY_VERSION);
+
+        if (version > VERSION)
+        {
+            return null;
+        }
+        
+        var sprites = new Dictionary<SpriteIndex, SpriteData>();
         
         var jTexture = (JObject)jObject.GetValue(KEY_TEXTURE);
         var textureData = new TextureData(
@@ -68,16 +75,20 @@ public class EditorRepository
             );
 
             var jVoxels = (JArray)jSprite.GetValue(KEY_VOXELS);
-            var voxels = new HashSet<Vector3Int>();
+            var voxelsData = new Dictionary<Vector3Int, VoxelData>();
 
             foreach (var jVoxel in jVoxels.Cast<JObject>())
             {
                 var x = (int)jVoxel.GetValue(KEY_X);
                 var y = (int)jVoxel.GetValue(KEY_Y);
                 var z = (int)jVoxel.GetValue(KEY_Z);
-                voxels.Add(new Vector3Int(x, y, z));
+                var isSmooth = (bool)(jVoxel.GetValue(KEY_IS_SMOOTH) ?? false);
+                var position = new Vector3Int(x, y, z);
+                voxelsData[position] = new VoxelData(
+                    isSmooth: isSmooth
+                );
             }
-            sprites.Add(spriteIndex, new SpriteData(pivot, voxels));
+            sprites.Add(spriteIndex, new SpriteData(pivot, voxelsData));
         }
 
         return new VoxData(
@@ -113,13 +124,14 @@ public class EditorRepository
             jSprite.Add(KEY_PIVOT, jPivot);
             
             var voxelsList = new JArray();
-            foreach (var voxelPosition in spriteData.voxels)
+            foreach (var (voxelPosition, voxelData) in spriteData.voxels)
             {
-                var jPos = new JObject();
-                jPos.Add(KEY_X, voxelPosition.x);
-                jPos.Add(KEY_Y, voxelPosition.y);
-                jPos.Add(KEY_Z, voxelPosition.z);
-                voxelsList.Add(jPos);
+                var jVoxel = new JObject();
+                jVoxel.Add(KEY_X, voxelPosition.x);
+                jVoxel.Add(KEY_Y, voxelPosition.y);
+                jVoxel.Add(KEY_Z, voxelPosition.z);
+                jVoxel.Add(KEY_IS_SMOOTH, voxelData.isSmooth);
+                voxelsList.Add(jVoxel);
             }
             jSprite.Add(KEY_VOXELS, voxelsList);
             
@@ -134,7 +146,7 @@ public class EditorRepository
 
     public void ExportMesh(
         string fileName,
-        HashSet<Vector3Int> voxels,
+        Dictionary<Vector3Int, VoxelData> voxels,
         int textureWidth,
         int textureHeight,
         TextureData textureData,
@@ -186,7 +198,7 @@ public class EditorRepository
         int textureHeight
     )
     {
-        return MeshGenerationHelper.GenerateMesh(
+        return VoxelMeshGenerationHelper.GenerateMesh(
             spriteData: spriteData,
             pixelsPerUnit: pixelsPerUnit,
             textureData: textureData,

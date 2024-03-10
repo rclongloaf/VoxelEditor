@@ -109,8 +109,8 @@ public class ExportActionDelegate : ActionDelegate<EditorAction.Export>
         repository.ExportMesh(
             action.path.Split('.')[0],
             loadedLayer.currentSpriteData.voxels,
-            loadedLayer.texture?.width ?? 1,
-            loadedLayer.texture?.height ?? 1,
+            loadedLayer.voxData.textureData.TextureWidth,
+            loadedLayer.voxData.textureData.TextureHeight,
             loadedLayer.voxData.textureData,
             loadedLayer.currentSpriteIndex,
             loadedLayer.currentSpriteData.pivot,
@@ -127,8 +127,8 @@ public class ExportActionDelegate : ActionDelegate<EditorAction.Export>
             repository.ExportMesh(
                 $"{fileName}_{spriteIndex.rowIndex + 1}_{spriteIndex.columnIndex + 1}",
                 spriteData.voxels,
-                loadedLayer.texture?.width ?? 1,
-                loadedLayer.texture?.height ?? 1,
+                loadedLayer.voxData.textureData.TextureWidth,
+                loadedLayer.voxData.textureData.TextureHeight,
                 loadedLayer.voxData.textureData,
                 spriteIndex,
                 spriteData.pivot,

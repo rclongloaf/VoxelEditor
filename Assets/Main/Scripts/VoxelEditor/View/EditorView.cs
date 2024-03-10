@@ -130,8 +130,9 @@ public class EditorView : MonoBehaviour,
 
         var withCtrl = Input.GetKey(KeyCode.LeftControl);
         var withShift = Input.GetKey(KeyCode.LeftShift);
-        var withX = Input.GetKey(KeyCode.X);
+        var withD = Input.GetKey(KeyCode.D);
         var withSelection = Input.GetKey(KeyCode.A);
+        var withSmooth = Input.GetKey(KeyCode.S);
 
         var editorUIHolderListener = (EditorUIHolder.Listener)this;
 
@@ -163,8 +164,11 @@ public class EditorView : MonoBehaviour,
                     case KeyCode.Mouse0 when activeLayer != null && withSelection:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.Select());
                         break;
+                    case KeyCode.Mouse0 when activeLayer != null && withSmooth:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Smooth(!withD));
+                        break;
                     case KeyCode.Mouse0 when activeLayer != null:
-                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withCtrl, withShift, withX));
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withD, withShift, withCtrl));
                         break;
                     case KeyCode.Mouse1:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.Rotate());
@@ -275,6 +279,9 @@ public class EditorView : MonoBehaviour,
                     case KeyCode.Mouse0 when activeLayer != null && currentState.controlState is ControlState.Selection:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.Select());
                         break;
+                    case KeyCode.Mouse0 when activeLayer != null && currentState.controlState is ControlState.Smoothing:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.Smooth());
+                        break;
                     case KeyCode.Mouse0 when activeLayer != null:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.Draw());
                         break;
@@ -311,6 +318,12 @@ public class EditorView : MonoBehaviour,
                     deltaX: Input.GetAxis("Mouse X"),
                     deltaY: Input.GetAxis("Mouse Y")
                 ));
+                break;
+            case ControlState.Smoothing:
+                if (activeLayer != null && Input.GetKey(KeyCode.Mouse0))
+                {
+                    feature.ApplyAction(new EditorAction.Input.OnButtonSmooth());
+                }
                 break;
             case ControlState.Selection selection:
                 selectionImage.SetVisible(true);
@@ -508,6 +521,11 @@ public class EditorView : MonoBehaviour,
     void EditorUIHolder.Listener.OnApplyPivotForAllSpritesClicked()
     {
         applyPivotPointForAllUIHolder.SetVisibility(true);
+    }
+
+    void EditorUIHolder.Listener.OnSmoothAllClicked(bool enableSmooth)
+    {
+        feature.ApplyAction(enableSmooth ? new EditorAction.Smooth.Auto() : new EditorAction.Smooth.Clear());
     }
 
     public void OnToggleSpriteRefClicked()

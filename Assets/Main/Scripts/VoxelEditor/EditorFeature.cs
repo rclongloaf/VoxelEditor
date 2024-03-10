@@ -33,6 +33,7 @@ namespace Main.Scripts.VoxelEditor
         private ShaderActionDelegate shaderActionDelegate;
         private ActionsHistoryActionDelegate actionsHistoryActionDelegate;
         private PivotPointActionDelegate pivotPointActionDelegate;
+        private SmoothActionDelegate smoothActionDelegate;
 
         public EditorFeature(EditorView view, EditorEventsConsumer eventsConsumer)
         {
@@ -69,7 +70,7 @@ namespace Main.Scripts.VoxelEditor
             saveVoxActionDelegate = new SaveVoxActionDelegate(this, reducer, repository, eventsConsumer, selectionDelegate);
             importActionDelegate = new ImportActionDelegate(this, reducer, repository, eventsConsumer);
             exportActionDelegate = new ExportActionDelegate(this, reducer, repository, eventsConsumer, selectionDelegate);
-            editModeActionDelegate = new EditModeActionDelegate(this, reducer);
+            editModeActionDelegate = new EditModeActionDelegate(this, reducer, selectionDelegate);
             inputActionDelegate = new InputActionDelegate(this, reducer, selectionDelegate);
             spriteSettingsActionDelegate = new SpriteSettingsActionDelegate(this, reducer);
             spriteSelectingActionDelegate = new SpriteSelectingActionDelegate(this, reducer, selectionDelegate);
@@ -78,6 +79,7 @@ namespace Main.Scripts.VoxelEditor
             shaderActionDelegate = new ShaderActionDelegate(this, reducer);
             actionsHistoryActionDelegate = new ActionsHistoryActionDelegate(this, reducer);
             pivotPointActionDelegate = new PivotPointActionDelegate(this, reducer);
+            smoothActionDelegate = new SmoothActionDelegate(this, reducer);
         }
 
         public void ApplyAction(EditorAction action)
@@ -101,6 +103,9 @@ namespace Main.Scripts.VoxelEditor
                     break;
                 case EditorAction.Shader shaderAction:
                     shaderActionDelegate.ApplyAction(state, shaderAction);
+                    break;
+                case EditorAction.Smooth smoothAction:
+                    smoothActionDelegate.ApplyAction(state, smoothAction);
                     break;
                 case EditorAction.SpriteSelecting spriteSelecting:
                     spriteSelectingActionDelegate.ApplyAction(state, spriteSelecting);

@@ -5,5 +5,9 @@ public record TextureData(
     int columnsCount,
     int spriteWidth,
     int spriteHeight
-);
+)
+{
+    public int TextureWidth => spriteWidth * columnsCount;
+    public int TextureHeight => spriteHeight * rowsCount;
+}
 }

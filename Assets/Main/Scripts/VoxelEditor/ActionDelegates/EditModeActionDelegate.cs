@@ -6,10 +6,16 @@ namespace Main.Scripts.VoxelEditor.ActionDelegates
 {
 public class EditModeActionDelegate : ActionDelegate<EditorAction.EditMode>
 {
+    private SelectionDelegate selectionDelegate;
+
     public EditModeActionDelegate(
         EditorFeature feature,
-        EditorReducer reducer
-    ) : base(feature, reducer) { }
+        EditorReducer reducer,
+        SelectionDelegate selectionDelegate
+    ) : base(feature, reducer)
+    {
+        this.selectionDelegate = selectionDelegate;
+    }
     
     public override void ApplyAction(EditorState state, EditorAction.EditMode action)
     {
@@ -21,6 +27,7 @@ public class EditModeActionDelegate : ActionDelegate<EditorAction.EditMode>
                 reducer.ApplyPatch(new EditorPatch.EditMode.EditModeSelected());
                 break;
             case EditorAction.EditMode.OnRenderModeClicked onRenderModeClicked:
+                selectionDelegate.CancelSelection(state);
                 reducer.ApplyPatch(new EditorPatch.EditMode.RenderModeSelected());
                 break;
             default:

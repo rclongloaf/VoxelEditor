@@ -1,22 +1,23 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:Label tabindex="-1" text="Menu: Esc" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="ChangeSprite : Left/Righ Arrows" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Switch Camera: TAB" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Switch Scene: R" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Toggle Sprite Ref: Q" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Copy: CTRL + C" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Paste: CTRL + V" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Draw By Section: Hold SHIFT" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Draw With Projection: Hold X" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Delete Voxels: Hold CTRL" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Cancel: CTRL + Z" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Revert: CTRL + Y / CTRL + SHIFT + Z" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Toggle Grid: G" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Toggle Transparent: T" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Move Pivot: IJKL (aka WASD)" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Select/Create Layer: 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Show/Hide Layer: SHIFT + 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Delete Layer: CTRL + 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Select Voxels: Hold A" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-    <ui:Label tabindex="-1" text="Delete Selected: Delete" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+    <ui:Label tabindex="-1" text="Menu: Esc" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="ChangeSprite : Left/Righ Arrows" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Switch Camera: TAB" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Switch Scene: R" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Toggle Sprite Ref: Q" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Copy: CTRL + C" parse-escape-sequences="true" display-tooltip-when-elided="true" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; font-size: 12px;" />
+    <ui:Label tabindex="-1" text="Paste: CTRL + V" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Draw By Section: Hold SHIFT" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Draw With Projection: Hold CTRL" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Cancel: CTRL + Z" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Revert: CTRL + Y / CTRL + SHIFT + Z" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Toggle Grid: G" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Toggle Transparent: T" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Move Pivot: IJKL (aka WASD)" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Select/Create Layer: 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Show/Hide Layer: SHIFT + 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Delete Layer: CTRL + 1..5" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Select Voxels: Hold A" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Delete Selected: Delete" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Delete Voxels: Hold D" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Smooth Voxel: Hold S" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
 </ui:UXML>
