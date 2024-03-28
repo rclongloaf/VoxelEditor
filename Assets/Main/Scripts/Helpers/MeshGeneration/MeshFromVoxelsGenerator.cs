@@ -885,8 +885,27 @@ public class MeshFromVoxelsGenerator
             }
         }
 
+        var usedVertexIndexes = new HashSet<int>();
+        foreach (var index in trianglesList)
+        {
+            usedVertexIndexes.Add(index);
+        }
+
+        var vertexIndexMap = new Dictionary<int, int>();
+        var filteredVerticesList = new List<Vector3>();
+        for (var i = 0; i < verticesList.Count; i++)
+        {
+            if (usedVertexIndexes.Contains(i))
+            {
+                vertexIndexMap[i] = vertexIndexMap.Count;
+                filteredVerticesList.Add(verticesList[i]);
+            }
+        }
+
+        trianglesList = trianglesList.ConvertAll(index => vertexIndexMap[index]);
+
         return new PolygonsData(
-            verticesList,
+            filteredVerticesList,
             trianglesList
         );
     }
