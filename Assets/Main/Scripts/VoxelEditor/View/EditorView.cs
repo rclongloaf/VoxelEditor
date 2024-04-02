@@ -55,6 +55,8 @@ public class EditorView : MonoBehaviour,
     private GameObject renderModelPrefab = null!;
     [SerializeField]
     private Material renderModelMaterial = null!;
+    [SerializeField]
+    private Material renderTransparentModelMaterial = null!;
     
     private EditorFeature feature = null!;
     private EditorState? currentState;
@@ -87,7 +89,8 @@ public class EditorView : MonoBehaviour,
         renderModeController = new RenderModeController(
             renderModeRoot, 
             renderModelPrefab, 
-            renderModelMaterial
+            renderModelMaterial,
+            renderTransparentModelMaterial
         );
         
         ApplyState(feature.state);
@@ -634,6 +637,11 @@ public class EditorView : MonoBehaviour,
         
         isometricCameraTransform.position = state.isometricCameraData.position;
         isometricCameraTransform.gameObject.SetActive(state.cameraType is CameraType.Isometric);
+
+        if (currentState == null || currentState.cameraType != state.cameraType)
+        {
+            renderModeController.SetTransparentMaterial(state.cameraType is CameraType.Isometric);
+        }
         
         currentState = state;
     }

@@ -11,19 +11,24 @@ public class RenderModeController
     private GameObject root;
     private GameObject modelPrefab;
     private Material modelMaterial;
+    private Material transparentModelMaterial;
 
     private Dictionary<int, RenderData> renderDataMap = new();
     private Dictionary<int, GameObject> models = new();
 
+    private bool isTransparent;
+
     public RenderModeController(
         GameObject root,
         GameObject modelPrefab,
-        Material modelMaterial
+        Material modelMaterial,
+        Material transparentModelMaterial
     )
     {
         this.root = root;
         this.modelPrefab = modelPrefab;
         this.modelMaterial = modelMaterial;
+        this.transparentModelMaterial = transparentModelMaterial;
     }
 
     public void ApplyLayersData(Dictionary<int, VoxLayerState> layers)
@@ -67,7 +72,7 @@ public class RenderModeController
                         model = Object.Instantiate(modelPrefab, root.transform);
                         models[key] = model;
                         meshRenderer = model.GetComponent<MeshRenderer>();
-                        // meshRenderer.sharedMaterial = modelMaterial;
+                        meshRenderer.sharedMaterial = isTransparent ? transparentModelMaterial : modelMaterial;
                     }
                     else
                     {
@@ -87,6 +92,17 @@ public class RenderModeController
     public void SetVisibility(bool visible)
     {
         root.SetActive(visible);
+    }
+
+    public void SetTransparentMaterial(bool isTransparent)
+    {
+        foreach (var (_, model) in models)
+        {
+            var meshRenderer = model.GetComponent<MeshRenderer>();
+            var texture = meshRenderer.material.mainTexture;
+            meshRenderer.sharedMaterial = isTransparent ? transparentModelMaterial : modelMaterial;
+            meshRenderer.material.mainTexture = texture;
+        }
     }
 }
 }
