@@ -1883,7 +1883,8 @@ MonoBehaviour:
   voxelMaterial: {fileID: 2100000, guid: a372a83fa37d4c3eb4eeb85eb800881f, type: 2}
   renderModeRoot: {fileID: 628853474}
   renderModelPrefab: {fileID: 5106303671316433668, guid: 07f3bad13e5d3db498232ab978d2271a, type: 3}
-  renderModelMaterial: {fileID: 2100000, guid: 2bce36c9a29a4051a6a6fc751305b325, type: 2}
+  renderModelMaterial: {fileID: 2100000, guid: 61967b5cb819f70479e9e0db0e173623, type: 2}
+  renderTransparentModelMaterial: {fileID: 2100000, guid: 2bce36c9a29a4051a6a6fc751305b325, type: 2}
 --- !u!1 &1290982100
 GameObject:
   m_ObjectHideFlags: 0
