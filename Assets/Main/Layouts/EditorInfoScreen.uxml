@@ -19,5 +19,6 @@
     <ui:Label tabindex="-1" text="Select Voxels: Hold A" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
     <ui:Label tabindex="-1" text="Delete Selected: Delete" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
     <ui:Label tabindex="-1" text="Delete Voxels: Hold D" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+    <ui:Label tabindex="-1" text="Rotate (X/Y/Z): Hold B/N/M + LMB" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
     <ui:Label tabindex="-1" text="Smooth Voxel: Hold S" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 12px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
 </ui:UXML>

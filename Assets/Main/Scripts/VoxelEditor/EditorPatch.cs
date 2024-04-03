@@ -89,8 +89,8 @@ public interface EditorPatch
         }
         public interface Moving : Control
         {
-            public record Start : Drawing;
-            public record Finish : Drawing;
+            public record Start : Moving;
+            public record Finish : Moving;
         }
         
         public interface Smoothing : Control
@@ -119,11 +119,23 @@ public interface EditorPatch
 
             public record Finish : SelectionMoving;
         }
-        
-        public interface Rotating : Control
+
+        public interface RotatingVoxels : Control
         {
-            public record Start : Drawing;
-            public record Finish : Drawing;
+            public record Start(Axis axis) : RotatingVoxels;
+
+            public record Finish : RotatingVoxels;
+
+            public record ApplyNewVoxels(Dictionary<Vector3Int, VoxelData> voxels) : RotatingVoxels;
+
+            public record ChangeAngle(float angle) : RotatingVoxels;
+        }
+
+        public interface RotatingCamera : Control
+        {
+            public record Start : RotatingCamera;
+
+            public record Finish : RotatingCamera;
         }
     }
     

@@ -162,7 +162,8 @@ public class EditorRepository
             textureData,
             spriteIndex,
             pivotPoint,
-            pixelsPerUnit
+            pixelsPerUnit,
+            true
         );
 
         var mesh = meshGenerator.GenerateMesh();

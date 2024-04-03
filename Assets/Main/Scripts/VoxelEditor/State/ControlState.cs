@@ -29,9 +29,15 @@ public interface ControlState
         Vector3 fromPosition,
         Vector3Int deltaOffset
     ) : ControlState;
+    
+    public record RotatingVoxels(
+        Axis axis,
+        float angle,
+        Dictionary<Vector3Int, VoxelData> voxels
+    ) : ControlState;
 
     public record CameraMoving : ControlState;
-
-    public record Rotating : ControlState;
+    
+    public record RotatingCamera : ControlState;
 }
 }

@@ -109,26 +109,23 @@ public class EditModeController
                 }
                 break;
             case SelectionState.Selected selected:
-                if (cachedSelectionState is SelectionState.None)
+                foreach (var (_, voxelObj) in selectedVoxels)
                 {
-                    foreach (var (position, voxelData) in selected.voxels)
-                    {
-                        var voxel = CreateVoxel(position + selected.offset);
-                        var renderer = voxel.GetComponentInChildren<MeshRenderer>();
-                        renderer.GetPropertyBlock(materialPropertyBlock);
-                        materialPropertyBlock.SetFloat(IsSelected, 1);
-                        renderer.SetPropertyBlock(materialPropertyBlock);
-                        
-                        selectedVoxels[position] = voxel;
-                    }
+                    Object.Destroy(voxelObj);
                 }
-                else
+
+                selectedVoxels.Clear();
+                foreach (var (position, voxelData) in selected.voxels)
                 {
-                    foreach (var (position, voxelObj) in selectedVoxels)
-                    {
-                        voxelObj.transform.position = position + selected.offset - (Vector3)pivotPoint;
-                    }
+                    var voxel = CreateVoxel(position + selected.offset);
+                    var renderer = voxel.GetComponentInChildren<MeshRenderer>();
+                    renderer.GetPropertyBlock(materialPropertyBlock);
+                    materialPropertyBlock.SetFloat(IsSelected, 1);
+                    renderer.SetPropertyBlock(materialPropertyBlock);
+
+                    selectedVoxels[position] = voxel;
                 }
+
                 foreach (var (position, voxel) in currentVoxelsObjects)
                 {
                     voxel.SetActive(!selectedVoxels.ContainsKey(position - selected.offset));
