@@ -136,6 +136,9 @@ public class EditorView : MonoBehaviour,
         var withD = Input.GetKey(KeyCode.D);
         var withSelection = Input.GetKey(KeyCode.A);
         var withSmooth = Input.GetKey(KeyCode.S);
+        var rotateX = Input.GetKey(KeyCode.B);
+        var rotateY = Input.GetKey(KeyCode.N);
+        var rotateZ = Input.GetKey(KeyCode.M);
 
         var editorUIHolderListener = (EditorUIHolder.Listener)this;
 
@@ -161,6 +164,9 @@ public class EditorView : MonoBehaviour,
             {
                 switch (key)
                 {
+                    case KeyCode.Mouse0 when activeLayer != null && (rotateX || rotateY || rotateZ):
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.RotateVoxels(rotateX, rotateY, rotateZ));
+                        break;
                     case KeyCode.Mouse0 when activeLayer?.selectionState is SelectionState.Selected:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.MoveSelection());
                         break;
@@ -174,7 +180,7 @@ public class EditorView : MonoBehaviour,
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.Draw(withD, withShift, withCtrl));
                         break;
                     case KeyCode.Mouse1:
-                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.Rotate());
+                        feature.ApplyAction(new EditorAction.Input.OnButtonDown.RotateCamera());
                         break;
                     case KeyCode.Mouse2:
                         feature.ApplyAction(new EditorAction.Input.OnButtonDown.MoveCamera());
@@ -276,7 +282,7 @@ public class EditorView : MonoBehaviour,
             {
                 switch (key)
                 {
-                    case KeyCode.Mouse0 when activeLayer?.selectionState is SelectionState.Selected:
+                    case KeyCode.Mouse0 when activeLayer != null && currentState.controlState is ControlState.SelectionMoving:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.MoveSelection());
                         break;
                     case KeyCode.Mouse0 when activeLayer != null && currentState.controlState is ControlState.Selection:
@@ -285,11 +291,14 @@ public class EditorView : MonoBehaviour,
                     case KeyCode.Mouse0 when activeLayer != null && currentState.controlState is ControlState.Smoothing:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.Smooth());
                         break;
+                    case KeyCode.Mouse0 when activeLayer != null && currentState.controlState is ControlState.RotatingVoxels:
+                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.RotateVoxels());
+                        break;
                     case KeyCode.Mouse0 when activeLayer != null:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.Draw());
                         break;
                     case KeyCode.Mouse1:
-                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.Rotate());
+                        feature.ApplyAction(new EditorAction.Input.OnButtonUp.RotateCamera());
                         break;
                     case KeyCode.Mouse2:
                         feature.ApplyAction(new EditorAction.Input.OnButtonUp.MoveCamera());
@@ -316,7 +325,8 @@ public class EditorView : MonoBehaviour,
                 }
                 break;
             case ControlState.CameraMoving:
-            case ControlState.Rotating:
+            case ControlState.RotatingVoxels:
+            case ControlState.RotatingCamera:
                 feature.ApplyAction(new EditorAction.Input.OnMouseDelta(
                     deltaX: Input.GetAxis("Mouse X"),
                     deltaY: Input.GetAxis("Mouse Y")

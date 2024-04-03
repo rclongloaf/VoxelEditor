@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Main.Scripts.Helpers;
 using Main.Scripts.VoxelEditor.State;
 using Main.Scripts.VoxelEditor.State.Vox;
 using UnityEngine;
@@ -76,8 +77,8 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             case EditorAction.Input.OnButtonDown.Draw drawAction:
                 OnDrawButtonDown(state, drawAction);
                 break;
-            case EditorAction.Input.OnButtonDown.Rotate:
-                OnRotatingDown(state);
+            case EditorAction.Input.OnButtonDown.RotateCamera:
+                OnRotatingCameraDown(state);
                 break;
             case EditorAction.Input.OnButtonDown.Smooth smoothAction:
                 OnSmoothDown(state, smoothAction);
@@ -91,6 +92,9 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             case EditorAction.Input.OnButtonDown.MoveSelection moveSelection:
                 OnMoveSelectionButtonDown(state);
                 break;
+            case EditorAction.Input.OnButtonDown.RotateVoxels rotateVoxels:
+                OnRotatingVoxelsDown(state, rotateVoxels);
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action), action, null);
         }
@@ -103,8 +107,11 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             case EditorAction.Input.OnButtonUp.Draw:
                 OnDrawButtonUp(state);
                 break;
-            case EditorAction.Input.OnButtonUp.Rotate:
-                OnRotatingUp(state);
+            case EditorAction.Input.OnButtonUp.RotateCamera:
+                OnRotatingCameraUp(state);
+                break;
+            case EditorAction.Input.OnButtonUp.RotateVoxels rotateVoxels:
+                OnRotatingVoxelsUp(state);
                 break;
             case EditorAction.Input.OnButtonUp.Smooth smooth:
                 OnSmoothUp(state);
@@ -134,8 +141,11 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
             case ControlState.CameraMoving:
                 MoveCameraByMouseDelta(state, action.deltaX, action.deltaY);
                 break;
-            case ControlState.Rotating:
-                RotateByMouseDelta(state, action.deltaX, action.deltaY);
+            case ControlState.RotatingVoxels:
+                RotateVoxelsByMouseDelta(state, action.deltaX, action.deltaY);
+                break;
+            case ControlState.RotatingCamera:
+                RotateCameraByMouseDelta(state, action.deltaX, action.deltaY);
                 break;
             case ControlState.Selection selection:
                 break;
@@ -494,25 +504,57 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         
         reducer.ApplyPatch(new EditorPatch.Control.SelectionMoving.ChangeSelectionOffset(deltaOffset));
     }
+
+    private void OnRotatingVoxelsDown(EditorState state, EditorAction.Input.OnButtonDown.RotateVoxels action)
+    {
+        if (state.cameraType is not CameraType.Free
+            || state.controlState is not ControlState.None
+            || state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
+
+        var axis = action.x ? Axis.X : action.y ? Axis.Y : Axis.Z;
+        
+        reducer.ApplyPatch(new EditorPatch.Control.RotatingVoxels.Start(axis));
+    }
+
+    private void OnRotatingVoxelsUp(EditorState state)
+    {
+        if (state.controlState is not ControlState.RotatingVoxels rotatingVoxels
+            || state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
+        
+        Dictionary<Vector3Int, VoxelData> newVoxels;
+
+        if (activeLayer.selectionState is SelectionState.Selected selectedState)
+        {
+            newVoxels = selectedState.voxels;
+        }
+        else
+        {
+            newVoxels = activeLayer.currentSpriteData.voxels;
+        }
+        
+        reducer.ApplyPatch(new EditorPatch.ActionsHistory.NewAction(
+            new EditAction.RotateVoxels(rotatingVoxels.voxels, newVoxels)
+        ));
+        reducer.ApplyPatch(new EditorPatch.Control.RotatingVoxels.Finish());
+    }
     
-    private void OnRotatingDown(EditorState state)
+    private void OnRotatingCameraDown(EditorState state)
     {
         if (state.cameraType is not CameraType.Free
             || state.controlState is not ControlState.None) return;
         
-        reducer.ApplyPatch(new EditorPatch.Control.Rotating.Start());
+        reducer.ApplyPatch(new EditorPatch.Control.RotatingCamera.Start());
     }
 
-    private void OnRotatingUp(EditorState state)
+    private void OnRotatingCameraUp(EditorState state)
     {
-        if (state.controlState is not ControlState.Rotating) return;
-        
-        reducer.ApplyPatch(new EditorPatch.Control.Rotating.Finish());
+        if (state.controlState is not ControlState.RotatingCamera) return;
+        reducer.ApplyPatch(new EditorPatch.Control.RotatingCamera.Finish());
     }
 
-    private void RotateByMouseDelta(EditorState state, float deltaX, float deltaY)
+    private void RotateCameraByMouseDelta(EditorState state, float deltaX, float deltaY)
     {
-        if (state.controlState is not ControlState.Rotating
+        if (state.controlState is not ControlState.RotatingCamera
             || state.cameraType is not CameraType.Free) return;
 
         var eulerAngles = state.freeCameraData.rotation.eulerAngles;
@@ -532,6 +574,45 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         var newRotation = xQuaternion * yQuaternion;
 
         reducer.ApplyPatch(new EditorPatch.Camera.NewRotation(newRotation));
+    }
+
+    private void RotateVoxelsByMouseDelta(EditorState state, float deltaX, float deltaY)
+    {
+        if (state.controlState is not ControlState.RotatingVoxels rotatingVoxelsState
+            || state.cameraType is not CameraType.Free
+            || state.activeLayer is not VoxLayerState.Loaded activeLayer) return;
+
+        var axis = rotatingVoxelsState.axis switch
+        {
+            Axis.X => Vector3.right,
+            Axis.Y => Vector3.up,
+            Axis.Z => Vector3.forward,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        var angle = rotatingVoxelsState.angle - deltaX * 4f;
+        var quaternion = Quaternion.AngleAxis(angle, axis);
+
+        var voxels = rotatingVoxelsState.voxels;
+
+        
+        var rotatedVoxels = new Dictionary<Vector3Int, VoxelData>();
+
+        var offset = new Vector3Int(
+            (int)activeLayer.currentSpriteData.pivot.x,
+            (int)activeLayer.currentSpriteData.pivot.y,
+            0
+        );
+
+        foreach (var (position, data) in voxels)
+        {
+            var deltaPosition = position - offset;
+            rotatedVoxels.TryAdd(Vector3Int.RoundToInt(quaternion * deltaPosition) + offset, data);
+        }
+        rotatedVoxels.FillEmptySpaces();
+       
+        reducer.ApplyPatch(new EditorPatch.Control.RotatingVoxels.ApplyNewVoxels(rotatedVoxels));
+        reducer.ApplyPatch(new EditorPatch.Control.RotatingVoxels.ChangeAngle(angle));
     }
     
     private void OnSmoothDown(EditorState state, EditorAction.Input.OnButtonDown.Smooth action)

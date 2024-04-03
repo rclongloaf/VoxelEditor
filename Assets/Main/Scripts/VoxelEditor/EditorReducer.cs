@@ -345,9 +345,79 @@ public class EditorReducer
                 return state with { controlState = new ControlState.CameraMoving() };
             case EditorPatch.Control.Moving.Finish:
                 return state with { controlState = new ControlState.None() };
-            case EditorPatch.Control.Rotating.Start:
-                return state with { controlState = new ControlState.Rotating() };
-            case EditorPatch.Control.Rotating.Finish:
+            case EditorPatch.Control.RotatingVoxels.Start rotatingVoxelsPatch:
+            {
+                if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return state;
+
+                Dictionary<Vector3Int, VoxelData> rotatingVoxels;
+
+                if (activeLayer.selectionState is SelectionState.Selected selectedState)
+                {
+                    rotatingVoxels = selectedState.voxels;
+                }
+                else
+                {
+                    rotatingVoxels = activeLayer.currentSpriteData.voxels;
+                }
+
+                return state with
+                {
+                    controlState = new ControlState.RotatingVoxels(
+                        rotatingVoxelsPatch.axis,
+                        0,
+                        rotatingVoxels
+                    )
+                };
+            }
+            case EditorPatch.Control.RotatingVoxels.ApplyNewVoxels applyNewVoxels:
+            {
+                if (state.activeLayer is not VoxLayerState.Loaded activeLayer) return state;
+
+                var layers = new Dictionary<int, VoxLayerState>(state.layers);
+
+                if (activeLayer.selectionState is SelectionState.Selected selectionState)
+                {
+                    layers[state.activeLayerKey] = activeLayer with
+                    {
+                        selectionState = selectionState with
+                        {
+                            voxels = applyNewVoxels.voxels
+                        }
+                    };
+                }
+                else
+                {
+                    layers[state.activeLayerKey] = activeLayer with
+                    {
+                        currentSpriteData = activeLayer.currentSpriteData with
+                        {
+                            voxels = applyNewVoxels.voxels
+                        }
+                    };
+                }
+
+                return state with
+                {
+                    layers = layers
+                };
+            }
+            case EditorPatch.Control.RotatingVoxels.ChangeAngle changeAnglePatch:
+            {
+                if (state.controlState is not ControlState.RotatingVoxels rotatingVoxelsState) return state;
+
+                return state with
+                {
+                    controlState = rotatingVoxelsState with
+                    {
+                        angle = changeAnglePatch.angle
+                    }
+                };
+            }
+            case EditorPatch.Control.RotatingVoxels.Finish:
+                return state with { controlState = new ControlState.None() };
+            case EditorPatch.Control.RotatingCamera.Start:
+                return state with { controlState = new ControlState.RotatingCamera() };
+            case EditorPatch.Control.RotatingCamera.Finish:
                 return state with { controlState = new ControlState.None() };
             case EditorPatch.Control.Selection.Start start:
                 return state with

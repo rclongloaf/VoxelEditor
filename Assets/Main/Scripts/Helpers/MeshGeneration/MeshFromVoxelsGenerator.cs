@@ -18,6 +18,7 @@ public class MeshFromVoxelsGenerator
     private SpriteIndex spriteIndex;
     private Vector2 pivotPoint;
     private float pixelsPerUnit;
+    private bool optimizeNormals;
 
     public MeshFromVoxelsGenerator(
         Dictionary<Vector3Int, VoxelData> voxels,
@@ -26,16 +27,19 @@ public class MeshFromVoxelsGenerator
         TextureData textureData,
         SpriteIndex spriteIndex,
         Vector2 pivotPoint,
-        float pixelsPerUnit
+        float pixelsPerUnit,
+        bool optimizeNormals
     )
     {
-        this.voxels = voxels;
+        this.voxels = new Dictionary<Vector3Int, VoxelData>(voxels);
+        this.voxels.FillEmptySpaces();
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
         this.textureData = textureData;
         this.spriteIndex = spriteIndex;
         this.pivotPoint = pivotPoint;
         this.pixelsPerUnit = pixelsPerUnit;
+        this.optimizeNormals = optimizeNormals;
     }
 
     public Mesh? GenerateMesh()
@@ -61,14 +65,21 @@ public class MeshFromVoxelsGenerator
                     (int)Math.Round(fromVert.y),
                     (int)Math.Round(fromVert.z)
                 );
-                if (verticesDictionary.TryGetValue(vert, out var index))
+                if (optimizeNormals)
                 {
-                    vertIndexesMap.Add(i, index);
+                    if (verticesDictionary.TryGetValue(vert, out var index))
+                    {
+                        vertIndexesMap.Add(i, index);
+                    }
+                    else
+                    {
+                        verticesDictionary.Add(vert, sortedVerticesList.Count);
+                        vertIndexesMap.Add(i, sortedVerticesList.Count);
+                        sortedVerticesList.Add(vert);
+                    }
                 }
                 else
                 {
-                    verticesDictionary.Add(vert, sortedVerticesList.Count);
-                    vertIndexesMap.Add(i, sortedVerticesList.Count);
                     sortedVerticesList.Add(vert);
                 }
             }
@@ -89,7 +100,7 @@ public class MeshFromVoxelsGenerator
 
             boundsMax += Vector3.one;
 
-            var newTriangles = polygonsMap.triangles.ConvertAll(index => vertIndexesMap[index]);
+            var newTriangles = optimizeNormals ? polygonsMap.triangles.ConvertAll(index => vertIndexesMap[index]) : polygonsMap.triangles;
 
             var mesh = new Mesh();
 
@@ -102,7 +113,7 @@ public class MeshFromVoxelsGenerator
                 (vert.x + spriteWidth * spriteIndex.columnIndex) / (float)textureWidth,
                 (vert.y + vert.z + spriteHeight * (textureData.rowsCount - spriteIndex.rowIndex - 1)) / (float)textureHeight
             )).ToArray();
-            mesh.normals = sortedVerticesList.ConvertAll(_ => Vector3.back).ToArray();
+            mesh.normals = optimizeNormals ? sortedVerticesList.ConvertAll(_ => Vector3.back).ToArray() : polygonsMap.normals.ToArray();
             mesh.bounds = new Bounds(
                 Vector3.zero,
                 (boundsMax - boundsMin) * 2 / pixelsPerUnit
@@ -611,10 +622,17 @@ public class MeshFromVoxelsGenerator
                     _ => throw new ArgumentOutOfRangeException()
                 };
             });
+            var normals = new List<Vector3>();
+            var normalVector = GetNormalVector(normal, true);
+            for (var i = 0; i < vertices.Count; i++)
+            {
+                normals.Add(normalVector);
+            }
 
             polygonsMap[normal] = polygonsData with
             {
                 vertices = vertices,
+                normals = normals
             };
 
             foreach (Normal secondNormal in Enum.GetValues(typeof(Normal)))
@@ -725,14 +743,19 @@ public class MeshFromVoxelsGenerator
         }
 
         var verticesList = new List<Vector3>();
+        var normalsList = new List<Vector3>();
         var trianglesList = new List<int>();
+        
 
-        foreach (var (_, polygonsData) in polygonsMap)
+        foreach (var (normal, polygonsData) in polygonsMap)
         {
+            var normalVector = GetNormalVector(normal, true);
+            
             var verticesStartIndex = verticesList.Count;
             for (var j = 0; j < polygonsData.vertices.Count; j++)
             {
                 verticesList.Add(polygonsData.vertices[j]);
+                normalsList.Add(normalVector);
             }
 
             for (var j = 0; j < polygonsData.triangles.Count; j++)
@@ -743,8 +766,24 @@ public class MeshFromVoxelsGenerator
 
         return new PolygonsData(
             verticesList,
+            normalsList,
             trianglesList
         );
+    }
+
+    private Vector3 GetNormalVector(Normal normal, bool replaceUpToBack)
+    {
+        var normalX = normal.HasFlag(Normal.Right) ? 1 : (normal.HasFlag(Normal.Left) ? -1 : 0);
+        var normalY = normal.HasFlag(Normal.Up) ? 1 : (normal.HasFlag(Normal.Down) ? -1 : 0);
+        var normalZ = normal.HasFlag(Normal.Forward) ? 1 : (normal.HasFlag(Normal.Back) ? -1 : 0);
+
+        if (replaceUpToBack && normalY > 0 && normalZ <= 0)
+        {
+            normalY = 0;
+            normalZ = -1;
+        }
+
+        return new Vector3(normalX, normalY, normalZ).normalized;
     }
 
     private bool isSmoothed(Normal normal)
@@ -906,6 +945,7 @@ public class MeshFromVoxelsGenerator
 
         return new PolygonsData(
             filteredVerticesList,
+            new List<Vector3>(),
             trianglesList
         );
     }
@@ -915,6 +955,7 @@ public class MeshFromVoxelsGenerator
         var checkedVoxels = new HashSet<Vector3Int>();
 
         var verticesList = new List<Vector3>();
+        var normalsList = new List<Vector3>();
         var trianglesList = new List<int>();
 
         var step = GetStepByNormal(normal);
@@ -933,6 +974,8 @@ public class MeshFromVoxelsGenerator
             var normalX = normal.HasFlag(Normal.Right) ? 1 : (normal.HasFlag(Normal.Left) ? -1 : 0);
             var normalY = normal.HasFlag(Normal.Up) ? 1 : (normal.HasFlag(Normal.Down) ? -1 : 0);
             var normalZ = normal.HasFlag(Normal.Forward) ? 1 : (normal.HasFlag(Normal.Back) ? -1 : 0);
+
+            var normalVector = GetNormalVector(normal, true);
 
             if (step == Vector3Int.one)
             {
@@ -989,6 +1032,8 @@ public class MeshFromVoxelsGenerator
                         break;
                 }
 
+                normalsList.Add(normalVector);
+
                 trianglesList.Add(vertexStartIndex + 0);
                 trianglesList.Add(vertexStartIndex + 1);
                 trianglesList.Add(vertexStartIndex + 2);
@@ -997,6 +1042,7 @@ public class MeshFromVoxelsGenerator
 
         return new PolygonsData(
             verticesList,
+            normalsList,
             trianglesList
         );
     }
@@ -1352,6 +1398,7 @@ public class MeshFromVoxelsGenerator
 
     private record PolygonsData(
         List<Vector3> vertices,
+        List<Vector3> normals,
         List<int> triangles
     );
 
