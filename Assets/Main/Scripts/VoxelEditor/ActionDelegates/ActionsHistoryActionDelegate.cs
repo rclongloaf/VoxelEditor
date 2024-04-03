@@ -69,6 +69,9 @@ public class ActionsHistoryActionDelegate : ActionDelegate<EditorAction.ActionsH
                 case EditAction.MoveSelection moveSelection:
                     reducer.ApplyPatch(new EditorPatch.Control.SelectionMoving.ChangeSelectionOffset(-moveSelection.deltaOffset));
                     break;
+                case EditAction.RotateVoxels rotateVoxels:
+                    reducer.ApplyPatch(new EditorPatch.Control.RotatingVoxels.ApplyNewVoxels(rotateVoxels.fromVoxels));
+                    break;
                 case EditAction.Paste paste:
                     reducer.ApplyPatch(new EditorPatch.Selection.CancelSelection());
                     break;
@@ -113,6 +116,9 @@ public class ActionsHistoryActionDelegate : ActionDelegate<EditorAction.ActionsH
                     break;
                 case EditAction.MoveSelection moveSelection:
                     reducer.ApplyPatch(new EditorPatch.Control.SelectionMoving.ChangeSelectionOffset(moveSelection.deltaOffset));
+                    break;
+                case EditAction.RotateVoxels rotateVoxels:
+                    reducer.ApplyPatch(new EditorPatch.Control.RotatingVoxels.ApplyNewVoxels(rotateVoxels.toVoxels));
                     break;
                 case EditAction.Paste paste:
                     reducer.ApplyPatch(new EditorPatch.Selection.Select(paste.voxels, Vector3Int.zero));

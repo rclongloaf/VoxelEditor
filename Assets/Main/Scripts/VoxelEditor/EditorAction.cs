@@ -1,5 +1,4 @@
-﻿using Main.Scripts.VoxelEditor.State.Vox;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Main.Scripts.VoxelEditor
 {
@@ -122,7 +121,9 @@ public interface EditorAction
 
             public record MoveSelection : OnButtonDown;
 
-            public record Rotate : OnButtonDown;
+            public record RotateVoxels(bool x, bool y, bool z) : OnButtonDown;
+
+            public record RotateCamera : OnButtonDown;
 
             public record MoveCamera : OnButtonDown;
         }
@@ -137,7 +138,9 @@ public interface EditorAction
 
             public record MoveSelection : OnButtonUp;
             
-            public record Rotate : OnButtonUp;
+            public record RotateVoxels : OnButtonUp;
+            
+            public record RotateCamera : OnButtonUp;
 
             public record MoveCamera : OnButtonUp;
         }

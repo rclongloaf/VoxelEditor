@@ -27,5 +27,10 @@ public interface EditAction
     public record MoveSelection(
         Vector3Int deltaOffset
     ) : EditAction;
+
+    public record RotateVoxels(
+        Dictionary<Vector3Int, VoxelData> fromVoxels,
+        Dictionary<Vector3Int, VoxelData> toVoxels
+    ) : EditAction;
 }
 }

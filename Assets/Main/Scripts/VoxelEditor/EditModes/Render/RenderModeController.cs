@@ -55,7 +55,8 @@ public class RenderModeController
                         loadedLayer.voxData.textureData,
                         loadedLayer.currentSpriteIndex,
                         loadedLayer.currentSpriteData.pivot,
-                        1
+                        1,
+                        false
                     );
 
                     var mesh = meshGenerator.GenerateMesh();
