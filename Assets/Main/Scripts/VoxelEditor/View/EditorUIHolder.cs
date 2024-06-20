@@ -23,6 +23,7 @@ public class EditorUIHolder
         var loadTextureBtn = root.Q<Button>("LoadTextureBtn");
         var saveBtn = root.Q<Button>("SaveVoxBtn");
         var importBtn = root.Q<Button>("ImportBtn");
+        var exportAsVoxelToggle = root.Q<Toggle>("ExportAsVoxelToggle");
         var exportSingleBtn = root.Q<Button>("ExportSingleBtn");
         var exportAllBtn = root.Q<Button>("ExportAllBtn");
         var copyModelBtn = root.Q<Button>("CopyModelBtn");
@@ -49,6 +50,10 @@ public class EditorUIHolder
         loadTextureBtn.clicked += listener.OnLoadTextureClicked;
         saveBtn.clicked += listener.OnSaveVoxClicked;
         importBtn.clicked += listener.OnImportClicked;
+        exportAsVoxelToggle.RegisterValueChangedCallback(evt =>
+        {
+            listener.OnExportAsVoxelChanged(evt.newValue);
+        });
         exportSingleBtn.clicked += listener.OnExportSingleClicked;
         exportAllBtn.clicked += listener.OnExportAllClicked;
         editModeBtn.clicked += listener.OnEditModeClicked;
@@ -82,6 +87,7 @@ public class EditorUIHolder
         {
             loadTextureBtn,
             saveBtn,
+            exportAsVoxelToggle,
             exportSingleBtn,
             exportAllBtn,
             root.Q<VisualElement>("LoadedStateLayout")
@@ -118,6 +124,8 @@ public class EditorUIHolder
         public void OnLoadTextureClicked();
         public void OnSaveVoxClicked();
         public void OnImportClicked();
+        
+        public void OnExportAsVoxelChanged(bool exportAsVoxel);
         public void OnExportSingleClicked();
         public void OnExportAllClicked();
         public void OnEditModeClicked();

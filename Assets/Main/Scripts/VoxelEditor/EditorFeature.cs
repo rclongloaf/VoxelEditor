@@ -54,7 +54,8 @@ namespace Main.Scripts.VoxelEditor
                 cameraType: CameraType.Free,
                 controlState: new ControlState.None(),
                 editModeState: new EditModeState.EditMode(),
-                uiState: new UIState.Menu()
+                uiState: new UIState.Menu(),
+                exportAsVoxelMesh: false
             );
             this.view = view;
             

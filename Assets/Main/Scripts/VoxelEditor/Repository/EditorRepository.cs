@@ -152,19 +152,36 @@ public class EditorRepository
         TextureData textureData,
         SpriteIndex spriteIndex,
         Vector2 pivotPoint,
-        float pixelsPerUnit
+        float pixelsPerUnit,
+        bool exportAsVoxel
     )
     {
-        var meshGenerator = new MeshFromVoxelsGenerator(
-            voxels,
-            textureWidth,
-            textureHeight,
-            textureData,
-            spriteIndex,
-            pivotPoint,
-            pixelsPerUnit,
-            true
-        );
+        MeshGenerator meshGenerator;
+        if (exportAsVoxel)
+        {
+            meshGenerator = new PointsMeshFromVoxelsGenerator(
+                voxels,
+                textureWidth,
+                textureHeight,
+                textureData,
+                spriteIndex,
+                pivotPoint,
+                pixelsPerUnit
+            );
+        }
+        else
+        {
+            meshGenerator = new MeshFromVoxelsGenerator(
+                voxels,
+                textureWidth,
+                textureHeight,
+                textureData,
+                spriteIndex,
+                pivotPoint,
+                pixelsPerUnit,
+                true
+            );
+        }
 
         var mesh = meshGenerator.GenerateMesh();
 

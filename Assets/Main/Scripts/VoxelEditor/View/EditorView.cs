@@ -461,6 +461,11 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.Import.OnImportClicked());
     }
 
+    void EditorUIHolder.Listener.OnExportAsVoxelChanged(bool exportAsVoxel)
+    {
+        feature.ApplyAction(new EditorAction.Export.ChangeExportAsVoxel(exportAsVoxel));
+    }
+
     void EditorUIHolder.Listener.OnExportSingleClicked()
     {
         feature.ApplyAction(new EditorAction.Export.Single.OnClicked());

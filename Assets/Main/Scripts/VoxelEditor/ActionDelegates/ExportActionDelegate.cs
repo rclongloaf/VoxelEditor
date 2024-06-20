@@ -39,9 +39,20 @@ public class ExportActionDelegate : ActionDelegate<EditorAction.Export>
             case EditorAction.Export.All all:
                 OnAllAction(state, activeLayer, all);
                 break;
+            case EditorAction.Export.ChangeExportAsVoxel changeExportAsVoxel:
+                ChangeExportAsVoxel(state, changeExportAsVoxel);
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action));
         }
+    }
+
+    private void ChangeExportAsVoxel(
+        EditorState state,
+        EditorAction.Export.ChangeExportAsVoxel action
+    )
+    {
+        reducer.ApplyPatch(new EditorPatch.ChangeExportAsVoxel(action.exportAsVoxel));
     }
 
     private void OnSingleAction(EditorState state, VoxLayerState.Loaded activeLayer, EditorAction.Export.Single action)
@@ -55,7 +66,7 @@ public class ExportActionDelegate : ActionDelegate<EditorAction.Export>
                 OnExportClicked(state, activeLayer, onExportClicked);
                 break;
             case EditorAction.Export.Single.OnPathSelected onPathSelected:
-                OnSinglePathSelected(activeLayer, onPathSelected);
+                OnSinglePathSelected(state, activeLayer, onPathSelected);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action));
@@ -73,7 +84,7 @@ public class ExportActionDelegate : ActionDelegate<EditorAction.Export>
                 OnExportClicked(state, activeLayer, onExportClicked);
                 break;
             case EditorAction.Export.All.OnPathSelected onPathSelected:
-                OnAllPathSelected(activeLayer, onPathSelected);
+                OnAllPathSelected(state, activeLayer, onPathSelected);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action));
@@ -104,7 +115,11 @@ public class ExportActionDelegate : ActionDelegate<EditorAction.Export>
         reducer.ApplyPatch(new EditorPatch.FileBrowser.Opened());
     }
 
-    private void OnSinglePathSelected(VoxLayerState.Loaded loadedLayer, EditorAction.Export.Single.OnPathSelected action)
+    private void OnSinglePathSelected(
+        EditorState state,
+        VoxLayerState.Loaded loadedLayer,
+        EditorAction.Export.Single.OnPathSelected action
+    )
     {
         repository.ExportMesh(
             action.path.Split('.')[0],
@@ -114,12 +129,17 @@ public class ExportActionDelegate : ActionDelegate<EditorAction.Export>
             loadedLayer.voxData.textureData,
             loadedLayer.currentSpriteIndex,
             loadedLayer.currentSpriteData.pivot,
-            20
+            20,
+            state.exportAsVoxelMesh
         );
         reducer.ApplyPatch(new EditorPatch.FileBrowser.Closed());
     }
 
-    private void OnAllPathSelected(VoxLayerState.Loaded loadedLayer, EditorAction.Export.All.OnPathSelected action)
+    private void OnAllPathSelected(
+        EditorState state,
+        VoxLayerState.Loaded loadedLayer,
+        EditorAction.Export.All.OnPathSelected action
+    )
     {
         var fileName = action.path.Split('.')[0];
         foreach (var (spriteIndex, spriteData) in loadedLayer.voxData.sprites)
@@ -132,7 +152,8 @@ public class ExportActionDelegate : ActionDelegate<EditorAction.Export>
                 loadedLayer.voxData.textureData,
                 spriteIndex,
                 spriteData.pivot,
-                20
+                20,
+                state.exportAsVoxelMesh
             );
         }
         reducer.ApplyPatch(new EditorPatch.FileBrowser.Closed());

@@ -31,6 +31,8 @@ public interface EditorAction
 
     public interface Export : EditorAction
     {
+        public record ChangeExportAsVoxel(bool exportAsVoxel) : Export;
+        
         public interface Single : Export
         {
             public record OnClicked : Single;

@@ -40,6 +40,8 @@ public interface EditorPatch
         public record Cancel : Import;
     }
 
+    public record ChangeExportAsVoxel(bool exportAsVoxel) : EditorPatch;
+
     public record VoxLoaded(VoxData voxData) : EditorPatch;
 
     public record TextureLoaded(Texture2D texture) : EditorPatch;
