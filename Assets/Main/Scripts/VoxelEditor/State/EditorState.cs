@@ -14,7 +14,8 @@ namespace Main.Scripts.VoxelEditor.State
         CameraType cameraType,
         ControlState controlState,
         EditModeState editModeState,
-        UIState uiState
+        UIState uiState,
+        bool exportAsVoxelMesh
     )
     {
         public VoxLayerState activeLayer => layers[activeLayerKey];

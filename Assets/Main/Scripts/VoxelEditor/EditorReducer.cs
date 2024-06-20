@@ -39,6 +39,7 @@ public class EditorReducer
             EditorPatch.EditMode editModePatch => ApplyEditModePatch(editModePatch),
             EditorPatch.PivotPoint pivotPointPatch => ApplyPivotPointPatch(pivotPointPatch),
             EditorPatch.Camera cameraPatch => ApplyCameraPatch(cameraPatch),
+            EditorPatch.ChangeExportAsVoxel changeExportAsVoxel => ApplyChangeExportAsVoxel(changeExportAsVoxel),
             EditorPatch.Selection selection => ApplySelectionPatch(selection),
             EditorPatch.ChangeSpriteIndex changeSpriteIndexPatch => ApplyChangeSpriteIndex(changeSpriteIndexPatch),
             EditorPatch.ChangeSpriteRefVisibility changeSpriteRefVisibilityPatch => ApplyChangeSpriteRefVisibilityPatch(changeSpriteRefVisibilityPatch),
@@ -777,6 +778,14 @@ public class EditorReducer
             default:
                 throw new ArgumentOutOfRangeException(nameof(patch));
         }
+    }
+
+    private EditorState ApplyChangeExportAsVoxel(EditorPatch.ChangeExportAsVoxel patch)
+    {
+        return state with
+        {
+            exportAsVoxelMesh = patch.exportAsVoxel
+        };
     }
 
     private EditorState ApplySelectionPatch(EditorPatch.Selection patch)

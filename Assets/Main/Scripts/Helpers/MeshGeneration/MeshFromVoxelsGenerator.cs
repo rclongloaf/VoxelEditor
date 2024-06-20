@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Helpers.MeshGeneration
 {
-public class MeshFromVoxelsGenerator
+public class MeshFromVoxelsGenerator : MeshGenerator
 {
     private Dictionary<Vector3Int, VoxelData> voxels;
     private int textureWidth;
