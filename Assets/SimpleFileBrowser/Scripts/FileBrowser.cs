@@ -8,7 +8,11 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UnityEditor.ShaderGraph.Serialization;
 #if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
 using UnityEngine.InputSystem;
 #endif
@@ -1073,11 +1077,14 @@ namespace SimpleFileBrowser
 					quickLinkPath = Path.Combine( quickLinkPath, "Documents" );
 #endif
 
-				AddQuickLink( quickLink.icon, quickLink.name, quickLinkPath );
+				AddQuickLink( quickLink.icon, quickLink.name, quickLinkPath , false);
 			}
 
 			quickLinks = null;
 #endif
+			
+			LoadQuickLinks();
+
 		}
 
 		private void RefreshDriveQuickLinks()
@@ -1195,7 +1202,7 @@ namespace SimpleFileBrowser
 						numberOfDriveQuickLinks++;
 				}
 #else
-				if( AddQuickLink( m_skin.DriveIcon, drives[i], drives[i] ) )
+				if( AddQuickLink( m_skin.DriveIcon, drives[i], drives[i], false ) )
 					numberOfDriveQuickLinks++;
 #endif
 			}
@@ -2362,7 +2369,7 @@ namespace SimpleFileBrowser
 
 			MultiSelectionToggleSelectionMode = false;
 
-			RemoveQuickLinkInternal(CurrentPath);
+			RemoveQuickLinkInternal(CurrentPath, true);
 		}
 
 		// Prompts user to delete the selected files & folders
@@ -2399,7 +2406,7 @@ namespace SimpleFileBrowser
 				pendingFileEntrySelection.Add( validFileEntries[selectedFileEntries[i]].Name );
 		}
 
-		private bool AddQuickLink( Sprite icon, string name, string path )
+		private bool AddQuickLink( Sprite icon, string name, string path, bool saveSettings )
 		{
 			if( string.IsNullOrEmpty( path ) )
 				return false;
@@ -2442,12 +2449,15 @@ namespace SimpleFileBrowser
 
 			allQuickLinks.Add( quickLink );
 
-			SaveQuickLinks();
+			if (saveSettings)
+			{
+				SaveQuickLinks();
+			}
 
 			return true;
 		}
 
-		private bool RemoveQuickLinkInternal(string path)
+		private bool RemoveQuickLinkInternal(string path, bool saveSettings)
 		{
 			if (string.IsNullOrEmpty(path))
 				return false;
@@ -2492,7 +2502,10 @@ namespace SimpleFileBrowser
 			if (removedIndex != -1)
 			{
 				quickLinksContainer.sizeDelta = new Vector2(0f, quickLinksContainer.sizeDelta.y - m_skin.FileHeight);
-				SaveQuickLinks();
+				if (saveSettings)
+				{
+					SaveQuickLinks();
+				}
 			}
 
 			return removedIndex != -1;
@@ -2523,7 +2536,78 @@ namespace SimpleFileBrowser
 
 		private void SaveQuickLinks()
 		{
-			 
+			var jObject = new JObject();
+			
+			var jQuickLinks = new JArray();
+
+
+			foreach (var quickLink in allQuickLinks)
+			{
+				var jQuickLink = new JObject();
+				jQuickLink.Add("name", quickLink.Name);
+				jQuickLink.Add("path", quickLink.TargetPath);
+				jQuickLinks.Add(jQuickLink);
+			}
+
+			jObject.Add("quick_links", jQuickLinks);
+
+			var directory = GetSettingsDirectory();
+
+
+			if (!File.Exists(directory) && !Directory.CreateDirectory(directory).Exists)
+			{
+				return;
+			}
+				
+			var path = GetSettingsPath();
+
+			using var streamWriter = File.CreateText(path);
+			using var jsonWriter = new JsonTextWriter(streamWriter);
+			
+			jObject.WriteTo(jsonWriter);
+		}
+
+		private bool LoadQuickLinks()
+		{
+			var path = GetSettingsPath();
+			if (!File.Exists(path))
+			{
+				return false;
+			}
+        
+			using var streamReader = File.OpenText(path);
+			using var jsonReader = new JsonTextReader(streamReader);
+
+			try
+			{
+				var jObject = (JObject)JToken.ReadFrom(jsonReader);
+
+				var jQuickLinks = (JArray)jObject.GetValue("quick_links");
+			
+				foreach(var jQuickLink in jQuickLinks)
+				{
+					var quickLinkName = (string)((JObject)jQuickLink).GetValue("name");
+					var quickLinkPath = (string)((JObject)jQuickLink).GetValue("path");
+					Debug.Log($"{quickLinkName} {quickLinkPath}");
+					AddQuickLink(quickLinkName, quickLinkPath);
+				}
+			}
+			catch (Exception e)
+			{
+				return false;
+			}
+			
+			return true;
+		}
+
+		private string GetSettingsPath()
+		{
+			return $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\\.VoxelEditor\\FileBrowserSettings.json";
+		}
+
+		private string GetSettingsDirectory()
+		{
+			return $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\\.VoxelEditor";
 		}
 
 		// Makes sure that scroll view's contents are within scroll view's bounds
@@ -3041,7 +3125,7 @@ namespace SimpleFileBrowser
 				Instance.InitializeQuickLinks();
 			}
 
-			return Instance.AddQuickLink( icon, name, path );
+			return Instance.AddQuickLink( icon, name, path, true );
 		}
 
 		public static bool RemoveQuickLink(string path)
@@ -3058,7 +3142,7 @@ namespace SimpleFileBrowser
 				Instance.InitializeQuickLinks();
 			}
 
-			return Instance.RemoveQuickLinkInternal(path);
+			return Instance.RemoveQuickLinkInternal(path, true);
 		}
 
 		public static void ClearQuickLinks()
