@@ -8,7 +8,11 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UnityEditor.ShaderGraph.Serialization;
 #if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
 using UnityEngine.InputSystem;
 #endif
@@ -1073,11 +1077,14 @@ namespace SimpleFileBrowser
 					quickLinkPath = Path.Combine( quickLinkPath, "Documents" );
 #endif
 
-				AddQuickLink( quickLink.icon, quickLink.name, quickLinkPath );
+				AddQuickLink( quickLink.icon, quickLink.name, quickLinkPath , false);
 			}
 
 			quickLinks = null;
 #endif
+			
+			LoadQuickLinks();
+
 		}
 
 		private void RefreshDriveQuickLinks()
@@ -1195,7 +1202,7 @@ namespace SimpleFileBrowser
 						numberOfDriveQuickLinks++;
 				}
 #else
-				if( AddQuickLink( m_skin.DriveIcon, drives[i], drives[i] ) )
+				if( AddQuickLink( m_skin.DriveIcon, drives[i], drives[i], false ) )
 					numberOfDriveQuickLinks++;
 #endif
 			}
@@ -1381,6 +1388,8 @@ namespace SimpleFileBrowser
 			bool deselectAllButtonVisible = isMoreOptionsMenu && selectedFileEntries.Count > 1;
 			bool deleteButtonVisible = contextMenuShowDeleteButton && selectedFileEntries.Count > 0;
 			bool renameButtonVisible = contextMenuShowRenameButton && selectedFileEntries.Count == 1;
+			var addQuickLinkButtonVisible = selectedFileEntries.Count == 1;
+			var removeQuickLinkButtonVisible = selectedFileEntries.Count == 0;
 
 			if( selectAllButtonVisible && m_pickerMode == PickMode.Files )
 			{
@@ -1396,7 +1405,16 @@ namespace SimpleFileBrowser
 				}
 			}
 
-			contextMenu.Show( selectAllButtonVisible, deselectAllButtonVisible, deleteButtonVisible, renameButtonVisible, position, isMoreOptionsMenu );
+			contextMenu.Show(
+				selectAllButtonVisible,
+				deselectAllButtonVisible,
+				deleteButtonVisible,
+				renameButtonVisible,
+				addQuickLinkButtonVisible,
+				removeQuickLinkButtonVisible,
+				position,
+				isMoreOptionsMenu
+			);
 		}
 
 		public void OnSubmitButtonClicked()
@@ -2329,6 +2347,31 @@ namespace SimpleFileBrowser
 			} );
 		}
 
+		public void AddQuickLinkToSelectedFile()
+		{
+			if( selectedFileEntries.Count != 1 )
+				return;
+
+			MultiSelectionToggleSelectionMode = false;
+
+			int fileEntryIndex = selectedFileEntries[0];
+			FileSystemEntry fileInfo = validFileEntries[fileEntryIndex];
+
+			if (!fileInfo.IsDirectory) return;
+
+			AddQuickLink(fileInfo.Name, fileInfo.Path);
+		}
+
+		public void RemoveQuickLinkToSelectedFile()
+		{
+			if(CurrentPath.Length == 0)
+				return;
+
+			MultiSelectionToggleSelectionMode = false;
+
+			RemoveQuickLinkInternal(CurrentPath, true);
+		}
+
 		// Prompts user to delete the selected files & folders
 		public void DeleteSelectedFiles()
 		{
@@ -2363,7 +2406,7 @@ namespace SimpleFileBrowser
 				pendingFileEntrySelection.Add( validFileEntries[selectedFileEntries[i]].Name );
 		}
 
-		private bool AddQuickLink( Sprite icon, string name, string path )
+		private bool AddQuickLink( Sprite icon, string name, string path, bool saveSettings )
 		{
 			if( string.IsNullOrEmpty( path ) )
 				return false;
@@ -2406,8 +2449,67 @@ namespace SimpleFileBrowser
 
 			allQuickLinks.Add( quickLink );
 
+			if (saveSettings)
+			{
+				SaveQuickLinks();
+			}
+
 			return true;
 		}
+
+		private bool RemoveQuickLinkInternal(string path, bool saveSettings)
+		{
+			if (string.IsNullOrEmpty(path))
+				return false;
+
+#if !UNITY_EDITOR && UNITY_ANDROID
+			if( !FileBrowserHelpers.ShouldUseSAFForPath( path ) )
+#endif
+			{
+#if !WIN_DIR_CHECK_WITHOUT_TIMEOUT && ( UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN )
+				if (!CheckDirectoryExistsWithTimeout(path))
+#else
+				if( !Directory.Exists( path ) )
+#endif
+					return false;
+
+				if (Directory.GetParent(path) == null)
+				{
+					return false;
+				}
+
+				path = GetPathWithoutTrailingDirectorySeparator(path.Trim());
+			}
+
+			var removedIndex = -1;
+
+			for (var i = 0; i < allQuickLinks.Count; i++)
+			{
+				if (allQuickLinks[i].TargetPath == path)
+				{
+					Destroy(allQuickLinks[i].gameObject);
+					allQuickLinks.RemoveAt(i);
+
+					removedIndex = i--;
+				}
+
+				if (removedIndex != -1 && removedIndex <= i)
+				{
+					allQuickLinks[i].TransformComponent.anchoredPosition += new Vector2(0, m_skin.FileHeight);
+				}
+			}
+
+			if (removedIndex != -1)
+			{
+				quickLinksContainer.sizeDelta = new Vector2(0f, quickLinksContainer.sizeDelta.y - m_skin.FileHeight);
+				if (saveSettings)
+				{
+					SaveQuickLinks();
+				}
+			}
+
+			return removedIndex != -1;
+		} 
 
 		private void ClearQuickLinksInternal()
 		{
@@ -2430,6 +2532,82 @@ namespace SimpleFileBrowser
 
 			quickLinksInitialized = true;
 			generateQuickLinksForDrives = false;
+		}
+
+		private void SaveQuickLinks()
+		{
+			var jObject = new JObject();
+			
+			var jQuickLinks = new JArray();
+
+
+			foreach (var quickLink in allQuickLinks)
+			{
+				var jQuickLink = new JObject();
+				jQuickLink.Add("name", quickLink.Name);
+				jQuickLink.Add("path", quickLink.TargetPath);
+				jQuickLinks.Add(jQuickLink);
+			}
+
+			jObject.Add("quick_links", jQuickLinks);
+
+			var directory = GetSettingsDirectory();
+
+
+			if (!File.Exists(directory) && !Directory.CreateDirectory(directory).Exists)
+			{
+				return;
+			}
+				
+			var path = GetSettingsPath();
+
+			using var streamWriter = File.CreateText(path);
+			using var jsonWriter = new JsonTextWriter(streamWriter);
+			
+			jObject.WriteTo(jsonWriter);
+		}
+
+		private bool LoadQuickLinks()
+		{
+			var path = GetSettingsPath();
+			if (!File.Exists(path))
+			{
+				return false;
+			}
+        
+			using var streamReader = File.OpenText(path);
+			using var jsonReader = new JsonTextReader(streamReader);
+
+			try
+			{
+				var jObject = (JObject)JToken.ReadFrom(jsonReader);
+
+				var jQuickLinks = (JArray)jObject.GetValue("quick_links");
+			
+				foreach(var jQuickLink in jQuickLinks)
+				{
+					var quickLinkName = (string)((JObject)jQuickLink).GetValue("name");
+					var quickLinkPath = (string)((JObject)jQuickLink).GetValue("path");
+					Debug.Log($"{quickLinkName} {quickLinkPath}");
+					AddQuickLink(quickLinkName, quickLinkPath);
+				}
+			}
+			catch (Exception e)
+			{
+				return false;
+			}
+			
+			return true;
+		}
+
+		private string GetSettingsPath()
+		{
+			return $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\\.VoxelEditor\\FileBrowserSettings.json";
+		}
+
+		private string GetSettingsDirectory()
+		{
+			return $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\\.VoxelEditor";
 		}
 
 		// Makes sure that scroll view's contents are within scroll view's bounds
@@ -2947,7 +3125,24 @@ namespace SimpleFileBrowser
 				Instance.InitializeQuickLinks();
 			}
 
-			return Instance.AddQuickLink( icon, name, path );
+			return Instance.AddQuickLink( icon, name, path, true );
+		}
+
+		public static bool RemoveQuickLink(string path)
+		{
+			if( string.IsNullOrEmpty( path ) || !FileBrowserHelpers.DirectoryExists( path ) )
+				return false;
+			
+			if( !quickLinksInitialized )
+			{
+				// Fetching the list of external drives is only possible with the READ_EXTERNAL_STORAGE permission granted on Android
+				if( AskPermissions )
+					RequestPermission();
+
+				Instance.InitializeQuickLinks();
+			}
+
+			return Instance.RemoveQuickLinkInternal(path, true);
 		}
 
 		public static void ClearQuickLinks()

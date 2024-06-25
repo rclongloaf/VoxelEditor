@@ -101,9 +101,8 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 // #endif
     
     float3 baseWorldPos = unity_ObjectToWorld._m03_m13_m23;
-    float pixelsPerUnit = 1 / _PixelsPerUnit;
     float3 positionOS = input.positionWS - baseWorldPos;
-    float3 pixelOffset = (positionOS + 100) % pixelsPerUnit;
+    float3 pixelOffset = positionOS - (floor(positionOS * _PixelsPerUnit) + float3(0.5, 1, -1)) / _PixelsPerUnit;
     float3 pixelPerfectPositionWS = input.positionWS - pixelOffset;
     inputData.shadowCoord = TransformWorldToShadowCoord(pixelPerfectPositionWS);
     
