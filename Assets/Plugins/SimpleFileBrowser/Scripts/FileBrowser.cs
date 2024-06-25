@@ -1381,6 +1381,8 @@ namespace SimpleFileBrowser
 			bool deselectAllButtonVisible = isMoreOptionsMenu && selectedFileEntries.Count > 1;
 			bool deleteButtonVisible = contextMenuShowDeleteButton && selectedFileEntries.Count > 0;
 			bool renameButtonVisible = contextMenuShowRenameButton && selectedFileEntries.Count == 1;
+			var addQuickLinkButtonVisible = selectedFileEntries.Count == 1;
+			var removeQuickLinkButtonVisible = selectedFileEntries.Count == 0;
 
 			if( selectAllButtonVisible && m_pickerMode == PickMode.Files )
 			{
@@ -1396,7 +1398,16 @@ namespace SimpleFileBrowser
 				}
 			}
 
-			contextMenu.Show( selectAllButtonVisible, deselectAllButtonVisible, deleteButtonVisible, renameButtonVisible, position, isMoreOptionsMenu );
+			contextMenu.Show(
+				selectAllButtonVisible,
+				deselectAllButtonVisible,
+				deleteButtonVisible,
+				renameButtonVisible,
+				addQuickLinkButtonVisible,
+				removeQuickLinkButtonVisible,
+				position,
+				isMoreOptionsMenu
+			);
 		}
 
 		public void OnSubmitButtonClicked()
@@ -2329,6 +2340,31 @@ namespace SimpleFileBrowser
 			} );
 		}
 
+		public void AddQuickLinkToSelectedFile()
+		{
+			if( selectedFileEntries.Count != 1 )
+				return;
+
+			MultiSelectionToggleSelectionMode = false;
+
+			int fileEntryIndex = selectedFileEntries[0];
+			FileSystemEntry fileInfo = validFileEntries[fileEntryIndex];
+
+			if (!fileInfo.IsDirectory) return;
+
+			AddQuickLink(fileInfo.Name, fileInfo.Path);
+		}
+
+		public void RemoveQuickLinkToSelectedFile()
+		{
+			if(CurrentPath.Length == 0)
+				return;
+
+			MultiSelectionToggleSelectionMode = false;
+
+			RemoveQuickLinkInternal(CurrentPath);
+		}
+
 		// Prompts user to delete the selected files & folders
 		public void DeleteSelectedFiles()
 		{
@@ -2406,8 +2442,61 @@ namespace SimpleFileBrowser
 
 			allQuickLinks.Add( quickLink );
 
+			SaveQuickLinks();
+
 			return true;
 		}
+
+		private bool RemoveQuickLinkInternal(string path)
+		{
+			if (string.IsNullOrEmpty(path))
+				return false;
+
+#if !UNITY_EDITOR && UNITY_ANDROID
+			if( !FileBrowserHelpers.ShouldUseSAFForPath( path ) )
+#endif
+			{
+#if !WIN_DIR_CHECK_WITHOUT_TIMEOUT && ( UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN )
+				if (!CheckDirectoryExistsWithTimeout(path))
+#else
+				if( !Directory.Exists( path ) )
+#endif
+					return false;
+
+				if (Directory.GetParent(path) == null)
+				{
+					return false;
+				}
+
+				path = GetPathWithoutTrailingDirectorySeparator(path.Trim());
+			}
+
+			var removedIndex = -1;
+
+			for (var i = 0; i < allQuickLinks.Count; i++)
+			{
+				if (allQuickLinks[i].TargetPath == path)
+				{
+					Destroy(allQuickLinks[i].gameObject);
+					allQuickLinks.RemoveAt(i);
+
+					removedIndex = i--;
+				}
+
+				if (removedIndex != -1 && removedIndex <= i)
+				{
+					allQuickLinks[i].TransformComponent.anchoredPosition += new Vector2(0, m_skin.FileHeight);
+				}
+			}
+
+			if (removedIndex != -1)
+			{
+				quickLinksContainer.sizeDelta = new Vector2(0f, quickLinksContainer.sizeDelta.y - m_skin.FileHeight);
+				SaveQuickLinks();
+			}
+
+			return removedIndex != -1;
+		} 
 
 		private void ClearQuickLinksInternal()
 		{
@@ -2430,6 +2519,11 @@ namespace SimpleFileBrowser
 
 			quickLinksInitialized = true;
 			generateQuickLinksForDrives = false;
+		}
+
+		private void SaveQuickLinks()
+		{
+			 
 		}
 
 		// Makes sure that scroll view's contents are within scroll view's bounds
@@ -2948,6 +3042,23 @@ namespace SimpleFileBrowser
 			}
 
 			return Instance.AddQuickLink( icon, name, path );
+		}
+
+		public static bool RemoveQuickLink(string path)
+		{
+			if( string.IsNullOrEmpty( path ) || !FileBrowserHelpers.DirectoryExists( path ) )
+				return false;
+			
+			if( !quickLinksInitialized )
+			{
+				// Fetching the list of external drives is only possible with the READ_EXTERNAL_STORAGE permission granted on Android
+				if( AskPermissions )
+					RequestPermission();
+
+				Instance.InitializeQuickLinks();
+			}
+
+			return Instance.RemoveQuickLinkInternal(path);
 		}
 
 		public static void ClearQuickLinks()

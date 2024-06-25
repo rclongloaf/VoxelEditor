@@ -22,6 +22,10 @@ namespace SimpleFileBrowser
 		private Button deleteButton;
 		[SerializeField]
 		private Button renameButton;
+		[SerializeField]
+		private Button addQuickLinkButton;
+		[SerializeField]
+		private Button removeQuickLinkButton;
 
 		[SerializeField]
 		private GameObject selectAllButtonSeparator;
@@ -37,12 +41,23 @@ namespace SimpleFileBrowser
 		private float minDistanceToEdges = 10f;
 #pragma warning restore 0649
 
-		internal void Show( bool selectAllButtonVisible, bool deselectAllButtonVisible, bool deleteButtonVisible, bool renameButtonVisible, Vector2 position, bool isMoreOptionsMenu )
+		internal void Show(
+			bool selectAllButtonVisible,
+			bool deselectAllButtonVisible,
+			bool deleteButtonVisible,
+			bool renameButtonVisible,
+			bool addQuickLinkButtonVisible,
+			bool removeQuickLinkButtonVisible,
+			Vector2 position,
+			bool isMoreOptionsMenu
+		)
 		{
 			selectAllButton.gameObject.SetActive( selectAllButtonVisible );
 			deselectAllButton.gameObject.SetActive( deselectAllButtonVisible );
 			deleteButton.gameObject.SetActive( deleteButtonVisible );
 			renameButton.gameObject.SetActive( renameButtonVisible );
+			addQuickLinkButton.gameObject.SetActive(addQuickLinkButtonVisible);
+			removeQuickLinkButton.gameObject.SetActive(removeQuickLinkButtonVisible);
 			selectAllButtonSeparator.SetActive( !deselectAllButtonVisible );
 
 			rectTransform.anchoredPosition = position;
@@ -130,6 +145,18 @@ namespace SimpleFileBrowser
 		{
 			Hide();
 			fileBrowser.CreateNewFolder();
+		}
+
+		public void OnAddQuickLinkButtonClicked()
+		{
+			Hide();
+			fileBrowser.AddQuickLinkToSelectedFile();
+		}
+
+		public void OnRemoveQuickLinkButtonClicked()
+		{
+			Hide();
+			fileBrowser.RemoveQuickLinkToSelectedFile();
 		}
 
 		public void OnDeleteButtonClicked()
