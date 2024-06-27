@@ -6,7 +6,7 @@ public interface EditorEvent
 
     public record OpenBrowserForLoadTexture : EditorEvent;
 
-    public record OpenBrowserForSaveVox : EditorEvent;
+    public record OpenBrowserForSaveVox(bool exitOnSave) : EditorEvent;
 
     public record OpenBrowserForImport : EditorEvent;
 

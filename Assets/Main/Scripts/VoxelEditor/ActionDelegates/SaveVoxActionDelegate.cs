@@ -52,7 +52,7 @@ public class SaveVoxActionDelegate : ActionDelegate<EditorAction.SaveVox>
         
         if (activeLayer.currentSpriteData == activeLayer.voxData.sprites[activeLayer.currentSpriteIndex])
         {
-            eventsConsumer.Consume(new EditorEvent.OpenBrowserForSaveVox());
+            eventsConsumer.Consume(new EditorEvent.OpenBrowserForSaveVox(action.exitOnSave));
             reducer.ApplyPatch(new EditorPatch.FileBrowser.Opened());
         }
         else

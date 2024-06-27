@@ -72,7 +72,7 @@ public interface EditorAction
 
     public interface SaveVox : EditorAction
     {
-        public record OnSaveClicked : SaveVox;
+        public record OnSaveClicked(bool exitOnSave) : SaveVox;
 
         public record OnPathSelected(string path) : SaveVox;
 
