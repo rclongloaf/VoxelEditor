@@ -714,6 +714,54 @@ MonoBehaviour:
   directionLightTransform: {fileID: 1800347035}
   directionLightXSlider: {fileID: 2024848392}
   directionLightYSlider: {fileID: 271540479}
+--- !u!1 &653412630
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 653412631}
+  - component: {fileID: 653412632}
+  m_Layer: 0
+  m_Name: SaveOnQuitUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &653412631
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653412630}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 778525560}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &653412632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653412630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PanelSettings: {fileID: 11400000, guid: ed02de087503ac642969deed275f3138, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 6a4ffbd49a0863d4a85a5182cfb94886, type: 3}
+  m_SortingOrder: 5
 --- !u!1 &716340865
 GameObject:
   m_ObjectHideFlags: 0
@@ -857,6 +905,7 @@ Transform:
   - {fileID: 1290982102}
   - {fileID: 1473038159}
   - {fileID: 865660634}
+  - {fileID: 653412631}
   - {fileID: 1616617601}
   - {fileID: 940157840}
   - {fileID: 2094580981}
@@ -944,7 +993,7 @@ MonoBehaviour:
   m_PanelSettings: {fileID: 11400000, guid: ed02de087503ac642969deed275f3138, type: 2}
   m_ParentUI: {fileID: 0}
   sourceAsset: {fileID: 9197481963319205126, guid: 78fb00b9e47a5b74db85c327bea1a1b1, type: 3}
-  m_SortingOrder: 1
+  m_SortingOrder: 5
 --- !u!1 &888225375
 GameObject:
   m_ObjectHideFlags: 0
@@ -1871,6 +1920,7 @@ MonoBehaviour:
   isometricCameraTransform: {fileID: 1451545590}
   editorUIDocument: {fileID: 1290982101}
   spriteImportUIDocument: {fileID: 1473038158}
+  saveOnQuitUIDocument: {fileID: 653412632}
   applyChangesUIDocument: {fileID: 865660635}
   applyDeleteLayerUIDocument: {fileID: 940157841}
   applyPivotPointForAllSprites: {fileID: 2094580982}

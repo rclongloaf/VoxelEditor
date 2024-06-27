@@ -19,7 +19,8 @@ public class EditorView : MonoBehaviour,
     TextureImportUIHolder.Listener,
     ApplySpriteChangesUIHolder.Listener,
     ApplyDeleteLayerUIHolder.Listener,
-    ApplyPivotPointForAllUIHolder.Listener
+    ApplyPivotPointForAllUIHolder.Listener,
+    SaveOnQuitUIHolder.Listener
 {
     [SerializeField]
     private Transform freeCameraTransform = null!;
@@ -29,6 +30,8 @@ public class EditorView : MonoBehaviour,
     private UIDocument editorUIDocument = null!;
     [SerializeField]
     private UIDocument spriteImportUIDocument = null!;
+    [SerializeField]
+    private UIDocument saveOnQuitUIDocument = null!;
     [SerializeField]
     private UIDocument applyChangesUIDocument = null!;
     [SerializeField]
@@ -64,6 +67,7 @@ public class EditorView : MonoBehaviour,
     private RenderModeController renderModeController = null!;
     private EditorUIHolder editorUIHolder = null!;
     private TextureImportUIHolder textureImportUIHolder = null!;
+    private SaveOnQuitUIHolder saveOnQuitUIHolder = null!;
     private ApplySpriteChangesUIHolder applySpriteChangesUIHolder = null!;
     private ApplyDeleteLayerUIHolder applyDeleteLayerUIHolder = null!;
     private ApplyPivotPointForAllUIHolder applyPivotPointForAllUIHolder = null!;
@@ -71,6 +75,8 @@ public class EditorView : MonoBehaviour,
     
     private HashSet<KeyCode> pressedKeys = new();
     private HashSet<KeyCode> newPressedKeys = new();
+
+    private bool allowQuiting = false;
     
     private void Awake()
     {
@@ -79,6 +85,8 @@ public class EditorView : MonoBehaviour,
         editorUIHolder.SetLoadedState(false);
         textureImportUIHolder = new TextureImportUIHolder(spriteImportUIDocument, this);
         textureImportUIHolder.SetVisibility(false);
+        saveOnQuitUIHolder = new SaveOnQuitUIHolder(saveOnQuitUIDocument, this);
+        saveOnQuitUIHolder.SetVisibility(false);
         applySpriteChangesUIHolder = new ApplySpriteChangesUIHolder(applyChangesUIDocument, this);
         applySpriteChangesUIHolder.SetVisibility(false);
         applyDeleteLayerUIHolder = new ApplyDeleteLayerUIHolder(applyDeleteLayerUIDocument, this);
@@ -99,6 +107,18 @@ public class EditorView : MonoBehaviour,
     private void Start()
     {
         renderModeController.SetVisibility(false);
+
+        Application.wantsToQuit += () =>
+        {
+            if (allowQuiting)
+            {
+                return true;
+            }
+
+            saveOnQuitUIHolder.SetVisibility(true);
+            
+            return false;
+        };
     }
 
     private void Update()
@@ -390,7 +410,7 @@ public class EditorView : MonoBehaviour,
                 LoadTexture();
                 break;
             case EditorEvent.OpenBrowserForSaveVox openBrowserForSaveVox:
-                SaveVoxFile();
+                SaveVoxFile(openBrowserForSaveVox.exitOnSave);
                 break;
         }
     }
@@ -453,7 +473,7 @@ public class EditorView : MonoBehaviour,
 
     void EditorUIHolder.Listener.OnSaveVoxClicked()
     {
-        feature.ApplyAction(new EditorAction.SaveVox.OnSaveClicked());
+        feature.ApplyAction(new EditorAction.SaveVox.OnSaveClicked(false));
     }
 
     void EditorUIHolder.Listener.OnImportClicked()
@@ -544,6 +564,22 @@ public class EditorView : MonoBehaviour,
     void EditorUIHolder.Listener.OnSmoothAllClicked(bool enableSmooth)
     {
         feature.ApplyAction(enableSmooth ? new EditorAction.Smooth.Auto() : new EditorAction.Smooth.Clear());
+    }
+
+    void SaveOnQuitUIHolder.Listener.OnApplyClicked()
+    {
+        feature.ApplyAction(new EditorAction.SaveVox.OnSaveClicked(true));
+    }
+
+    void SaveOnQuitUIHolder.Listener.OnDiscardClicked()
+    {
+        allowQuiting = true;
+        Application.Quit();
+    }
+
+    void SaveOnQuitUIHolder.Listener.OnCancelClicked()
+    {
+        saveOnQuitUIHolder.SetVisibility(false);
     }
 
     public void OnToggleSpriteRefClicked()
@@ -825,10 +861,13 @@ public class EditorView : MonoBehaviour,
         feature.ApplyAction(new EditorAction.LoadTexture.OnCancel());
     }
 
-    private void SaveVoxFile()
+    private void SaveVoxFile(bool withExitOnSuccess)
     {
         FileBrowser.ShowSaveDialog(
-            onSuccess: OnSaveVoxSuccess,
+            onSuccess: (paths) =>
+            {
+                OnSaveVoxSuccess(paths, withExitOnSuccess);
+            },
             onCancel: OnSaveVoxCanceled,
             pickMode: FileBrowser.PickMode.Files,
             allowMultiSelection: false,
@@ -838,9 +877,15 @@ public class EditorView : MonoBehaviour,
         );
     }
 
-    private void OnSaveVoxSuccess(string[] paths)
+    private void OnSaveVoxSuccess(string[] paths, bool withExit)
     {
         feature.ApplyAction(new EditorAction.SaveVox.OnPathSelected(paths[0]));
+
+        if (withExit)
+        {
+            allowQuiting = true;
+            Application.Quit();
+        }
     }
 
     private void OnSaveVoxCanceled()
