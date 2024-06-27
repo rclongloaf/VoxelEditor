@@ -591,7 +591,8 @@ public class InputActionDelegate : ActionDelegate<EditorAction.Input>
         };
 
         var angle = rotatingVoxelsState.angle - deltaX * 4f;
-        var quaternion = Quaternion.AngleAxis(angle, axis);
+        var snappedAngle = Mathf.Round(angle / 15) * 15;
+        var quaternion = Quaternion.AngleAxis(snappedAngle, axis);
 
         var voxels = rotatingVoxelsState.voxels;
 
